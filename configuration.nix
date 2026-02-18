@@ -6,6 +6,7 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
+      #./modules/desktop/hyprland.nix
     ];
 
   hardware.graphics = {
@@ -242,7 +243,7 @@
 	vscode
 	lxqt.lxqt-policykit
 	steam
-        kdePackages.kate
+  kdePackages.kate
 	mpv
 	ffmpeg
 	pywalfox-native
@@ -267,7 +268,8 @@
 	udiskie
 	librewolf
 	tree
-   ];
+  spotify
+  ];
  
  
    fonts.packages = with pkgs; [
