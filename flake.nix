@@ -20,5 +20,12 @@
         inputs.home-manager.nixosModules.default
       ];
     };
+    nixConfigurations.saruman-nixos = nixpkgs.lib.nixosSystem{
+      specialArgs = {inherit inputs;};
+      modules = [
+        ./configuration.nix
+	inputs.home-manater.nixosModules.default
+      ];
+    };
   };
 }
