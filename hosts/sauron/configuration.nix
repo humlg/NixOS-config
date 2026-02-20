@@ -7,6 +7,7 @@
     [
       ./hardware-configuration.nix
       ./file-system.nix
+      ../modules/hardware/nvidia.nix
       #./modules/desktop/hyprland.nix
     ];
 
@@ -15,14 +16,8 @@
     enable32Bit = true;
     
   };
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = false;
-    open = false; # Use proprietary driver
-    nvidiaSettings = true;
-  };
 
-  #hardware.enableRedustributedFirmware = true;
+  #hardware.enableRedistributedFirmware = true;
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;
@@ -33,8 +28,6 @@
     };
   };
   
-  boot.kernelParams = ["nvidia_drm.modeset=1"];
-  services.xserver.videoDrivers = ["nvidia"];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Use the systemd-boot EFI boot loader.
