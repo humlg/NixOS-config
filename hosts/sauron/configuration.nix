@@ -7,7 +7,7 @@
     [
       ./hardware-configuration.nix
       ./file-system.nix
-      ../modules/hardware/nvidia.nix
+      ../../modules/hardware/nvidia.nix
       #./modules/desktop/hyprland.nix
     ];
 
