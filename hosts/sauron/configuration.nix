@@ -4,7 +4,7 @@
  
 {
   imports =
-    [ # Include the results of the hardware scan.
+    [
       ./hardware-configuration.nix
       ./file-system.nix
       #./modules/desktop/hyprland.nix
@@ -13,13 +13,12 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    #driSupport = true;
-    #driSupport32Bit = true;
+    
   };
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = false;
-    open = false; # RTX 2060 → use proprietary driver
+    open = false; # Use proprietary driver
     nvidiaSettings = true;
   };
 
@@ -78,43 +77,6 @@
     keyMap = "cz";
  };
 
-  services.udisks2.enable = true;
-  fileSystems."/mnt/data1" = {
-    device = "/dev/disk/by-uuid/c424be95-313a-4251-b702-587ff795c7f9";
-    fsType = "ext4";
-    options = ["nofail" "x-systemd.automatic"];
-  };
-  fileSystems."/home/david/Documents" = {
-    device = "/mnt/data1/Documents";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/home/david/Downloads" = {
-    device = "/mnt/data1/Downloads";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/home/david/Pictures" = {
-    device = "/mnt/data1/Pictures";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/home/david/Music" = {
-    device = "/mnt/data1/Music";
-    options = [ "bind" ];
-  };
-
-  fileSystems."/home/david/Videos" = {
-    device = "/mnt/data1/Videos";
-    options = [ "bind" ];
-  };
-
-
-  fileSystems."/mnt/data2" = {
-     device = "/dev/disk/by-uuid/085a2044-a0fe-4b57-9beb-2fa4f747e416";
-     fsType = "ext4";
-     options = ["nofail" "x-systemd.automatic"];
-  };
 
 
    services.displayManager.sddm = {
@@ -142,7 +104,7 @@
     };
 
   environment.variables = {
-	NIXPKGS_ALLOW_UNFREE = 1;
+  NIXPKGS_ALLOW_UNFREE = 1;
   };
   
   environment.sessionVariables = {
@@ -202,19 +164,19 @@
    programs.firefox.enable = true;
    programs.thunar.enable = true;
    programs.zsh = {
-	enable = true;
-	autosuggestions.enable = true;
-	syntaxHighlighting.enable = true;
-	ohMyZsh = {
-		enable = true;
-		plugins = ["git"];
-		theme = "agnoster";
-	};
-	interactiveShellInit = ''
-		if command -v fastfetch >/dev/null 2>&1; then
-			fastfetch
-		fi
-		'';
+  enable = true;
+  autosuggestions.enable = true;
+  syntaxHighlighting.enable = true;
+  ohMyZsh = {
+    enable = true;
+    plugins = ["git"];
+    theme = "agnoster";
+  };
+  interactiveShellInit = ''
+    if command -v fastfetch >/dev/null 2>&1; then
+      fastfetch
+    fi
+    '';
    };
    programs.kdeconnect.enable = true;
    programs.coolercontrol.enable = true;
@@ -225,61 +187,61 @@
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
    environment.systemPackages = with pkgs; [
-	vim
-	wget
-	htop
-	btop
-	kitty
-	gtk3
-	xterm
-	alacritty
-	rofi
-	wofi
-	waybar
-	git
-	unzip
-	pywal16
-	waypaper
-	chromium
-	swww
-	curl
-	wget
-	spice-vdagent
-	volantes-cursors
-	fastfetch
-	discord
-	vscode
-	lxqt.lxqt-policykit
-	steam
-  kdePackages.kate
-	mpv
-	ffmpeg
-	pywalfox-native
-	sddm-sugar-dark
-	quickshell
-	pavucontrol
-	kdePackages.kdeconnect-kde
-	cliphist
-	wl-clipboard
-	hyprlock
-	hypridle
-	lm_sensors
-	stress
-	cava
-	openrgb
-	hyprshot
-	swaynotificationcenter
-	obsidian
-	usbutils
-	blueman
-	gamescope
-	udiskie
-	librewolf
-	tree
-	spotify
-	feh
-	darktable
-	lazygit
+    vim
+    wget
+    htop
+    btop
+    kitty
+    gtk3
+    xterm
+    alacritty
+    rofi
+    wofi
+    waybar
+    git
+    unzip
+    pywal16
+    waypaper
+    chromium
+    swww
+    curl
+    wget
+    spice-vdagent
+    volantes-cursors
+    fastfetch
+    discord
+    vscode
+    lxqt.lxqt-policykit
+    steam
+    kdePackages.kate
+    mpv
+    ffmpeg
+    pywalfox-native
+    sddm-sugar-dark
+    quickshell
+    pavucontrol
+    kdePackages.kdeconnect-kde
+    cliphist
+    wl-clipboard
+    hyprlock
+    hypridle
+    lm_sensors
+    stress
+    cava
+    openrgb
+    hyprshot
+    swaynotificationcenter
+    obsidian
+    usbutils
+    blueman
+    gamescope
+    udiskie
+    librewolf
+    tree
+    spotify
+    feh
+    darktable
+    lazygit
   ];
  
  
