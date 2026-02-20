@@ -8,6 +8,7 @@
       ./hardware-configuration.nix
       ./file-system.nix
       ../../modules/hardware/nvidia.nix
+      ../../modules/services/bluetoot.nix
       #./modules/desktop/hyprland.nix
     ];
 
