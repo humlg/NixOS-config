@@ -16,14 +16,15 @@
     nixosConfigurations.sauron = nixpkgs.lib.nixosSystem {
       specialArgs = {inherit inputs;};
       modules = [
-        ./configuration.nix
+        ./hosts/sauron/configuration.nix
+
         inputs.home-manager.nixosModules.default
       ];
     };
     nixosConfigurations."saruman-nixos" = nixpkgs.lib.nixosSystem{
       specialArgs = {inherit inputs;};
       modules = [
-        ./configuration.nix
+        ./hosts/sauron-nixos/configuration.nix
 	inputs.home-manager.nixosModules.default
       ];
     };

@@ -275,7 +275,9 @@
 	udiskie
 	librewolf
 	tree
-  spotify
+	spotify
+	feh
+	darktable
   ];
  
  
