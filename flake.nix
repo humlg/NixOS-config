@@ -11,22 +11,24 @@
   };
 
   outputs = { self, nixpkgs, ... }@inputs: {
-    # use "nixos", or your hostname as the name of the configuration
-    # it's a better practice than "default" shown in the video
-    nixosConfigurations.sauron = nixpkgs.lib.nixosSystem {
-      specialArgs = {inherit inputs;};
-      modules = [
-        ./hosts/sauron/configuration.nix
+    nixosConfigurations = {
 
-        inputs.home-manager.nixosModules.default
-      ];
-    };
-    nixosConfigurations."saruman-nixos" = nixpkgs.lib.nixosSystem{
-      specialArgs = {inherit inputs;};
-      modules = [
-        ./hosts/sauron-nixos/configuration.nix
-	inputs.home-manager.nixosModules.default
-      ];
+      sauron = nixpkgs.lib.nixosSystem {
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/sauron/configuration.nix
+
+          inputs.home-manager.nixosModules.default
+        ];
+      };
+
+      "saruman-nixos" = nixpkgs.lib.nixosSystem{
+        specialArgs = {inherit inputs;};
+        modules = [
+          ./hosts/sauron-nixos/configuration.nix
+   	  inputs.home-manager.nixosModules.default
+        ];
+      };
     };
   };
 }
