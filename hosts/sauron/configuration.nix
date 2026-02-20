@@ -278,6 +278,7 @@
 	spotify
 	feh
 	darktable
+	lazygit
   ];
  
  
