@@ -22,10 +22,10 @@
         ];
       };
 
-      "saruman-nixos" = nixpkgs.lib.nixosSystem{
+      nixosvm = nixpkgs.lib.nixosSystem{
         specialArgs = {inherit inputs;};
         modules = [
-          ./hosts/sauron-nixos/configuration.nix
+          ./hosts/nixosvm/configuration.nix
    	  inputs.home-manager.nixosModules.default
         ];
       };
