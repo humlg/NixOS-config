@@ -17,19 +17,8 @@
     
   };
 
-  #hardware.enableRedistributedFirmware = true;
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
-  services.blueman.enable = true;
-  hardware.bluetooth.settings = {
-    General = {
-      Enable = "Source,Sink,Mediam,Socket";
-      Experimental = true;
-    };
-  };
-  
-
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -107,12 +96,12 @@
     XCURSOR_THEME = "volantes_cursors";
     XCURSOR_SIZE = "48";
 
-    KITTY_DISABLE_WAYLAND = "1";
+    #KITTY_DISABLE_WAYLAND = "1";
   };
 
  
   # Configure keymap in X11
-  # services.xserver.xkb.layout = "us";
+   services.xserver.xkb.layout = "cz";
   # services.xserver.xkb.options = "eurosign:e,caps:escape";
  
   # Enable CUPS to print documents.
