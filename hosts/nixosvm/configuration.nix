@@ -143,7 +143,7 @@
 	sddm-sugar-dark
 	quickshell
 	tmux
-  transmission
+  transmission_4
    ];
 
 
