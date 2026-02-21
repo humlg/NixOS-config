@@ -7,7 +7,8 @@
     [
       ./hardware-configuration.nix
       ./file-system.nix
-      ../../modules/hardware/nvidia.nix
+      ../../modules/system/locale.nix
+      ../../modules/system/nvidia.nix
       ../../modules/services/bluetooth.nix
       #./modules/desktop/hyprland.nix
     ];
