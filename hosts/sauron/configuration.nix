@@ -47,8 +47,6 @@
     font = "Lat2-Terminus16";
     keyMap = "cz";
  };
-
-  services.displayManager.sddm.theme = "sugar-dark";
  
   programs.hyprland = {
     enable = true;

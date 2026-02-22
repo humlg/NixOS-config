@@ -107,39 +107,38 @@
 
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
-   environment.systemPackages = with pkgs; [
-	vim
-	wget
-	htop
-	btop
-	kitty
-	rofi
-	wofi
-	waybar
-	git
-	unzip
-	pywal16
-	waypaper
-	chromium
-	swww
-	curl
-	wget
-	spice-vdagent
-	volantes-cursors
-	fastfetch
-	discord
-	vscode
-	lxqt.lxqt-policykit
-	steam
-        kdePackages.kate
-	mpv
-	ffmpeg
-	pywalfox-native
-	sddm-sugar-dark
-	quickshell
-	tmux
-  transmission_4-gtk
-   ];
+  environment.systemPackages = with pkgs; [
+	  vim
+	  wget
+	  htop
+	  btop
+	  kitty
+  	rofi
+	  wofi
+  	waybar
+	  git
+  	unzip
+	  pywal16
+  	waypaper
+	  chromium
+	  swww
+	  curl
+	  wget
+	  spice-vdagent
+	  volantes-cursors
+	  fastfetch
+	  discord
+	  vscode
+	  lxqt.lxqt-policykit
+	  steam
+    kdePackages.kate
+	  mpv
+	  ffmpeg
+	  pywalfox-native
+	  quickshell
+	  tmux
+    transmission_4-gtk
+  ];
 
 
    fonts.packages = with pkgs; [
