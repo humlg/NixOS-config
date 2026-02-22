@@ -8,6 +8,7 @@
       ./hardware-configuration.nix
       ../../modules/system/locale.nix
       ../../modules/services/bluetooth.nix
+      ../../modules/system/sddm.nix
     ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Use the systemd-boot EFI boot loader.
@@ -26,12 +27,6 @@
     font = "Lat2-Terminus16";
     keyMap = "cz";
  };
-
-   services.displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-   };
-   services.displayManager.sddm.theme = "sugar-dark";
 
    programs.hyprland = {
       enable = true;

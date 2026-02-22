@@ -9,6 +9,7 @@
       ./file-system.nix
       ../../modules/system/locale.nix
       ../../modules/system/nvidia.nix
+      ../../modules/system/sddm.nix
       ../../modules/services/bluetooth.nix
       #./modules/desktop/hyprland.nix
     ];
@@ -42,37 +43,17 @@
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
  
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-  # Fine-grained locale settings
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS        = "cs_CZ.UTF-8";
-    LC_IDENTIFICATION = "cs_CZ.UTF-8";
-    LC_MEASUREMENT    = "cs_CZ.UTF-8"; # metric units, Celsius
-    LC_MONETARY       = "cs_CZ.UTF-8";
-    LC_NAME           = "cs_CZ.UTF-8";
-    LC_NUMERIC        = "cs_CZ.UTF-8";
-    LC_PAPER          = "cs_CZ.UTF-8";
-    LC_TELEPHONE      = "cs_CZ.UTF-8";
-    LC_TIME           = "cs_CZ.UTF-8"; # DD.MM.YYYY, 24h clock
-  };  
  console = {
     font = "Lat2-Terminus16";
     keyMap = "cz";
  };
 
-
-
-   services.displayManager.sddm = {
-      enable = true;
-      wayland.enable = true;
-   };
-   services.displayManager.sddm.theme = "sugar-dark";
+  services.displayManager.sddm.theme = "sugar-dark";
  
-   programs.hyprland = {
-      enable = true;
-      withUWSM = true;
-      xwayland.enable = true;
+  programs.hyprland = {
+    enable = true;
+    withUWSM = true;
+    xwayland.enable = true;
   };
  
   security.polkit.enable = true;
