@@ -7,8 +7,9 @@
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
       ../../modules/system/locale.nix
-      ../../modules/services/bluetooth.nix
       ../../modules/system/sddm.nix
+      ../../modules/services/bluetooth.nix
+      ../../modules/desktop/dark-theme.nix
     ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Use the systemd-boot EFI boot loader.
