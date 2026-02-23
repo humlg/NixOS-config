@@ -22,8 +22,10 @@ in
         orchis-theme
         adwaita-icon-theme
 
-        qt6ct qt5ct
-        kvantum
+        qt6Packages.qt6ct
+        libsForQt5.qt5ct
+        qt6Packages.qtstyleplugin-kvantum
+        libsForQt5.qtstyleplugin-kvantum
       ];
 
       gtk = {
@@ -58,13 +60,12 @@ in
 
       qt = {
         enable = true;
-        platformTheme.name = "qtct";
+        platformTheme.name = "qt6ct";
         style.name = "kvantum";
       };
 
       home.sessionVariables = {
         GTK_THEME = gtkThemeName;
-        QT_QPA_PLATFORMTHEME = "qt6ct";
         QT_QPA_PLATFORMTHEME_QT5 = "qt5ct";
         QT_STYLE_OVERRIDE = "kvantum";
       };

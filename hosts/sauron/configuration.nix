@@ -11,6 +11,7 @@
       ../../modules/system/nvidia.nix
       ../../modules/system/sddm.nix
       ../../modules/services/bluetooth.nix
+      ../../modules/desktop/dark-theme.nix
       #./modules/desktop/hyprland.nix
     ];
 
@@ -180,7 +181,6 @@
     mpv
     ffmpeg
     pywalfox-native
-    sddm-sugar-dark
     quickshell
     pavucontrol
     kdePackages.kdeconnect-kde
