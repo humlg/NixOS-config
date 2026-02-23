@@ -1,6 +1,6 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports =
@@ -9,7 +9,6 @@
       ../../modules/system/locale.nix
       ../../modules/system/sddm.nix
       ../../modules/services/bluetooth.nix
-      ../../modules/desktop/dark-theme.nix
     ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Use the systemd-boot EFI boot loader.
@@ -84,6 +83,13 @@
      ];
    };
    users.users.root.shell = pkgs.zsh;
+
+   home-manager = {
+    extraSpecialArgs = { inherit inputs;};
+    users = {
+      "david" = import ./home.nix;
+    };
+   };   
 
    programs.firefox.enable = true;
    programs.thunar.enable = true;
