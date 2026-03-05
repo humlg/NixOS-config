@@ -74,9 +74,6 @@
     WLR_NO_HARDWARE_CURSORS = "1";
     NIXOS_OZONE_WL = "1";
 
-    XCURSOR_THEME = "volantes_cursors";
-    XCURSOR_SIZE = "48";
-
     #KITTY_DISABLE_WAYLAND = "1";
   };
 
@@ -117,7 +114,8 @@
    };
    users.users.root.shell = pkgs.zsh;
 
-   home-manager = {
+  home-manager = {
+    backupFileExtension = "hm-bak";
     extraSpecialArgs = { inherit inputs;};
     users = {
       "david" = import ./home.nix;
@@ -170,7 +168,6 @@
     curl
     wget
     spice-vdagent
-    volantes-cursors
     fastfetch
     discord
     vscode

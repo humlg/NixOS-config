@@ -61,6 +61,26 @@
   #
   home.sessionVariables = {
     EDITOR = "vim";
+    XCURSOR_THEME = "volantes_cursors";
+    XCURSOR_SIZE = 48;
+  };
+
+  home.pointerCursor = {
+    name = "volantes_cursors";
+    size = 48;
+    package = pkgs.volantes-cursors;
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
+  gtk.cursorTheme = {
+    name = "volantes_cursors";
+    size = 48;
+    package = pkgs.volantes-cursors;
+  };
+
+  xresources.properties = {
+    "Xft.dpi" = 96;
   };
 
   # Let Home Manager install and manage itself.
