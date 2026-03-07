@@ -1,0 +1,9 @@
+# Nix build results
+result
+result-*
+
+# Home Manager backup files
+*.hm-bak
+
+# Nix flake lock (optional: remove this line if you want to track it)
+# flake.lock
