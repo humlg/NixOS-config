@@ -55,16 +55,7 @@
   };
  
   security.polkit.enable = true;
- 
-  systemd.user.services.polkit-agent = {
-    description = "Polkit Authentication Agent";
-    wantedBy = [ "default.target" ];
- 
-      serviceConfig = {
-        ExecStart = "${pkgs.lxqt.lxqt-policykit}/bin/lxqt-policykit-agent";
-        Restart = "on-failure";
-      };
-    };
+  # polkit agent is started via the hyprland-desktop Home Manager module
 
   environment.variables = {
   NIXPKGS_ALLOW_UNFREE = 1;
@@ -72,9 +63,7 @@
   
   environment.sessionVariables = {
     WLR_NO_HARDWARE_CURSORS = "1";
-    NIXOS_OZONE_WL = "1";
-
-    #KITTY_DISABLE_WAYLAND = "1";
+    NIXOS_OZONE_WL          = "1";
   };
 
  

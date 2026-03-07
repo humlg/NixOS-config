@@ -3,7 +3,24 @@
 {
   imports = [
     ../../modules/desktop/dark-theme.nix
+    ../../modules/desktop/hyprland-desktop.nix
   ];
+
+  desktop.hyprland-desktop = {
+    enable = true;
+
+    # Machine-specific monitor layout (sauron — desktop with external display)
+    monitors = ''
+      monitor = DP-1,  1920x1080@144, 0x0,    1
+      monitor = HDMI-A-1, preferred, auto, 1
+      monitor = ,preferred,auto,1
+    '';
+
+    screenshotDir = "/home/david/Pictures/Screenshots";
+    lockScreen    = "hyprlock";
+    terminal      = "kitty";
+    fileManager   = "thunar";
+  };
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
