@@ -51,7 +51,7 @@ in
       cliphist
       wl-clipboard
       swaynotificationcenter
-      network-manager-applet
+      networkmanagerapplet
       blueman
       brightnessctl
       playerctl
