@@ -1,6 +1,22 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ../../modules/desktop/dark-theme.nix
+    ../../modules/desktop/hyprland-desktop.nix
+  ];
+
+  desktop.hyprland-desktop = {
+    enable = true;
+
+    monitors = "monitor = ,2880x1800@60,auto,2";
+
+    screenshotDir = "/home/david/Pictures/Screenshots";
+    lockScreen    = "hyprlock";
+    terminal      = "kitty";
+    fileManager   = "thunar";
+  };
+  
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "david";
