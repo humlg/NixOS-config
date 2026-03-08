@@ -55,7 +55,7 @@ in
       blueman
       brightnessctl
       playerctl
-      galculator
+      gnome-calculator
       pavucontrol
       lxqt.lxqt-policykit
       kdePackages.kwallet
@@ -217,7 +217,7 @@ in
         windowrule = match:initial_title ^Write:.*,         float on, center on
         windowrule = match:initial_title Calendar Reminders, float on, center on
         windowrule = match:title ^Extension:.*,             float on, center on
-        windowrule = match:initial_title galculator,        float on, center on
+        windowrule = match:initial_class gnome-calculator,   float on, center on
 
         # ── Layouts ───────────────────────────────────────────────────────────
         dwindle {
@@ -357,7 +357,7 @@ in
         bindel = , XF86AudioMicMute,      exec, wpctl set-mute   @DEFAULT_AUDIO_SOURCE@ toggle
         bindel = , XF86MonBrightnessUp,   exec, brightnessctl -e set 5%+
         bindel = , XF86MonBrightnessDown, exec, brightnessctl -e set 5%-
-        bindel = , XF86Calculator,        exec, galculator
+        bindel = , XF86Calculator,        exec, gnome-calculator
         bindl  = , XF86AudioNext,         exec, playerctl next
         bindl  = , XF86AudioPause,        exec, playerctl play-pause
         bindl  = , XF86AudioPlay,         exec, playerctl play-pause
