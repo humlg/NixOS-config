@@ -59,7 +59,7 @@ in
       pavucontrol
       lxqt.lxqt-policykit
       kdePackages.kwallet
-      qt6ct
+      qt6Packages.qt6ct
     ];
 
     # ── Session variables ────────────────────────────────────────────────────
