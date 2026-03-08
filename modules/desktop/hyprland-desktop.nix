@@ -47,7 +47,7 @@ in
       hyprpicker
       swww
       waypaper
-      rofi-wayland
+      rofi
       cliphist
       wl-clipboard
       swaynotificationcenter
