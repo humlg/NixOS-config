@@ -41,15 +41,6 @@
   services.spice-vdagentd.enable = true;
 
 
-  systemd.user.services.polkit-agent = {
-    description = "Polkit Authentication Agent";
-    wantedBy = [ "default.target" ];
-
-      serviceConfig = {
-        ExecStart = "${pkgs.lxqt.lxqt-policykit}/bin/lxqt-policykit-agent";
-        Restart = "on-failure";
-      };
-    };
   environment.variables = {
 	XCURSOR_THEME = "volantes_cursors";
 	XCURSOR_SIZE = 36;

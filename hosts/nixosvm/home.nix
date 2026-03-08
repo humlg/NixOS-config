@@ -3,7 +3,20 @@
 {
   imports = [
     ../../modules/desktop/dark-theme.nix
+    ../../modules/desktop/hyprland-desktop.nix
   ];
+
+  desktop.hyprland-desktop = {
+    enable = true;
+
+    # VM — single virtual display, auto-detected resolution
+    monitors = "monitor = ,preferred,auto,1";
+
+    screenshotDir = "/home/david/Pictures/Screenshots";
+    lockScreen    = "hyprlock";
+    terminal      = "kitty";
+    fileManager   = "thunar";
+  };
   
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
