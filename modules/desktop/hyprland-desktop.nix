@@ -5,6 +5,10 @@ let
   home = config.home.homeDirectory;
 in
 {
+  imports = [
+    ./swaync.nix
+  ];
+
   options.desktop.hyprland-desktop = {
     enable = lib.mkEnableOption "Hyprland desktop home-manager environment";
 
@@ -50,7 +54,6 @@ in
       rofi
       cliphist
       wl-clipboard
-      swaynotificationcenter
       networkmanagerapplet
       blueman
       brightnessctl
@@ -106,7 +109,6 @@ in
         exec-once = swww-daemon
         exec-once = nm-applet --indicator & blueman-applet &
         exec-once = kwalletd6
-        exec-once = swaync
         exec-once = [workspace special:mail silent]  thunderbird
         exec-once = [workspace special:notes silent] obsidian
         exec-once = wl-paste --type text  --watch cliphist store
@@ -430,8 +432,8 @@ in
 
         clock = {
           tooltip-format = "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>";
-          format         = "{:%H:%M:%S}";
-          format-alt     = "{:%Y-%m-%d %H:%M:%S}";
+          format         = "{:%Y-%m-%d %H:%M:%S}";
+          format-alt     = "{:%H:%M:%S}";
           interval       = 1;
         };
 
@@ -447,7 +449,7 @@ in
         memory = {
           states   = { warning = 90; };
           interval = 1;
-          format   = " <span color='#777777'>{used:0.1f}GiB</span>";
+          format   = " <span color='#777777'>{used:0.1f}GiB</span>";
         };
 
         pulseaudio = {
@@ -460,19 +462,19 @@ in
           on-scroll-up     = "wpctl set-volume @DEFAULT_SINK@ 10%+";
           on-scroll-down   = "wpctl set-volume @DEFAULT_SINK@ 10%-";
           format-icons     = {
-            headphone  = "";
-            hands-free = "";
-            headset    = "";
-            phone      = "";
-            portable   = "";
-            car        = "";
-            default    = [ "" "" " " ];
+            headphone  = "󰋋";
+            hands-free = "󰋎";
+            headset    = "󰋎";
+            phone      = "󰏲";
+            portable   = "󰏲";
+            car        = "󰄋";
+            default    = [ "󰕿" "󰖀" "󰕾" ];
           };
         };
 
         "pulseaudio#microphone" = {
           format              = "{format_source}";
-          format-source       = " <span color='#777777'>{volume}%</span>";
+          format-source       = "󰍬 <span color='#777777'>{volume}%</span>";
           format-source-muted = "<span color='#ff5555'>󰍭 --%</span>";
           on-click            = "wpctl set-mute @DEFAULT_SOURCE@ toggle";
           on-scroll-up        = "wpctl set-volume @DEFAULT_SOURCE@ 5%+";
@@ -489,7 +491,7 @@ in
           states   = { warning = 90; };
           interval = 10;
           path     = "/home";
-          format   = " <span color='#777777'>{free}</span>";
+          format   = "󰋊 <span color='#777777'>{free}</span>";
           unit     = "GB";
         };
 
@@ -506,7 +508,7 @@ in
         };
 
         "custom/dropdown" = {
-          format     = "  ";
+          format     = " 󰋼 ";
           tooltip    = false;
           min-height = 1;
           class      = "dropdown";
