@@ -55,16 +55,7 @@
   };
  
   security.polkit.enable = true;
- 
-  systemd.user.services.polkit-agent = {
-    description = "Polkit Authentication Agent";
-    wantedBy = [ "default.target" ];
- 
-      serviceConfig = {
-        ExecStart = "${pkgs.lxqt.lxqt-policykit}/bin/lxqt-policykit-agent";
-        Restart = "on-failure";
-      };
-    };
+  # polkit agent is started via the hyprland-desktop Home Manager module
 
   environment.variables = {
   NIXPKGS_ALLOW_UNFREE = 1;
@@ -72,12 +63,7 @@
   
   environment.sessionVariables = {
     WLR_NO_HARDWARE_CURSORS = "1";
-    NIXOS_OZONE_WL = "1";
-
-    XCURSOR_THEME = "volantes_cursors";
-    XCURSOR_SIZE = "48";
-
-    #KITTY_DISABLE_WAYLAND = "1";
+    NIXOS_OZONE_WL          = "1";
   };
 
  
@@ -117,7 +103,8 @@
    };
    users.users.root.shell = pkgs.zsh;
 
-   home-manager = {
+  home-manager = {
+    backupFileExtension = "hm-bak";
     extraSpecialArgs = { inherit inputs;};
     users = {
       "david" = import ./home.nix;
@@ -170,7 +157,6 @@
     curl
     wget
     spice-vdagent
-    volantes-cursors
     fastfetch
     discord
     vscode

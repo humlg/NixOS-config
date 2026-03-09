@@ -1,6 +1,6 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports =
@@ -9,7 +9,6 @@
       ../../modules/system/locale.nix
       ../../modules/system/sddm.nix
       ../../modules/services/bluetooth.nix
-      ../../modules/desktop/dark-theme.nix
     ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   # Use the systemd-boot EFI boot loader.
@@ -42,15 +41,6 @@
   services.spice-vdagentd.enable = true;
 
 
-  systemd.user.services.polkit-agent = {
-    description = "Polkit Authentication Agent";
-    wantedBy = [ "default.target" ];
-
-      serviceConfig = {
-        ExecStart = "${pkgs.lxqt.lxqt-policykit}/bin/lxqt-policykit-agent";
-        Restart = "on-failure";
-      };
-    };
   environment.variables = {
 	XCURSOR_THEME = "volantes_cursors";
 	XCURSOR_SIZE = 36;
@@ -84,6 +74,13 @@
      ];
    };
    users.users.root.shell = pkgs.zsh;
+
+   home-manager = {
+    extraSpecialArgs = { inherit inputs;};
+    users = {
+      "david" = import ./home.nix;
+    };
+   };   
 
    programs.firefox.enable = true;
    programs.thunar.enable = true;

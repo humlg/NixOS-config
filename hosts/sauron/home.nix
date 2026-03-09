@@ -4,7 +4,24 @@
   imports = [
     ../../modules/desktop/dark-theme.nix
     ../../modules/bundles/general.nix
+    ../../modules/desktop/hyprland-desktop.nix
   ];
+
+  desktop.hyprland-desktop = {
+    enable = true;
+
+    # Machine-specific monitor layout (sauron — desktop with external display)
+    monitors = ''
+      monitor = DP-1,  1920x1080@144, 0x0,    1
+      monitor = HDMI-A-1, preferred, auto, 1
+      monitor = ,preferred,auto,1
+    '';
+
+    screenshotDir = "/home/david/Pictures/Screenshots";
+    lockScreen    = "hyprlock";
+    terminal      = "kitty";
+    fileManager   = "thunar";
+  };
 
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
@@ -62,6 +79,26 @@
   #
   home.sessionVariables = {
     EDITOR = "vim";
+    XCURSOR_THEME = "volantes_cursors";
+    XCURSOR_SIZE = 48;
+  };
+
+  home.pointerCursor = {
+    name = "volantes_cursors";
+    size = 48;
+    package = pkgs.volantes-cursors;
+    gtk.enable = true;
+    x11.enable = true;
+  };
+
+  gtk.cursorTheme = {
+    name = "volantes_cursors";
+    size = 48;
+    package = pkgs.volantes-cursors;
+  };
+
+  xresources.properties = {
+    "Xft.dpi" = 96;
   };
 
   # Let Home Manager install and manage itself.
