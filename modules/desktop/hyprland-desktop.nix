@@ -68,8 +68,8 @@ in
     # ── Session variables ────────────────────────────────────────────────────
     # NOTE: Do NOT put secrets (API tokens, etc.) here — use sops-nix or agenix.
     home.sessionVariables = {
-      XCURSOR_SIZE                 = "24";
-      HYPRCURSOR_SIZE              = "24";
+      XCURSOR_SIZE                 = 24;
+      HYPRCURSOR_SIZE              = 24;
       QT_QPA_PLATFORMTHEME         = "qt6ct";
       OZONE_PLATFORM               = "wayland";
       MOZ_ENABLE_WAYLAND           = "1";
