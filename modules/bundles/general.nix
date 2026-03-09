@@ -25,6 +25,9 @@ in
       fd
       jq
       tree
+
+      # Claude code for troubleshooting
+      claude-code
     ];
   };
 }

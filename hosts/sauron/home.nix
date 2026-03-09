@@ -7,6 +7,8 @@
     ../../modules/desktop/hyprland-desktop.nix
   ];
 
+  bundles.general.enable = true;
+
   desktop.hyprland-desktop = {
     enable = true;
 
