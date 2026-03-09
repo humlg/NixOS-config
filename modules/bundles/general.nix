@@ -6,6 +6,7 @@ in
 {
   imports = [
     ../programs/git.nix
+    ../programs/kitty.nix
   ];
   options.bundles.general = {
     enable = lib.mkEnableOption "General always-installed user packages bundle";
@@ -13,6 +14,7 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.git.enable = true;
+    programs.kitty.enable = true;
 
     home.packages = with pkgs; [
       firefox

@@ -3,6 +3,16 @@
 let
   home = config.home.homeDirectory;
 
+  sleepInhibitToggle = pkgs.writeShellScript "sleep-inhibit-toggle" ''
+    if ${pkgs.procps}/bin/pgrep -x "hypridle" > /dev/null; then
+      ${pkgs.procps}/bin/pkill -x hypridle
+      ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: ON"
+    else
+      nohup ${pkgs.hypridle}/bin/hypridle &
+      ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: OFF"
+    fi
+  '';
+
   nightLightToggle = pkgs.writeShellScript "night-light-toggle" ''
     if ${pkgs.procps}/bin/pgrep -x "hyprsunset" > /dev/null; then
       ${pkgs.procps}/bin/pkill -x hyprsunset
@@ -117,6 +127,10 @@ in
             {
               label = "󰖚";
               command = "${nightLightToggle}";
+            }
+            {
+              label = "󰒳";
+              command = "${sleepInhibitToggle}";
             }
           ];
         };

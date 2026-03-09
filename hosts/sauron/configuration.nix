@@ -141,7 +141,6 @@
     wget
     htop
     btop
-    kitty
     gtk3
     xterm
     alacritty

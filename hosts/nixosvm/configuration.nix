@@ -110,7 +110,6 @@
 	  wget
 	  htop
 	  btop
-	  kitty
   	rofi
 	  wofi
   	waybar

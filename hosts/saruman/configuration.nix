@@ -104,7 +104,6 @@
     curl
     htop
     btop
-    kitty
     gtk3
     rofi
     waybar
