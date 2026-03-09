@@ -5,11 +5,13 @@
     ../../modules/desktop/dark-theme.nix
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
+    ../../modules/bundles/yg-work.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   bundles.general.enable = true;
+  bundles.yg-work.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;
