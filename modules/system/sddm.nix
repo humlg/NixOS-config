@@ -13,6 +13,7 @@
     ];
     enable = true;
     wayland.enable = true;
+    wayland.compositor = "kwin";
     autoNumlock = true;
     theme = "sddm-astronaut-theme";
     enableHidpi = true;
