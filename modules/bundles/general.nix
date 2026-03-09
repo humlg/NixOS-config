@@ -4,11 +4,16 @@ let
   cfg = config.bundles.general;
 in
 {
+  imports = [
+    ../programs/git.nix
+  ];
   options.bundles.general = {
     enable = lib.mkEnableOption "General always-installed user packages bundle";
   };
 
   config = lib.mkIf cfg.enable {
+    programs.git.enable = true;
+
     home.packages = with pkgs; [
       firefox
       thunderbird
