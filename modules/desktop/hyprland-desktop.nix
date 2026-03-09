@@ -260,7 +260,7 @@ in
         bind = $mainMod SHIFT, F, exec,          $webBrowser --private-window
         bind = $mainMod,       L, exec,          $lockScreen
         bind = $mainMod,       W, exec,          hyprctl dispatch exec "[float;size 800 600;center] waypaper"
-        bind = $mainMod,       N, exec,          swaync-client -t
+        bind = $mainMod,       N, exec,          swaync-client -R && swaync-client -t
 
         # Clipboard (cliphist + rofi)
         bind = $mainMod,       V, exec, cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy
@@ -512,7 +512,7 @@ in
           tooltip    = false;
           min-height = 1;
           class      = "dropdown";
-          on-click   = "swaync-client -t";
+          on-click   = "swaync-client -R && swaync-client -t";
         };
       }];
 
@@ -823,6 +823,19 @@ in
             on-timeout = "systemctl suspend";
           }
         ];
+      };
+    };
+
+    # ── Hyprsunset (night light) ────────────────────────────────────────────
+    systemd.user.services.hyprsunset = {
+      Unit = {
+        Description = "Hyprsunset blue light filter";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+      };
+      Service = {
+        ExecStart = "${pkgs.hyprsunset}/bin/hyprsunset --temperature 3500";
+        Restart = "on-failure";
       };
     };
 

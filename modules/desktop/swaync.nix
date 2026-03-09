@@ -4,22 +4,38 @@ let
   home = config.home.homeDirectory;
 
   sleepInhibitToggle = pkgs.writeShellScript "sleep-inhibit-toggle" ''
-    if ${pkgs.procps}/bin/pgrep -x "hypridle" > /dev/null; then
-      ${pkgs.procps}/bin/pkill -x hypridle
+    if systemctl --user is-active --quiet hypridle.service; then
+      systemctl --user stop hypridle.service
       ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: ON"
     else
-      nohup ${pkgs.hypridle}/bin/hypridle &
+      systemctl --user start hypridle.service
       ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: OFF"
     fi
   '';
 
-  nightLightToggle = pkgs.writeShellScript "night-light-toggle" ''
-    if ${pkgs.procps}/bin/pgrep -x "hyprsunset" > /dev/null; then
-      ${pkgs.procps}/bin/pkill -x hyprsunset
-      ${pkgs.libnotify}/bin/notify-send "Blue light filter: OFF"
+  sleepInhibitCheck = pkgs.writeShellScript "sleep-inhibit-check" ''
+    if systemctl --user is-active --quiet hypridle.service; then
+      echo false
     else
-      nohup ${pkgs.hyprsunset}/bin/hyprsunset --temperature 3500 &
-      ${pkgs.libnotify}/bin/notify-send "Blue light filter: ON"
+      echo true
+    fi
+  '';
+
+  nightLightToggle = pkgs.writeShellScript "night-light-toggle" ''
+    if systemctl --user is-active --quiet hyprsunset.service; then
+      systemctl --user stop hyprsunset.service
+      ${pkgs.libnotify}/bin/notify-send "󰖚 Blue light filter: OFF"
+    else
+      systemctl --user start hyprsunset.service
+      ${pkgs.libnotify}/bin/notify-send "󰖚 Blue light filter: ON"
+    fi
+  '';
+
+  nightLightCheck = pkgs.writeShellScript "night-light-check" ''
+    if systemctl --user is-active --quiet hyprsunset.service; then
+      echo true
+    else
+      echo false
     fi
   '';
 in
@@ -126,11 +142,15 @@ in
             }
             {
               label = "󰖚";
+              type = "toggle";
               command = "${nightLightToggle}";
+              update-command = "${nightLightCheck}";
             }
             {
               label = "󰒳";
+              type = "toggle";
               command = "${sleepInhibitToggle}";
+              update-command = "${sleepInhibitCheck}";
             }
           ];
         };
@@ -432,6 +452,10 @@ in
         background: @hover;
       }
 
+      .widget-buttons-grid>flowbox>flowboxchild>button:checked {
+        background: @selected;
+      }
+
       /* Music player */
       .widget-mpris {
         background: @background-alt;
@@ -489,6 +513,7 @@ in
         margin: 6px;
         border-radius: 6px;
       }
+
     '';
   };
 }
