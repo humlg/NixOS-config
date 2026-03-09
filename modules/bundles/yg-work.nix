@@ -18,7 +18,7 @@ in
     home.packages = with pkgs; [
       mqttx
       slack
-      teams
+      teams-for-linux
       
     ];
   };
