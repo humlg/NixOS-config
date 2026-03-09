@@ -53,5 +53,6 @@
     "Xft.dpi" = 96;
   };
 
+  programs.zsh.enable = true;
   programs.home-manager.enable = true;
 }
