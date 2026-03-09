@@ -62,4 +62,5 @@ modules/
 ## Workflow Rules
 
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
+- **Always commit changes** after making them. Do **not** push unless explicitly told to.
 - **Save learned lessons to this file.** When the user teaches you a workflow rule or preference, add it to this `CLAUDE.md` so it persists across all hosts and sessions.
