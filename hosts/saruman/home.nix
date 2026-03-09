@@ -7,6 +7,8 @@
     ../../modules/desktop/hyprland-desktop.nix
   ];
 
+  nixpkgs.config.allowUnfree = true;
+
   bundles.general.enable = true;
 
   desktop.hyprland-desktop = {
