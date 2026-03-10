@@ -13,6 +13,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    services.udiskie.enable = true;
     programs.git.enable = true;
     programs.kitty.enable = true;
 

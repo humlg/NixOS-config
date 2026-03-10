@@ -105,8 +105,6 @@
     "Xft.dpi" = 96;
   };
 
-  services.udiskie.enable = true;
-
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 }

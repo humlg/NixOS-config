@@ -27,6 +27,8 @@
     nerd-fonts.jetbrains-mono
   ];
 
+  services.udisks2.enable = true;
+
   users.users.david = {
     isNormalUser = true;
     extraGroups = [ "networkmanager" "wheel" ];
