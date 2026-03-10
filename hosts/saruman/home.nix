@@ -16,7 +16,11 @@
   desktop.hyprland-desktop = {
     enable = true;
 
-    monitors = "monitor = ,2880x1800@120,auto,2,bitdepth,10,cm,wide";
+    monitors = ''
+      monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
+      monitor = DP-2,preferred@100,1440x0,1
+      monitor = ,preferred,auto,1,mirror,eDP-1
+    '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";
     lockScreen    = "hyprlock";
