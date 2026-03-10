@@ -3,6 +3,12 @@
 let
   cfg = config.desktop.hyprland-desktop;
   home = config.home.homeDirectory;
+
+  reloadDesktop = pkgs.writeShellScript "reload-desktop" ''
+    hyprctl reload
+    pkill waybar; waybar &
+    pkill swaync; swaync &
+  '';
 in
 {
   imports = [
@@ -256,6 +262,7 @@ in
         bind = $mainMod,       Q, exec,          $terminal
         bind = $mainMod,       C, killactive
         bind = $mainMod SHIFT, M, exec,          uwsm stop
+        bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}
         bind = $mainMod,       E, exec,          $fileManager
         bind = $mainMod,       O, togglefloating
         bind = $mainMod,       I, fullscreen
