@@ -24,8 +24,8 @@
 
     extraConfig = ''
       general {
-          col.inactive_border = rgba(000000ff)
-          col.active_border = rgba(000000ff)
+          col.active_border = $color1
+          col.inactive_border = rgba(595959aa)
       }
     '';
 
@@ -40,7 +40,9 @@
 
   home.stateVersion = "25.11";
 
-  home.packages = [];
+  home.packages = [
+    pkgs.helvum
+  ];
 
   home.file = {};
 
