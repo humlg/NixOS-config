@@ -844,6 +844,45 @@ in
       };
     };
 
+    # ── Waypaper seed config ───────────────────────────────────────────────
+    # Seed ~/.config/waypaper/config.ini on first install so the post_command
+    # that triggers pywal + reload-desktop is already in place.  Once the
+    # file exists it is never overwritten — waypaper manages it from there.
+    home.activation.seedWaypaperConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      config_dir="${home}/.config/waypaper"
+      config_file="$config_dir/config.ini"
+      if [ ! -f "$config_file" ]; then
+        run mkdir -p "$config_dir"
+        cat > "$config_file" << 'WAYPAPEREOF'
+[Settings]
+language = en
+folder = ~/Pictures/Wallpapers
+monitors = All
+wallpaper = ~/Pictures/Wallpapers/default.jpg
+show_path_in_tooltip = True
+backend = swww
+fill = stretch
+sort = name
+color = #ffffff
+subfolders = True
+all_subfolders = False
+show_hidden = False
+show_gifs_only = False
+zen_mode = False
+post_command = wal -i "$wallpaper" && reload-desktop
+number_of_columns = 3
+swww_transition_type = center
+swww_transition_step = 63
+swww_transition_angle = 0
+swww_transition_duration = 2
+swww_transition_fps = 60
+mpvpaper_sound = False
+mpvpaper_options =
+use_xdg_state = False
+WAYPAPEREOF
+      fi
+    '';
+
     # ── Hyprsunset (night light) ────────────────────────────────────────────
     systemd.user.services.hyprsunset = {
       Unit = {
