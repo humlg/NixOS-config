@@ -16,7 +16,7 @@
   desktop.hyprland-desktop = {
     enable = true;
 
-    monitors = "monitor = ,2880x1800@120,auto,2";
+    monitors = "monitor = ,2880x1800@120,auto,2,bitdepth,10,cm,wide";
 
     screenshotDir = "/home/david/Pictures/Screenshots";
     lockScreen    = "hyprlock";
