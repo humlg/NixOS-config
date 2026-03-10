@@ -123,8 +123,8 @@ in
         exec-once = swww-daemon
         exec-once = nm-applet --indicator & blueman-applet &
         exec-once = kwalletd6
-        exec-once = [workspace special:mail silent]  thunderbird
-        exec-once = [workspace special:notes silent] obsidian
+        exec-once = thunderbird
+        exec-once = obsidian
         exec-once = wl-paste --type text  --watch cliphist store
         exec-once = wl-paste --type image --watch cliphist store
 
@@ -229,6 +229,9 @@ in
         layerrule = blur on, ignore_alpha 0.2, dim_around off, match:class swaync
 
         # ── Window rules ─────────────────────────────────────────────────────
+        windowrule = workspace special:mail silent,  match:initial_class ^(thunderbird)$
+        windowrule = workspace special:notes silent, match:initial_class ^(obsidian)$
+
         windowrule = match:title File Operation Progress,   float on, center on
         windowrule = match:initial_title ^Write:.*,         float on, center on
         windowrule = match:initial_title Calendar Reminders, float on, center on
