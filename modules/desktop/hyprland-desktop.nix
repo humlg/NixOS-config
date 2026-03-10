@@ -409,9 +409,9 @@ in
         battery = {
           states          = { good = 95; warning = 20; critical = 10; };
           format          = "{icon} <span color='#777777'>{capacity}%</span>";
-          format-charging = " <span color='#777777'>{capacity}%</span>";
+          format-charging = "󰂄 <span color='#777777'>{capacity}%</span>";
           format-discharging = "{icon} <span color='#777777'>{capacity}%</span>";
-          format-icons    = [ "" "" "" "" "" ];
+          format-icons    = [ "󰁺" "󰁻" "󰁽" "󰂀" "󰁹" ];
           interval        = 1;
         };
 
