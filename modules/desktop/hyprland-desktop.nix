@@ -411,7 +411,7 @@ in
         margin-right    = 5;
         height          = 1;
 
-        modules-left   = [ "cpu" "memory" "disk" "power-profiles-daemon" "battery" ];
+        modules-left   = [ "cpu" "memory" "custom/disk" "power-profiles-daemon" "battery" ];
         modules-center = [ "hyprland/workspaces" ];
         modules-right  = [
           "tray"
@@ -514,12 +514,10 @@ in
           format-en = "US";
         };
 
-        disk = {
-          states   = { warning = 90; };
+        "custom/disk" = {
+          exec     = "df -BG --output=used,size /home | tail -1 | awk '{gsub(/G/,\"\"); printf \"%d/%dGiB\", $1, $2}'";
           interval = 10;
-          path     = "/home";
-          format   = "󰋊 <span color='#777777'>{used:.0f}/{total:.0f}</span>";
-          unit     = "GiB";
+          format   = "󰋊 <span color='#777777'>{}</span>";
         };
 
         power-profiles-daemon = {
