@@ -11,6 +11,7 @@
     ../../modules/desktop/hyprland-nixos.nix
     ../../modules/programs/shell.nix
     ../../modules/services/bluetooth.nix
+    ../../modules/bundles/graphical.nix
   ];
 
   networking.hostName = "sauron";
@@ -84,7 +85,6 @@
     tree
     spotify
     feh
-    darktable
     lazygit
   ];
 
