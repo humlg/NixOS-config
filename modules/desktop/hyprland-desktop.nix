@@ -388,6 +388,12 @@ in
       '';
     };
 
+    # ── Rofi ──────────────────────────────────────────────────────────────────
+    programs.rofi = {
+      enable = true;
+      theme = "${home}/.cache/wal/colors-rofi-dark.rasi";
+    };
+
     # ── Waybar ────────────────────────────────────────────────────────────────
     programs.waybar = {
       enable   = true;
