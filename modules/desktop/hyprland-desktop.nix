@@ -518,7 +518,7 @@ in
           states   = { warning = 90; };
           interval = 10;
           path     = "/home";
-          format   = "󰋊 <span color='#777777'>{free}</span>";
+          format   = "󰋊 <span color='#777777'>{used}/{total}</span>";
           unit     = "GB";
         };
 
