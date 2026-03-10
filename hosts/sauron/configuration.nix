@@ -11,6 +11,7 @@
     ../../modules/desktop/hyprland-nixos.nix
     ../../modules/programs/shell.nix
     ../../modules/services/bluetooth.nix
+    ../../modules/services/udisks.nix
   ];
 
   networking.hostName = "sauron";
@@ -80,7 +81,6 @@
     usbutils
     blueman
     gamescope
-    udiskie
     librewolf
     tree
     spotify

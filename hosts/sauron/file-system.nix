@@ -1,8 +1,6 @@
 { config, lib, ... }:
 
 {
-  services.udisks2.enable = true;
-
   fileSystems = {
     "/mnt/data1" = {
       device = "/dev/disk/by-uuid/c424be95-313a-4251-b702-587ff795c7f9";

@@ -9,6 +9,7 @@
     ../../modules/desktop/hyprland-nixos.nix
     ../../modules/programs/shell.nix
     ../../modules/services/bluetooth.nix
+    ../../modules/services/udisks.nix
   ];
 
   networking.hostName = "saruman";
@@ -61,7 +62,6 @@
     swaynotificationcenter
     obsidian
     blueman
-    udiskie
     librewolf
     tree
     spotify
