@@ -18,8 +18,15 @@
 
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
-      monitor = desc:Iiyama North America PL2797H 12497503A1590,preferred@100,1440x0,2
+      monitor = desc:Iiyama North America PL2797H 12497503A1590,preferred@100,1440x0,1
       monitor = ,preferred,auto,1,mirror,eDP-1
+    '';
+
+    extraConfig = ''
+      general {
+          col.inactive_border = rgba(000000ff)
+          col.active_border = rgba(000000ff)
+      }
     '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";

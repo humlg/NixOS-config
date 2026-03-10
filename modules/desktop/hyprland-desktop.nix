@@ -41,6 +41,12 @@ in
       default = "thunar";
       description = "Default file manager command.";
     };
+
+    extraConfig = lib.mkOption {
+      type    = lib.types.lines;
+      default = "";
+      description = "Extra Hyprland config lines appended at the end (per-host overrides).";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -367,6 +373,9 @@ in
 
         # Screenshot (region)
         bind = , PRINT, exec, hyprshot -m region
+
+        # ── Per-machine overrides ────────────────────────────────────────────
+        ${cfg.extraConfig}
       '';
     };
 
