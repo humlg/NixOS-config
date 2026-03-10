@@ -19,18 +19,13 @@
 
   services.colord.enable = true;
 
-  # Battery charge limit for Lenovo 14ASP9
+  # Battery charge limit for Lenovo IdeaPad 14ASP9
   services.tlp = {
     enable = true;
     settings = {
-      # Enable battery conservation mode
+      # Conservation mode caps charge at ~80% (IdeaPad-specific)
       NATACPI_ENABLE = 1;
-      TPACPI_ENABLE = 1;
-      TPSMAPI_ENABLE = 1;
-
-      # Charge thresholds: start charging at 70%, stop at 80%
-      START_CHARGE_THRESH_BAT0 = 70;
-      STOP_CHARGE_THRESH_BAT0 = 80;
+      CONSERVATION_MODE = 1;
     };
   };
 
