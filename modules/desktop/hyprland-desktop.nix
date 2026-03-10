@@ -515,7 +515,7 @@ in
         };
 
         "custom/disk" = {
-          exec     = "df -BG --output=used,size /home | tail -1 | awk '{gsub(/G/,\"\"); printf \"%d/%d GiB\", $1, $2}'";
+          exec     = "df -BG --output=used,size /home | tail -1 | awk '{gsub(/G/,\"\"); printf \"%d/%dGiB\", $1, $2}'";
           interval = 10;
           format   = "󰋊 <span color='#777777'>{}</span>";
         };
