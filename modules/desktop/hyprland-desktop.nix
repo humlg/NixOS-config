@@ -518,8 +518,8 @@ in
           states   = { warning = 90; };
           interval = 10;
           path     = "/home";
-          format   = "󰋊 <span color='#777777'>{used:0.0f}/{total:0.0f}GiB</span>";
-          unit     = "GB";
+          format   = "󰋊 <span color='#777777'>{used}/{total}</span>";
+          unit     = "GiB";
         };
 
         power-profiles-daemon = {
