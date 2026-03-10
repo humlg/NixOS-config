@@ -609,7 +609,7 @@ in
         #pulseaudio.microphone,
         #workspaces,
         #memory,
-        #disk,
+        #custom-disk,
         #battery,
         #power-profiles-daemon,
         #tray {
@@ -652,12 +652,11 @@ in
         }
         #memory.warning { color: #ff5555; }
 
-        #disk {
+        #custom-disk {
             color:         @color2;
             border-radius: 0px 13px 13px 0px;
             margin-left:   0px;
         }
-        #disk.warning { color: #ff5555; }
 
         #cpu {
             color:         @color2;
