@@ -4,7 +4,7 @@ let
   cfg = config.desktop.hyprland-desktop;
   home = config.home.homeDirectory;
 
-  reloadDesktop = pkgs.writeShellScript "reload-desktop" ''
+  reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
     hyprctl reload
     pkill waybar; waybar &
     pkill swaync; swaync &
@@ -58,7 +58,9 @@ in
   config = lib.mkIf cfg.enable {
 
     # ── Packages ────────────────────────────────────────────────────────────
-    home.packages = with pkgs; [
+    home.packages = [
+      reloadDesktop
+    ] ++ (with pkgs; [
       hyprshot
       hyprpicker
       swww
@@ -75,7 +77,7 @@ in
       lxqt.lxqt-policykit
       kdePackages.kwallet
       qt6Packages.qt6ct
-    ];
+    ]);
 
     # ── Session variables ────────────────────────────────────────────────────
     # NOTE: Do NOT put secrets (API tokens, etc.) here — use sops-nix or agenix.
@@ -262,7 +264,7 @@ in
         bind = $mainMod,       Q, exec,          $terminal
         bind = $mainMod,       C, killactive
         bind = $mainMod SHIFT, M, exec,          uwsm stop
-        bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}
+        bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}/bin/reload-desktop
         bind = $mainMod,       E, exec,          $fileManager
         bind = $mainMod,       O, togglefloating
         bind = $mainMod,       I, fullscreen
