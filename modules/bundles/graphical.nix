@@ -6,5 +6,6 @@
     gimp          # GNU Image Manipulation Program
     inkscape      # Vector graphics editor
     darktable     # Photography workflow and RAW developer
+    rawtherapee
   ];
 }
