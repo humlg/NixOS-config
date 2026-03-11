@@ -34,6 +34,9 @@ in
       jq
       tree
 
+      # AppImage management
+      gearlever
+
       # Claude code for troubleshooting
       claude-code
     ];
