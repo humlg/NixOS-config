@@ -10,6 +10,7 @@
     ../../modules/programs/shell.nix
     ../../modules/services/bluetooth.nix
     ../../modules/bundles/graphical.nix
+    ../../modules/bundles/3d-printing.nix
   ];
 
   networking.hostName = "saruman";
