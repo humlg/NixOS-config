@@ -24,6 +24,11 @@
 
   boot.kernelModules = [ "nct6775" ];
 
+  # HiDPI: larger font for TTY console and boot menu
+  boot.loader.systemd-boot.consoleMode = "max";
+  console.packages = [ pkgs.terminus_font ];
+  console.font = "ter-132b";
+
   services.colord.enable = true;
 
   programs.kdeconnect.enable = true;

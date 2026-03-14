@@ -25,6 +25,8 @@ in
       # Common daily drivers (adjust to taste)
       mpv
       vlc
+      feh
+      kdePackages.gwenview
 
       # Archives / utilities
       unzip

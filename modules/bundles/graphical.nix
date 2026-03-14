@@ -7,5 +7,6 @@
     inkscape      # Vector graphics editor
     darktable     # Photography workflow and RAW developer
     rawtherapee
+    gphoto2
   ];
 }
