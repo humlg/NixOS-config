@@ -40,8 +40,9 @@
 
   home.stateVersion = "25.11";
 
-  home.packages = [
+  home.packages  = [
     pkgs.helvum
+    pkgs.qemu
   ];
 
   home.file = {};
