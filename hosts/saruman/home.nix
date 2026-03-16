@@ -42,6 +42,7 @@
 
   home.packages = [
     pkgs.helvum
+    pkgs.remmina
   ];
 
   home.file = {};
