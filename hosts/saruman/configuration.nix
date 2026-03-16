@@ -11,6 +11,7 @@
     ../../modules/services/bluetooth.nix
     ../../modules/bundles/graphical.nix
     ../../modules/bundles/3d-printing.nix
+    ../../modules/bundles/wine.nix
   ];
 
   networking.hostName = "saruman";
@@ -31,6 +32,7 @@
   };
 
   programs.kdeconnect.enable = true;
+  bundles.wine.enable = true;
 
   home-manager = {
     backupFileExtension = "hm-bak";

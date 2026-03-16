@@ -13,6 +13,7 @@
     ../../modules/services/bluetooth.nix
     ../../modules/bundles/graphical.nix
     ../../modules/bundles/3d-printing.nix
+    ../../modules/bundles/wine.nix
   ];
 
   networking.hostName = "sauron";
@@ -33,6 +34,7 @@
 
   programs.kdeconnect.enable = true;
   programs.coolercontrol.enable = true;
+  bundles.wine.enable = true;
 
   home-manager = {
     backupFileExtension = "hm-bak";
