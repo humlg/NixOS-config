@@ -42,7 +42,7 @@
 
   home.packages  = [
     pkgs.helvum
-    pkgs.qemu
+    pkgs.remmina
   ];
 
   home.file = {};
