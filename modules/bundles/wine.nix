@@ -9,9 +9,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    hardware.graphics.enable32Bit = true;
+
     environment.systemPackages = with pkgs; [
       bottles
-      wine64Packages.stable
+      wineWowPackages.stable
     ];
   };
 }
