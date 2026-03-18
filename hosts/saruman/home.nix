@@ -43,6 +43,7 @@
   home.packages  = [
     pkgs.helvum
     pkgs.qemu
+    pkgs.cameractrls-gtk4
   ];
 
   home.file = {};

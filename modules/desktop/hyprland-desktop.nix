@@ -279,6 +279,7 @@ in
         bind = $mainMod,       L, exec,          $lockScreen
         bind = $mainMod,       W, exec,          hyprctl dispatch exec "[float;size 800 600;center] waypaper"
         bind = $mainMod,       N, exec,          swaync-client -R && swaync-client -t
+	bind = ALT, TAB,	workspace,	previous
 
         # Clipboard (cliphist + rofi)
         bind = $mainMod,       V, exec, cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy
