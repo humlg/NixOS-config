@@ -6,7 +6,6 @@
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/bundles/yg-work.nix
-    ../../modules/programs/mullvad.nix
   ];
 
   nixpkgs.config.allowUnfree = true;

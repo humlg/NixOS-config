@@ -434,7 +434,7 @@ in
           interval        = 1;
         };
 
-        tray = { icon-size = 16; spacing = 8; };
+        tray = { icon-size = 16; spacing = 8; reverse-direction = true; };
 
         "custom/spacer"     = { format = " "; tooltip = false; };
         "custom/separator1" = { format = ""; tooltip = false; };
