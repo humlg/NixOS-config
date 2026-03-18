@@ -22,12 +22,16 @@
   services.colord.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
-  services.tlp = {
-    enable = true;
-    settings = {
-      # Conservation mode caps charge at ~80% (IdeaPad-specific)
-      NATACPI_ENABLE = 1;
-      CONSERVATION_MODE = 1;
+  # Conservation mode caps charge at ~60% via ideapad_laptop kernel module
+  boot.kernelModules = [ "ideapad_laptop" ];
+  systemd.services.ideapad-conservation-mode = {
+    description = "Enable Lenovo IdeaPad conservation mode";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.bash}/bin/bash -c 'echo 1 > /sys/bus/platform/devices/VPC*/conservation_mode'";
+      ExecStop = "${pkgs.bash}/bin/bash -c 'echo 0 > /sys/bus/platform/devices/VPC*/conservation_mode'";
     };
   };
 
