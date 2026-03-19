@@ -265,7 +265,8 @@ in
 
         # Core
         bind = $mainMod,       Q, exec,          $terminal
-        bind = $mainMod,       C, killactive
+        bind = SUPER SHIFT, 201, exec,		 $menu
+	bind = $mainMod,       C, killactive
         bind = $mainMod SHIFT, M, exec,          uwsm stop
         bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}/bin/reload-desktop
         bind = $mainMod,       E, exec,          $fileManager
