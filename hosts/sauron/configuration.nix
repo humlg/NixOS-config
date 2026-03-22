@@ -14,6 +14,7 @@
     ../../modules/bundles/graphical.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
+    ../../modules/bundles/gaming.nix
   ];
 
   networking.hostName = "sauron";
@@ -27,14 +28,15 @@
 
   # HiDPI: larger font for TTY console and boot menu
   boot.loader.systemd-boot.consoleMode = "max";
-  console.packages = [ pkgs.terminus_font ];
-  console.font = "ter-132b";
+  #console.packages = [ pkgs.terminus_font ];
+  #console.font = "ter-132b";
 
   services.colord.enable = true;
 
   programs.kdeconnect.enable = true;
   programs.coolercontrol.enable = true;
   bundles.wine.enable = true;
+  bundles.gaming.enable = true;
 
   home-manager = {
     backupFileExtension = "hm-bak";
@@ -67,7 +69,6 @@
     discord
     vscode
     lxqt.lxqt-policykit
-    steam
     kdePackages.kate
     mpv
     ffmpeg
@@ -88,7 +89,6 @@
     obsidian
     usbutils
     blueman
-    gamescope
     librewolf
     tree
     spotify
