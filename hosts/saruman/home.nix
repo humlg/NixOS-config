@@ -6,6 +6,7 @@
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/bundles/yg-work.nix
+    ../../modules/programs/webapps.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
@@ -70,6 +71,24 @@
 
   xresources.properties = {
     "Xft.dpi" = 96;
+  };
+
+  programs.webapps = {
+    enable = true;
+    apps = {
+      youtube-music = {
+        url = "https://music.youtube.com";
+        icon = "youtube-music";
+        categories = [ "Audio" "Music" ];
+      };
+      claude = {
+        url = "https://claude.ai";
+        categories = [ "Network" ];
+      };
+      chatgpt = {
+        url = "https://chat.openai.com";
+      };
+    };
   };
 
   programs.zsh.enable = true;
