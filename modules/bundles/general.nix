@@ -41,6 +41,8 @@ in
 
       # Claude code for troubleshooting
       claude-code
+
+      python315
     ];
   };
 }
