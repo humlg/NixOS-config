@@ -18,6 +18,7 @@
   ];
 
   networking.hostName = "sauron";
+  services.sshd.enable = true;
 
   hardware.graphics = {
     enable = true;
