@@ -59,7 +59,5 @@
     transmission_4-gtk
   ];
 
-  services.openssh.enable = true;
-
   system.stateVersion = "25.11";
 }

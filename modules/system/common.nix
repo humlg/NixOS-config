@@ -1,6 +1,9 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    ./ssh.nix
+  ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader
