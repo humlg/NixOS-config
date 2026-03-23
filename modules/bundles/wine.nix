@@ -13,7 +13,6 @@ in
 
     environment.systemPackages = with pkgs; [
       bottles
-      wineWowPackages.stable
     ];
   };
 }
