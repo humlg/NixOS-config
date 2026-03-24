@@ -62,7 +62,6 @@
     waypaper
     chromium
     swww
-    fastfetch
     discord
     vscode
     steam

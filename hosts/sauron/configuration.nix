@@ -65,7 +65,6 @@
     swww
     curl
     spice-vdagent
-    fastfetch
     discord
     vscode
     lxqt.lxqt-policykit

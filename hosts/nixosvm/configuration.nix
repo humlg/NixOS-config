@@ -45,7 +45,6 @@
     curl
     spice-vdagent
     volantes-cursors
-    fastfetch
     discord
     vscode
     lxqt.lxqt-policykit

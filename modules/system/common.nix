@@ -3,6 +3,7 @@
 {
   imports = [
     ./ssh.nix
+    ../programs/fastfetch.nix
   ];
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
