@@ -236,7 +236,7 @@ in
         windowrule = match:initial_title ^Write:.*,         float on, center on
         windowrule = match:initial_title Calendar Reminders, float on, center on
         windowrule = match:title ^Extension:.*,             float on, center on
-        windowrule = match:initial_class gnome-calculator,   float on, center on
+        windowrule = match:initial_class org.gnome.Calculator, float on, center on
 
         # ── Layouts ───────────────────────────────────────────────────────────
         dwindle {
