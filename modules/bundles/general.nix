@@ -43,6 +43,7 @@ in
       claude-code
 
       python315
+      wev
     ];
   };
 }

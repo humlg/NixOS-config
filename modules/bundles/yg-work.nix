@@ -19,6 +19,7 @@ in
       mqttx
       slack
       teams-for-linux
+      libreoffice-qt-fresh
       
     ];
   };
