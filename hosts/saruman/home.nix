@@ -83,10 +83,14 @@
       };
       claude = {
         url = "https://claude.ai";
+        iconUrl  = "https://www.google.com/s2/favicons?domain=claude.ai&sz=128";
+        iconHash = "sha256-2mokIG/r0YeDQUHvlydmNsDjmHylnw1GJO+MqprTJ0k=";
         categories = [ "Network" ];
       };
       chatgpt = {
         url = "https://chat.openai.com";
+        iconUrl  = "https://www.google.com/s2/favicons?domain=chat.openai.com&sz=128";
+        iconHash = "sha256-kbYOlSqwmYks6+g2l5V+zg+aDz6KllM7QStI/KmH7Yk=";
       };
     };
   };

@@ -22,6 +22,18 @@ let
         description = "Icon name from the current theme, or path to a .png/.svg file.";
       };
 
+      iconUrl = lib.mkOption {
+        type        = lib.types.nullOr lib.types.str;
+        default     = null;
+        description = "URL to fetch an icon from (e.g. Google favicon API). Requires iconHash.";
+      };
+
+      iconHash = lib.mkOption {
+        type        = lib.types.str;
+        default     = "";
+        description = "SRI hash of the icon file (e.g. sha256-...).";
+      };
+
       categories = lib.mkOption {
         type        = lib.types.listOf lib.types.str;
         default     = [ "Network" ];
@@ -45,6 +57,12 @@ let
           --user-data-dir="$HOME/.local/share/webapps/${app.name}" \
           ${lib.escapeShellArgs app.extraArgs} "$@"
       '';
+      fetchedIcon = if app.iconUrl != null then
+        pkgs.fetchurl { url = app.iconUrl; hash = app.iconHash; name = "${key}-icon"; }
+      else null;
+      effectiveIcon =
+        if app.icon != null then app.icon
+        else fetchedIcon;
     in
     {
       name       = app.name;
@@ -52,8 +70,8 @@ let
       terminal   = false;
       type       = "Application";
       categories = app.categories;
-    } // lib.optionalAttrs (app.icon != null) {
-      icon = app.icon;
+    } // lib.optionalAttrs (effectiveIcon != null) {
+      icon = effectiveIcon;
     };
 in
 {
