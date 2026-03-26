@@ -7,6 +7,7 @@ in
   imports = [
     ../programs/git.nix
     ../programs/kitty.nix
+    ../programs/vim.nix
   ];
   options.bundles.general = {
     enable = lib.mkEnableOption "General always-installed user packages bundle";
@@ -16,6 +17,7 @@ in
     services.udiskie.enable = true;
     programs.git.enable = true;
     programs.kitty.enable = true;
+    programs.vim.enable = true;
 
     home.packages = with pkgs; [
       firefox
