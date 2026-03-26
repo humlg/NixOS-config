@@ -7,5 +7,15 @@
     openFirewall = true;
   };
 
-  environment.systemPackages = [ pkgs.oterm ];
+  environment.systemPackages = [
+    pkgs.oterm
+    (pkgs.makeDesktopItem {
+      name = "oterm";
+      desktopName = "oterm";
+      comment = "Terminal UI for Ollama";
+      exec = "kitty -e oterm";
+      icon = "utilities-terminal";
+      categories = [ "Utility" ];
+    })
+  ];
 }
