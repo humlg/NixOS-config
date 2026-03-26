@@ -21,6 +21,17 @@
   # LUKS encryption (swap partition)
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
+  # Plymouth boot splash (shows * for LUKS password entry)
+  boot.initrd.systemd.enable = true;
+  boot.kernelParams = [ "quiet" ];
+  boot.plymouth = {
+    enable = true;
+    theme = "motion";
+    themePackages = [
+      (pkgs.adi1090x-plymouth-themes.override { selected_themes = [ "motion" ]; })
+    ];
+  };
+
   services.colord.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
