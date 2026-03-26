@@ -14,6 +14,7 @@
     ../../modules/bundles/wine.nix
     ../../modules/programs/mullvad.nix
     ../../modules/programs/winboat.nix
+    ../../modules/services/ollama.nix
   ];
 
   networking.hostName = "saruman";
