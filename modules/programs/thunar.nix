@@ -3,7 +3,7 @@
 {
   programs.thunar = {
     enable = true;
-    plugins = with pkgs.xfce; [
+    plugins = with pkgs; [
       thunar-volman
       thunar-archive-plugin
     ];
@@ -14,7 +14,7 @@
   # Thumbnail generation
   services.tumbler.enable = true;
   environment.systemPackages = with pkgs; [
-    xfce.tumbler      # thumbnail backend
+    tumbler            # thumbnail backend
     ffmpegthumbnailer  # video
     libgsf             # ODF
     poppler            # PDF
