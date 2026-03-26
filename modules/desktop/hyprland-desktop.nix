@@ -123,8 +123,8 @@ in
         exec-once = swww-daemon
         exec-once = nm-applet --indicator & blueman-applet &
         exec-once = kwalletd6
-        exec-once = thunderbird
-        exec-once = obsidian
+        exec-once = [workspace special:mail silent] thunderbird
+        exec-once = [workspace special:notes silent] obsidian
         exec-once = wl-paste --type text  --watch cliphist store
         exec-once = wl-paste --type image --watch cliphist store
 
