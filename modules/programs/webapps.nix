@@ -3,6 +3,12 @@
 let
   cfg = config.programs.webapps;
 
+  iconDir = "${config.home.homeDirectory}/.local/share/webapp-icons";
+
+  getDomain = url:
+    let m = builtins.match "https?://([^/]+).*" url;
+    in if m != null then builtins.head m else null;
+
   webappType = lib.types.submodule ({ name, ... }: {
     options = {
       url = lib.mkOption {
@@ -22,18 +28,6 @@ let
         description = "Icon name from the current theme, or path to a .png/.svg file.";
       };
 
-      iconUrl = lib.mkOption {
-        type        = lib.types.nullOr lib.types.str;
-        default     = null;
-        description = "URL to fetch an icon from (e.g. Google favicon API). Requires iconHash.";
-      };
-
-      iconHash = lib.mkOption {
-        type        = lib.types.str;
-        default     = "";
-        description = "SRI hash of the icon file (e.g. sha256-...).";
-      };
-
       categories = lib.mkOption {
         type        = lib.types.listOf lib.types.str;
         default     = [ "Network" ];
@@ -48,6 +42,9 @@ let
     };
   });
 
+  # Webapps that need auto-fetched icons (no explicit icon set)
+  autoIconApps = lib.filterAttrs (_: app: app.icon == null) cfg.apps;
+
   mkWebapp = key: app:
     let
       launchScript = pkgs.writeShellScript "webapp-${key}" ''
@@ -57,21 +54,17 @@ let
           --user-data-dir="$HOME/.local/share/webapps/${app.name}" \
           ${lib.escapeShellArgs app.extraArgs} "$@"
       '';
-      fetchedIcon = if app.iconUrl != null then
-        pkgs.fetchurl { url = app.iconUrl; hash = app.iconHash; name = "${key}-icon"; }
-      else null;
       effectiveIcon =
         if app.icon != null then app.icon
-        else fetchedIcon;
+        else "${iconDir}/${key}.png";
     in
     {
       name       = app.name;
       exec       = toString launchScript;
+      icon       = effectiveIcon;
       terminal   = false;
       type       = "Application";
       categories = app.categories;
-    } // lib.optionalAttrs (effectiveIcon != null) {
-      icon = effectiveIcon;
     };
 in
 {
@@ -87,5 +80,20 @@ in
 
   config = lib.mkIf cfg.enable {
     xdg.desktopEntries = lib.mapAttrs mkWebapp cfg.apps;
+
+    home.activation.fetchWebappIcons = lib.mkIf (autoIconApps != {}) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        mkdir -p "${iconDir}"
+        ${lib.concatStringsSep "\n" (lib.mapAttrsToList (key: app:
+          let domain = getDomain app.url;
+          in lib.optionalString (domain != null) ''
+            if [ ! -f "${iconDir}/${key}.png" ]; then
+              ${pkgs.curl}/bin/curl -fsSL -o "${iconDir}/${key}.png" \
+                "https://www.google.com/s2/favicons?domain=${domain}&sz=128" 2>/dev/null || true
+            fi
+          ''
+        ) autoIconApps)}
+      ''
+    );
   };
 }
