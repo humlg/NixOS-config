@@ -20,7 +20,7 @@ in
       slack
       teams-for-linux
       libreoffice-qt-fresh
-      
+      todoist-electron 
     ];
   };
 }
