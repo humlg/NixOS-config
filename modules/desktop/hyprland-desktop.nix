@@ -9,6 +9,11 @@ let
     pkill waybar; waybar &
     pkill swaync; swaync &
   '';
+
+  toggleNotes = pkgs.writeShellScript "toggle-notes" ''
+    hyprctl clients -j | grep -q '"class": "obsidian"' || hyprctl dispatch exec obsidian
+    hyprctl dispatch togglespecialworkspace notes
+  '';
 in
 {
   imports = [
@@ -124,7 +129,6 @@ in
         exec-once = nm-applet --indicator & blueman-applet &
         exec-once = kwalletd6
         exec-once = sleep 3 && hyprctl dispatch exec "[workspace special:mail silent]" thunderbird
-        exec-once = sleep 3 && hyprctl dispatch exec "[workspace special:notes silent]" obsidian
         exec-once = wl-paste --type text  --watch cliphist store
         exec-once = wl-paste --type image --watch cliphist store
 
@@ -356,7 +360,7 @@ in
         bind = $mainMod CTRL SHIFT, right, movecurrentworkspacetomonitor, r
 
         # Special workspaces
-        bind = $mainMod,       S, togglespecialworkspace, notes
+        bind = $mainMod,       S, exec, ${toggleNotes}
         bind = $mainMod SHIFT, S, movetoworkspace,        special:notes
         bind = $mainMod,       X, togglespecialworkspace, dashboard
         bind = $mainMod SHIFT, X, movetoworkspace,        special:dashboard
