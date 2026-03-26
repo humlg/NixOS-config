@@ -1,6 +1,9 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [
+    ../programs/thunar.nix
+  ];
   programs.hyprland = {
     enable = true;
     withUWSM = true;
@@ -34,5 +37,4 @@
   services.printing.enable = true;
 
   programs.firefox.enable = true;
-  programs.thunar.enable = true;
 }
