@@ -76,16 +76,16 @@
   programs.webapps = {
     enable = true;
     apps = {
-      youtube-music = {
+      Youtube-music = {
         url = "https://music.youtube.com";
         icon = "youtube-music";
         categories = [ "Audio" "Music" ];
       };
-      claude = {
+      Claude = {
         url = "https://claude.ai";
         categories = [ "Network" ];
       };
-      chatgpt = {
+      Chatgpt = {
         url = "https://chat.openai.com";
       };
     };

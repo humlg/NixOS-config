@@ -37,6 +37,7 @@ in
       fd
       jq
       tree
+      fzf
 
       # AppImage management
       gearlever
