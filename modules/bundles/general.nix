@@ -8,6 +8,7 @@ in
     ../programs/git.nix
     ../programs/kitty.nix
     ../programs/vim.nix
+    ../desktop/default-apps.nix
   ];
   options.bundles.general = {
     enable = lib.mkEnableOption "General always-installed user packages bundle";
@@ -38,6 +39,7 @@ in
       jq
       tree
       fzf
+      qdirstat
 
       # AppImage management
       gearlever
