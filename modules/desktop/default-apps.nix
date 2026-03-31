@@ -12,6 +12,9 @@
       "image/bmp" = "org.kde.gwenview.desktop";
       "image/svg+xml" = "org.kde.gwenview.desktop";
       "image/tiff" = "org.kde.gwenview.desktop";
+
+      # Teams meetings
+      "x-scheme-handler/msteams" = "teams-for-linux.desktop";
     };
   };
 }
