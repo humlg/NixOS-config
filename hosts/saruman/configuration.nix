@@ -15,6 +15,7 @@
     ../../modules/programs/mullvad.nix
     ../../modules/programs/winboat.nix
     ../../modules/services/ollama.nix
+    ../../modules/bundles/gaming.nix
   ];
 
   networking.hostName = "saruman";
@@ -36,7 +37,7 @@
   services.colord.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
-  # Conservation mode caps charge at ~60% via ideapad_laptop kernel module
+  # Conservation mode caps charge at ~80% via ideapad_laptop kernel module
   boot.kernelModules = [ "ideapad_laptop" ];
   systemd.services.ideapad-conservation-mode = {
     description = "Enable Lenovo IdeaPad conservation mode";
@@ -51,6 +52,7 @@
 
   programs.kdeconnect.enable = true;
   bundles.wine.enable = true;
+  bundles.gaming.enable = true;
 
   home-manager = {
     backupFileExtension = "hm-bak";

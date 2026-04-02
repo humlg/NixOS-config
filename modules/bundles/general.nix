@@ -30,6 +30,7 @@ in
       vlc
       feh
       kdePackages.gwenview
+      mc
 
       # Archives / utilities
       unzip

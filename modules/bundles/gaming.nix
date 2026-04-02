@@ -19,6 +19,8 @@ in
       mangohud
       lsfg-vk
       lsfg-vk-ui
+
+      prismlauncher # Minecraft Java launcher
     ];
   };
 }
