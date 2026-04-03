@@ -13,6 +13,7 @@ in
 
     programs.kitty.extraConfig = ''
       include ${config.home.homeDirectory}/.cache/wal/colors-kitty.conf
+      background_opacity 0.8
     '';
   };
 }
