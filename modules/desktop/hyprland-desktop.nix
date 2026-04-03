@@ -8,6 +8,7 @@ let
     hyprctl reload
     pkill waybar; waybar &
     pkill swaync; swaync &
+    kitty @ set-colors --all ~/.cache/wal/colors-kitty.conf 2>/dev/null || true
   '';
 
   toggleNotes = pkgs.writeShellScript "toggle-notes" ''
@@ -895,6 +896,20 @@ use_xdg_state = False
 WAYPAPEREOF
       fi
     '';
+
+    # ── Pywal restore (login) ─────────────────────────────────────────────
+    systemd.user.services.pywal-restore = {
+      Unit = {
+        Description = "Restore pywal colors from cache";
+        PartOf = [ "graphical-session.target" ];
+        After = [ "graphical-session.target" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.pywal16}/bin/wal -R";
+      };
+      Install.WantedBy = [ "graphical-session.target" ];
+    };
 
     # ── Hyprsunset (night light) ────────────────────────────────────────────
     systemd.user.services.hyprsunset = {

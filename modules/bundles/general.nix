@@ -8,6 +8,7 @@ in
     ../programs/git.nix
     ../programs/kitty.nix
     ../programs/vim.nix
+    ../programs/btop.nix
     ../desktop/default-apps.nix
   ];
   options.bundles.general = {
@@ -19,6 +20,7 @@ in
     programs.git.enable = true;
     programs.kitty.enable = true;
     programs.vim.enable = true;
+    programs.btop.enable = true;
 
     home.packages = with pkgs; [
       firefox

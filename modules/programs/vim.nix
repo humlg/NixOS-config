@@ -20,6 +20,11 @@ in
       " Filetype-specific indentation
       filetype plugin indent on
       autocmd FileType nix setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab
+
+      " Source pywal colors if available
+      if filereadable(expand("~/.cache/wal/colors-wal.vim"))
+        source ~/.cache/wal/colors-wal.vim
+      endif
     '';
   };
 }

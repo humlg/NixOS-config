@@ -5,6 +5,7 @@
     ../../modules/desktop/dark-theme.nix
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
+    ../../modules/programs/cava.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
