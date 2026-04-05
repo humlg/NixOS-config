@@ -24,19 +24,6 @@ let
     '') cfg.syncs)}
   '';
 
-  megaLogin = pkgs.writeShellScriptBin "mega-login" ''
-    if [ -z "$1" ]; then
-      echo "Usage: mega-login <email>"
-      echo ""
-      echo "Logs into MEGA.nz via MEGAcmd. You only need to do this once"
-      echo "per machine — the session is persisted in ~/.megaCmd/."
-      echo ""
-      echo "After login, restart the sync setup service:"
-      echo "  systemctl --user restart mega-sync-setup"
-      exit 1
-    fi
-    ${pkgs.megacmd}/bin/mega-login "$@"
-  '';
 in
 {
   options.services.megacmd = {
@@ -56,7 +43,6 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       pkgs.megacmd
-      megaLogin
     ];
 
     # Long-running MEGAcmd server daemon
