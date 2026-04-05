@@ -6,11 +6,20 @@
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/programs/cava.nix
+    ../../modules/services/megacmd.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   bundles.general.enable = true;
+
+  services.megacmd = {
+    enable = true;
+    syncs = {
+      "/home/david/Documents" = "/Documents";
+      "/home/david/Pictures" = "/Pictures";
+    };
+  };
 
   desktop.hyprland-desktop = {
     enable = true;

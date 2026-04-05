@@ -7,12 +7,21 @@
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/bundles/yg-work.nix
     ../../modules/programs/webapps.nix
+    ../../modules/services/megacmd.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   bundles.general.enable = true;
   bundles.yg-work.enable = true;
+
+  services.megacmd = {
+    enable = true;
+    syncs = {
+      "/home/david/Documents" = "/Documents";
+      "/home/david/Pictures" = "/Pictures";
+    };
+  };
 
   desktop.hyprland-desktop = {
     enable = true;
