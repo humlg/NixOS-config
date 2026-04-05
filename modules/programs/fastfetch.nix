@@ -33,7 +33,7 @@
       "battery"
       #"locale"
       #"break"
-      #"colors"
+      "colors"
     ];
   };
 }
