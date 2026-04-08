@@ -26,6 +26,14 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.claude-code ];
 
-    home.file.".claude/settings.json".text = settingsJson;
+    # Seed settings.json once — Claude Code manages it from then on
+    home.activation.claude-code-settings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [ ! -f "$HOME/.claude/settings.json" ]; then
+        mkdir -p "$HOME/.claude"
+        cat > "$HOME/.claude/settings.json" << 'SETTINGS'
+${settingsJson}
+SETTINGS
+      fi
+    '';
   };
 }
