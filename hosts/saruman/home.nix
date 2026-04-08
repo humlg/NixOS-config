@@ -18,8 +18,13 @@
   services.megacmd = {
     enable = true;
     syncs = {
-      "/home/david/Documents" = "/Documents";
-      "/home/david/Pictures" = "/Pictures";
+      "/home/david/Documents" = "/documents";
+      "/home/david/Pictures/Screenshots" = "/Pictures/Screenshots";
+      "/home/david/Pictures/Film_Archive" = "/Pictures/Film_Archive";
+      "/home/david/Pictures/Digital_archive" = "/Pictures/Digital_Archive";
+      "/home/david/YellowGrid" = "/YellowGrid";
+
+      "/home/david/Pictures/Wallpapers" = "/Pictures/Wallpapers";
     };
   };
 
