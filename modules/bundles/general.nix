@@ -9,6 +9,7 @@ in
     ../programs/kitty.nix
     ../programs/vim.nix
     ../programs/btop.nix
+    ../programs/claude-code.nix
     ../desktop/default-apps.nix
   ];
   options.bundles.general = {
@@ -21,6 +22,7 @@ in
     programs.kitty.enable = true;
     programs.vim.enable = true;
     programs.btop.enable = true;
+    programs.claude-code.enable = true;
 
     home.packages = with pkgs; [
       firefox
@@ -46,9 +48,6 @@ in
 
       # AppImage management
       gearlever
-
-      # Claude code for troubleshooting
-      claude-code
 
       python315
       wev
