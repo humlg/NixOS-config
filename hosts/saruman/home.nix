@@ -59,6 +59,7 @@
     pkgs.helvum
     pkgs.qemu
     pkgs.cameractrls-gtk4
+    pkgs.remmina
   ];
 
   home.file = {};

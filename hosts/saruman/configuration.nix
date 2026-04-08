@@ -9,6 +9,7 @@
     ../../modules/desktop/hyprland-nixos.nix
     ../../modules/programs/shell.nix
     ../../modules/services/bluetooth.nix
+    ../../modules/services/kvm.nix
     ../../modules/bundles/graphical.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
