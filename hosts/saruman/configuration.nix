@@ -38,7 +38,7 @@
   services.colord.enable = true;
 
   # Power button suspends instead of powering off
-  services.logind.extraConfig = "HandlePowerKey=suspend";
+  services.logind.settings.Login.HandlePowerKey = "suspend";
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module
