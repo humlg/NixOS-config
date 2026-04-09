@@ -15,6 +15,16 @@ let
     hyprctl clients -j | grep -q '"class": "obsidian"' || hyprctl dispatch exec obsidian
     hyprctl dispatch togglespecialworkspace notes
   '';
+
+  # Import Hyprland config fragments
+  args = { inherit cfg home pkgs reloadDesktop toggleNotes; };
+  hyprVars      = import ./hyprland-config/variables.nix args;
+  hyprAutostart = import ./hyprland-config/autostart.nix args;
+  hyprInput     = import ./hyprland-config/input.nix args;
+  hyprAppear    = import ./hyprland-config/appearance.nix args;
+  hyprRules     = import ./hyprland-config/window-rules.nix args;
+  hyprKeybinds  = import ./hyprland-config/keybinds.nix args;
+  hyprLayouts   = import ./hyprland-config/layouts.nix args;
 in
 {
   imports = [
@@ -66,7 +76,7 @@ in
 
   config = lib.mkIf cfg.enable {
 
-    # ── Packages ────────────────────────────────────────────────────────────
+    # ── Packages ────────────────────────────────────────────────────
     home.packages = [
       reloadDesktop
     ] ++ (with pkgs; [
@@ -90,8 +100,8 @@ in
       pywalfox-native
     ]);
 
-    # ── Session variables ────────────────────────────────────────────────────
-    # NOTE: Do NOT put secrets (API tokens, etc.) here — use sops-nix or agenix.
+    # ── Session variables ───────────────────────────────────────────
+    # NOTE: Do NOT put secrets (API tokens, etc.) here!!!
     home.sessionVariables = {
       XCURSOR_SIZE                 = 24;
       HYPRCURSOR_SIZE              = 24;
@@ -103,317 +113,38 @@ in
       HYPRSHOT_DIR                 = cfg.screenshotDir;
     };
 
-    # ── Hyprland ─────────────────────────────────────────────────────────────
-    # systemd.enable is left false — UWSM (configured in NixOS) handles the
-    # session targets. Remove that concern if you stop using withUWSM.
+    # ── Hyprland ────────────────────────────────────────────────────
     wayland.windowManager.hyprland = {
       enable          = true;
       xwayland.enable = true;
       systemd.enable  = false;
 
-      # The entire config lives in extraConfig so the pywal source directive
-      # can appear at the top before any variable references.
       extraConfig = ''
-        # ── Per-machine: monitors & scaling ───────────────────────────────────
-        # Override this in each host's home.nix via desktop.hyprland-desktop.monitors
+        # ── Per-machine: monitors & scaling ─────────────────────────────
         ${cfg.monitors}
 
-        # ── Pywal colours (runtime-generated) ────────────────────────────────
+        # ── Pywal colours (runtime-generated) ───────────────────────────
         source = ${home}/.cache/wal/colors-hyprland.conf
+        ${hyprVars}
+        ${hyprAutostart}
+        ${hyprInput}
+        ${hyprAppear}
+        ${hyprRules}
+        ${hyprLayouts}
+        ${hyprKeybinds}
 
-        # ── Variables ─────────────────────────────────────────────────────────
-        $terminal    = ${cfg.terminal}
-        $fileManager = ${cfg.fileManager}
-        $lockScreen  = ${cfg.lockScreen}
-        $menu        = rofi -show drun -show-icons -sort -sorting-method fzf -matching normal -drun-match-fields name,comment,generic,exec,keywords
-        $webBrowser  = MOZ_ENABLE_WAYLAND=1 firefox
-
-        # ── Autostart ─────────────────────────────────────────────────────────
-        exec-once = thunar --daemon
-        exec-once = waybar
-        exec-once = swww-daemon
-        exec-once = nm-applet --indicator & blueman-applet &
-        exec-once = kwalletd6
-        exec-once = sleep 3 && hyprctl dispatch exec "[workspace special:mail silent]" thunderbird
-        exec-once = wl-paste --type text  --watch cliphist store
-        exec-once = wl-paste --type image --watch cliphist store
-
-        # ── Input ─────────────────────────────────────────────────────────────
-        input {
-            kb_layout          = cz,us
-            kb_options         = grp:win_space_toggle
-            numlock_by_default = true
-            follow_mouse       = 1
-            sensitivity        = -0.5
-            accel_profile      = flat
-
-            touchpad {
-                natural_scroll = true
-                scroll_factor  = 0.50
-            }
-        }
-
-        gestures {
-            workspace_swipe_distance = 200
-            workspace_swipe_forever  = false
-            gesture                  = 3, horizontal, workspace
-            gesture                  = 3, vertical,   fullscreen
-            workspace_swipe_use_r    = true
-        }
-
-        # Per-device overrides
-        device {
-            name        = aet-ms480bbt1-mouse
-            sensitivity = -0.5
-        }
-        device {
-            name        = syna3109:00-06cb:cea3-touchpad
-            sensitivity = 0
-        }
-        device {
-            name        = elan06fa:00-04f3:3293-touchpad
-            sensitivity = 0
-        }
-
-        # ── Appearance ────────────────────────────────────────────────────────
-        general {
-            gaps_in              = 2
-            gaps_out             = 2
-            border_size          = 3
-            col.active_border    = $color1 $color4 45deg
-            col.inactive_border  = rgba(595959aa)
-            resize_on_border     = true
-            hover_icon_on_border = true
-            allow_tearing        = false
-            layout               = dwindle
-        }
-
-        decoration {
-            rounding         = 10
-            active_opacity   = 1
-            inactive_opacity = 1
-
-            shadow {
-                enabled      = true
-                range        = 4
-                render_power = 3
-                color        = rgba(1a1a1aee)
-            }
-
-            blur {
-                enabled  = true
-                size     = 5
-                passes   = 2
-                vibrancy = 0.1696
-            }
-        }
-
-        animations {
-            enabled = yes, please :)
-
-            bezier = easeOutQuint,    0.23, 1,    0.32, 1
-            bezier = easeInOutCubic,  0.65, 0.05, 0.36, 1
-            bezier = linear,          0,    0,    1,    1
-            bezier = almostLinear,    0.5,  0.5,  0.75, 1.0
-            bezier = quick,           0.15, 0,    0.1,  1
-
-            animation = global,         1, 10,   default
-            animation = border,         1,  5.39, easeOutQuint
-            animation = windows,        1,  4.79, easeOutQuint
-            animation = windowsIn,      1,  4.1,  easeOutQuint, popin 87%
-            animation = windowsOut,     1,  1.49, linear,       popin 87%
-            animation = fadeIn,         1,  1.73, almostLinear
-            animation = fadeOut,        1,  1.46, almostLinear
-            animation = fade,           1,  3.03, quick
-            animation = layers,         1,  3.81, easeOutQuint
-            animation = layersIn,       1,  4,    easeOutQuint, fade
-            animation = layersOut,      1,  1.5,  linear,       fade
-            animation = fadeLayersIn,   1,  1.79, almostLinear
-            animation = fadeLayersOut,  1,  1.39, almostLinear
-            animation = workspaces,     1,  1.94, almostLinear, fade
-            animation = workspacesIn,   1,  1.21, almostLinear, fade
-            animation = workspacesOut,  1,  1.94, almostLinear, fade
-        }
-
-        # swaync blur
-        layerrule = blur on, ignore_alpha 0.2, dim_around off, match:class swaync
-
-        # ── Window rules ─────────────────────────────────────────────────────
-        windowrule = workspace special:mail silent,  match:initial_class ^(thunderbird)$
-        windowrule = workspace special:notes silent, match:initial_class ^(obsidian)$
-
-        windowrule = match:title File Operation Progress,   float on, center on
-        windowrule = match:initial_title ^Write:.*,         float on, center on
-        windowrule = match:initial_title Calendar Reminders, float on, center on
-        windowrule = match:title ^Extension:.*,             float on, center on
-        windowrule = match:initial_class org.gnome.Calculator, float on, center on
-        windowrule = match:initial_class Todoist, float on, center on
-
-        # ── Layouts ───────────────────────────────────────────────────────────
-        dwindle {
-            pseudotile     = true
-            preserve_split = true
-        }
-
-        master {
-            new_status = master
-        }
-
-        misc {
-            focus_on_activate       = true
-            force_default_wallpaper = 0
-            disable_hyprland_logo   = true
-        }
-
-        workspace = w[t1], gapsout:0, gapsin:0, border:0
-        windowrule = border_size 0, rounding 0, match:float 0, match:workspace w[t1]
-
-        # ── Keybinds ─────────────────────────────────────────────────────────
-        $mainMod = SUPER
-
-        # Lid switch → lock + suspend
-        bindl = , switch:on:Lid Switch, exec, $lockScreen & systemctl suspend
-
-        # Core
-        bind = $mainMod,       Q, exec,          $terminal
-        bind = SUPER SHIFT, 201, exec,		 $menu
-	bind = $mainMod,       C, killactive
-        bind = $mainMod SHIFT, M, exec,          uwsm stop
-        bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}/bin/reload-desktop
-        bind = $mainMod,       E, exec,          $fileManager
-        bind = $mainMod,       O, togglefloating
-        bind = $mainMod,       I, fullscreen
-        bind = $mainMod,       R, exec,          $menu
-        bind = $mainMod,       P, pseudo
-        bind = $mainMod,       J, togglesplit
-        bind = $mainMod,       F, exec,          $webBrowser
-        bind = $mainMod SHIFT, F, exec,          $webBrowser --private-window
-        bind = $mainMod,       L, exec,          $lockScreen
-        bind = $mainMod,       W, exec,          hyprctl dispatch exec "[float;size 800 600;center] waypaper"
-        bind = $mainMod,       N, exec,          swaync-client -R && swaync-client -t
-	bind = ALT, TAB,	workspace,	previous
-
-        # Clipboard (cliphist + rofi)
-        bind = $mainMod,       V, exec, cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy
-        bind = $mainMod SHIFT, V, exec, cliphist wipe
-
-        # Focus
-        bind = $mainMod, left,  movefocus, l
-        bind = $mainMod, right, movefocus, r
-        bind = $mainMod, up,    movefocus, u
-        bind = $mainMod, down,  movefocus, d
-
-        # Workspaces 1-10
-        bindl = $mainMod, code:10, workspace, 1
-        bindl = $mainMod, code:11, workspace, 2
-        bindl = $mainMod, code:12, workspace, 3
-        bindl = $mainMod, code:13, workspace, 4
-        bindl = $mainMod, code:14, workspace, 5
-        bindl = $mainMod, code:15, workspace, 6
-        bindl = $mainMod, code:16, workspace, 7
-        bindl = $mainMod, code:17, workspace, 8
-        bindl = $mainMod, code:18, workspace, 9
-        bindl = $mainMod, code:19, workspace, 10
-
-        # Workspaces 11-20 (Alt layer)
-        bindl = $mainMod ALT, code:10, workspace, 11
-        bindl = $mainMod ALT, code:11, workspace, 12
-        bindl = $mainMod ALT, code:12, workspace, 13
-        bindl = $mainMod ALT, code:13, workspace, 14
-        bindl = $mainMod ALT, code:14, workspace, 15
-        bindl = $mainMod ALT, code:15, workspace, 16
-        bindl = $mainMod ALT, code:16, workspace, 17
-        bindl = $mainMod ALT, code:17, workspace, 18
-        bindl = $mainMod ALT, code:18, workspace, 19
-        bindl = $mainMod ALT, code:19, workspace, 20
-
-        # Relative workspace navigation (- / =)
-        bindl = $mainMod, code:20, workspace, e-1
-        bindl = $mainMod, code:21, workspace, e+1
-
-        # Move window to workspace 1-10
-        bind = $mainMod SHIFT, code:10, movetoworkspace, 1
-        bind = $mainMod SHIFT, code:11, movetoworkspace, 2
-        bind = $mainMod SHIFT, code:12, movetoworkspace, 3
-        bind = $mainMod SHIFT, code:13, movetoworkspace, 4
-        bind = $mainMod SHIFT, code:14, movetoworkspace, 5
-        bind = $mainMod SHIFT, code:15, movetoworkspace, 6
-        bind = $mainMod SHIFT, code:16, movetoworkspace, 7
-        bind = $mainMod SHIFT, code:17, movetoworkspace, 8
-        bind = $mainMod SHIFT, code:18, movetoworkspace, 9
-        bind = $mainMod SHIFT, code:19, movetoworkspace, 10
-
-        # Move window to workspace 11-20 (Alt layer)
-        bind = $mainMod SHIFT ALT, code:10, movetoworkspace, 11
-        bind = $mainMod SHIFT ALT, code:11, movetoworkspace, 12
-        bind = $mainMod SHIFT ALT, code:12, movetoworkspace, 13
-        bind = $mainMod SHIFT ALT, code:13, movetoworkspace, 14
-        bind = $mainMod SHIFT ALT, code:14, movetoworkspace, 15
-        bind = $mainMod SHIFT ALT, code:15, movetoworkspace, 16
-        bind = $mainMod SHIFT ALT, code:16, movetoworkspace, 17
-        bind = $mainMod SHIFT ALT, code:17, movetoworkspace, 18
-        bind = $mainMod SHIFT ALT, code:18, movetoworkspace, 19
-        bind = $mainMod SHIFT ALT, code:19, movetoworkspace, 20
-
-        # Move window between monitors
-        bind = $mainMod SHIFT, left,  movewindow, l
-        bind = $mainMod SHIFT, right, movewindow, r
-        bind = $mainMod SHIFT, up,    movewindow, u
-        bind = $mainMod SHIFT, down,  movewindow, d
-
-        # Move workspace to monitor
-        bind = $mainMod CTRL SHIFT, left,  movecurrentworkspacetomonitor, l
-        bind = $mainMod CTRL SHIFT, right, movecurrentworkspacetomonitor, r
-
-        # Special workspaces
-        bind = $mainMod,       S, exec, ${toggleNotes}
-        bind = $mainMod SHIFT, S, movetoworkspace,        special:notes
-        bind = $mainMod,       X, togglespecialworkspace, dashboard
-        bind = $mainMod SHIFT, X, movetoworkspace,        special:dashboard
-        bind = $mainMod,       T, togglespecialworkspace, mail
-        bind = $mainMod SHIFT, T, movetoworkspace,        special:mail
-
-        # Scroll / Ctrl+arrow workspace navigation
-        bind = $mainMod, mouse_down, workspace, e+1
-        bind = $mainMod, mouse_up,   workspace, e-1
-        bind = $mainMod CTRL, right, workspace, +1
-        bind = $mainMod CTRL, left,  workspace, -1
-
-        # Mouse move/resize
-        bindm = $mainMod, mouse:272, movewindow
-        bindm = $mainMod, mouse:273, resizewindow
-
-        # Media / brightness / volume
-        bindel = , XF86AudioRaiseVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@   5%+
-        bindel = , XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@   5%-
-        bindel = , XF86AudioMute,         exec, wpctl set-mute   @DEFAULT_AUDIO_SINK@   toggle
-        bindel = , XF86AudioMicMute,      exec, wpctl set-mute   @DEFAULT_AUDIO_SOURCE@ toggle
-        bindel = , XF86MonBrightnessUp,   exec, brightnessctl -e set 5%+
-        bindel = , XF86MonBrightnessDown, exec, brightnessctl -e set 5%-
-        bindel = , XF86Calculator,        exec, gnome-calculator
-        bindl  = , XF86AudioNext,         exec, playerctl next
-        bindl  = , XF86AudioPause,        exec, playerctl play-pause
-        bindl  = , XF86AudioPlay,         exec, playerctl play-pause
-        bindl  = , XF86AudioPrev,         exec, playerctl previous
-
-        # Screenshot (region)
-        bind = , PRINT, exec, hyprshot -m region
-
-        # ── Per-machine overrides ────────────────────────────────────────────
+        # ── Per-machine overrides ───────────────────────────────────────
         ${cfg.extraConfig}
       '';
     };
 
-    # ── Rofi ──────────────────────────────────────────────────────────────────
+    # ── Rofi ────────────────────────────────────────────────────────
     programs.rofi = {
       enable = true;
       theme = "${home}/.cache/wal/colors-rofi-dark.rasi";
     };
 
-    # ── Waypaper seed config ───────────────────────────────────────────────
-    # Seed ~/.config/waypaper/config.ini on first install so the post_command
-    # that triggers pywal + reload-desktop is already in place.  Once the
-    # file exists it is never overwritten — waypaper manages it from there.
+    # ── Waypaper seed config ────────────────────────────────────────
     home.activation.seedWaypaperConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       config_dir="${home}/.config/waypaper"
       config_file="$config_dir/config.ini"
@@ -449,7 +180,7 @@ WAYPAPEREOF
       fi
     '';
 
-    # ── Pywal restore (login) ─────────────────────────────────────────────
+    # ── Pywal restore (login) ───────────────────────────────────────
     systemd.user.services.pywal-restore = {
       Unit = {
         Description = "Restore pywal colors from cache";
@@ -463,7 +194,7 @@ WAYPAPEREOF
       Install.WantedBy = [ "graphical-session.target" ];
     };
 
-    # ── Hyprsunset (night light) ────────────────────────────────────────────
+    # ── Hyprsunset (night light) ────────────────────────────────────
     systemd.user.services.hyprsunset = {
       Unit = {
         Description = "Hyprsunset blue light filter";
@@ -476,10 +207,7 @@ WAYPAPEREOF
       };
     };
 
-    # ── Polkit agent ──────────────────────────────────────────────────────────
-    # NOTE: Remove the equivalent systemd.user.services.polkit-agent block
-    # from your NixOS configuration.nix when you enable this module, or
-    # you will get a conflict between the two service definitions.
+    # ── Polkit agent ────────────────────────────────────────────────
     systemd.user.services.polkit-agent = {
       Unit = {
         Description = "Polkit Authentication Agent";
