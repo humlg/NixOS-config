@@ -55,6 +55,9 @@
   };
 
   programs.kdeconnect.enable = true;
+  custom.bluetooth.enable = true;
+  bundles.photography.enable = true;
+  bundles."3d-printing".enable = true;
   bundles.wine.enable = true;
   bundles.gaming.enable = true;
 
