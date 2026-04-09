@@ -8,11 +8,13 @@
     ../../modules/bundles/yg-work.nix
     ../../modules/programs/webapps.nix
     ../../modules/services/megacmd.nix
+    ../../modules/bundles/desktop-apps.nix
   ];
 
   nixpkgs.config.allowUnfree = true;
 
   bundles.general.enable = true;
+  bundles.desktop-apps.enable = true;
   bundles.yg-work.enable = true;
 
   services.megacmd = {

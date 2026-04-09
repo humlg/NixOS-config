@@ -50,52 +50,17 @@
   };
 
   environment.systemPackages = with pkgs; [
-    vim
-    wget
-    htop
-    btop
     gtk3
     xterm
     alacritty
-    rofi
     wofi
-    waybar
-    git
-    unzip
-    pywal16
-    waypaper
-    chromium
-    swww
-    curl
     spice-vdagent
-    discord
-    vscode
-    lxqt.lxqt-policykit
-    kdePackages.kate
-    mpv
-    ffmpeg
-    pywalfox-native
     quickshell
-    pavucontrol
-    kdePackages.kdeconnect-kde
-    cliphist
-    wl-clipboard
-    hyprlock
-    hypridle
     lm_sensors
     stress
     cava
     openrgb
-    hyprshot
-    swaynotificationcenter
-    obsidian
     usbutils
-    blueman
-    librewolf
-    tree
-    spotify
-    feh
-    lazygit
   ];
 
   system.stateVersion = "25.11";

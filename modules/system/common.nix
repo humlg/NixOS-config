@@ -31,6 +31,14 @@
     nerd-fonts.jetbrains-mono
   ];
 
+  environment.systemPackages = with pkgs; [
+    vim
+    git
+    wget
+    curl
+    htop
+  ];
+
   services.udisks2.enable = true;
 
   users.users.david = {

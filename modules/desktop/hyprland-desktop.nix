@@ -86,6 +86,8 @@ in
       lxqt.lxqt-policykit
       kdePackages.kwallet
       qt6Packages.qt6ct
+      pywal16
+      pywalfox-native
     ]);
 
     # ── Session variables ────────────────────────────────────────────────────

@@ -31,30 +31,14 @@
   };
 
   environment.systemPackages = with pkgs; [
-    vim
-    wget
-    htop
-    btop
-    rofi
     wofi
-    waybar
-    git
-    unzip
-    pywal16
-    waypaper
     chromium
-    swww
-    curl
     spice-vdagent
     volantes-cursors
     discord
     vscode
-    lxqt.lxqt-policykit
     steam
     kdePackages.kate
-    mpv
-    ffmpeg
-    pywalfox-native
     quickshell
     tmux
     transmission_4-gtk

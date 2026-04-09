@@ -49,6 +49,9 @@ in
       # AppImage management
       gearlever
 
+      ffmpeg
+      lazygit
+
       python315
       wev
     ];
