@@ -47,7 +47,15 @@ modules/
   home/
     common.nix                     # Shared home-manager boilerplate (username, stateVersion, etc.)
   desktop/
-    hyprland-desktop.nix           # Main Hyprland HM module (keybinds, window rules, autostart)
+    hyprland-desktop.nix           # Main Hyprland HM module (options, packages, services)
+    hyprland-config/               # Hyprland config fragments (imported by hyprland-desktop.nix)
+      variables.nix                #   $terminal, $fileManager, $menu, etc.
+      autostart.nix                #   exec-once entries
+      input.nix                    #   Input, gestures, per-device overrides
+      appearance.nix               #   General, decoration, animations, layerrules
+      window-rules.nix             #   Window rules
+      keybinds.nix                 #   All keybinds (core, workspaces, media, etc.)
+      layouts.nix                  #   Dwindle, master, misc, workspace rules
     waybar.nix                     # Waybar config (settings + CSS style)
     hyprlock.nix                   # Hyprlock config (lock screen)
     hypridle.nix                   # Hypridle config (idle timers)
