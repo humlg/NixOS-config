@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ../../modules/home/common.nix
     ../../modules/desktop/dark-theme.nix
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
@@ -10,8 +11,6 @@
     ../../modules/services/megacmd.nix
     ../../modules/bundles/desktop-apps.nix
   ];
-
-  nixpkgs.config.allowUnfree = true;
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
@@ -52,11 +51,6 @@
     fileManager   = "thunar";
   };
 
-  home.username = "david";
-  home.homeDirectory = "/home/david";
-
-  home.stateVersion = "25.11";
-
   home.packages  = [
     pkgs.helvum
     pkgs.qemu
@@ -64,10 +58,7 @@
     pkgs.remmina
   ];
 
-  home.file = {};
-
   home.sessionVariables = {
-    EDITOR = "vim";
     XCURSOR_THEME = "volantes_cursors";
     XCURSOR_SIZE = 24;
   };
@@ -109,5 +100,4 @@
   };
 
   programs.zsh.enable = true;
-  programs.home-manager.enable = true;
 }
