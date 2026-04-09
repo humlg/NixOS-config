@@ -6,11 +6,11 @@
     ../../modules/system/common.nix
     ../../modules/system/locale.nix
     ../../modules/system/sddm.nix
-    ../../modules/desktop/hyprland-nixos.nix
-    ../../modules/programs/shell.nix
+    ../../modules/desktop/hyprland-system.nix
+    ../../modules/programs/zsh.nix
     ../../modules/services/bluetooth.nix
     ../../modules/services/kvm.nix
-    ../../modules/bundles/graphical.nix
+    ../../modules/bundles/photography.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
     ../../modules/programs/mullvad.nix

@@ -8,10 +8,10 @@
     ../../modules/system/locale.nix
     ../../modules/system/nvidia.nix
     ../../modules/system/sddm.nix
-    ../../modules/desktop/hyprland-nixos.nix
-    ../../modules/programs/shell.nix
+    ../../modules/desktop/hyprland-system.nix
+    ../../modules/programs/zsh.nix
     ../../modules/services/bluetooth.nix
-    ../../modules/bundles/graphical.nix
+    ../../modules/bundles/photography.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
     ../../modules/bundles/gaming.nix

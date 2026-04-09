@@ -6,8 +6,8 @@
     ../../modules/system/common.nix
     ../../modules/system/locale.nix
     ../../modules/system/sddm.nix
-    ../../modules/desktop/hyprland-nixos.nix
-    ../../modules/programs/shell.nix
+    ../../modules/desktop/hyprland-system.nix
+    ../../modules/programs/zsh.nix
     ../../modules/services/bluetooth.nix
   ];
 
