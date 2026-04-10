@@ -38,13 +38,6 @@
       monitor = ,preferred,auto,1,mirror,eDP-1
     '';
 
-    extraConfig = ''
-      general {
-          col.active_border = $color1
-          col.inactive_border = rgba(595959aa)
-      }
-    '';
-
     screenshotDir = "/home/david/Pictures/Screenshots";
     lockScreen    = "hyprlock";
     terminal      = "kitty";
