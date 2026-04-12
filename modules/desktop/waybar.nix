@@ -86,7 +86,7 @@ in
         memory = {
           states   = { warning = 90; };
           interval = 1;
-          format   = " <span color='#777777'>{used:0.1f}GiB</span>";
+          format   = " <span color='#777777'>{used:0.1f}GiB</span>";
         };
 
         pulseaudio = {
