@@ -2,7 +2,7 @@
 ''
   # ── Autostart ───────────────────────────────────────────────────
   exec-once = thunar --daemon
-  exec-once = ags run
+  exec-once = ags
   exec-once = swww-daemon
   exec-once = nm-applet --indicator & blueman-applet &
   exec-once = kwalletd6

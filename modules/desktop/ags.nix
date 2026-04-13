@@ -6,11 +6,21 @@ in
 {
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
-      ags
+      # Use AGS v1 (the old version with GJS API)
+      # The new AGS v2 uses a different TypeScript-based API
+      (ags.overrideAttrs (old: {
+        version = "1.8.2";
+        src = pkgs.fetchFromGitHub {
+          owner = "Aylur";
+          repo = "ags";
+          rev = "v1.8.2";
+          hash = "sha256-3GwwVQyLF2LDwIFJKzF+W+HQFmuVYZCVCGYzUQNnRBw=";
+        };
+      }))
       libdbusmenu-gtk3
     ];
 
-    xdg.configFile."ags/app.js".text = ''
+    xdg.configFile."ags/config.js".text = ''
       import App from 'resource:///com/github/Aylur/ags/app.js';
       import Widget from 'resource:///com/github/Aylur/ags/widget.js';
       import Utils from 'resource:///com/github/Aylur/ags/utils.js';
