@@ -6,7 +6,7 @@ let
 
   reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
     hyprctl reload
-    pkill waybar; waybar &
+    pkill ags; ags run &
     pkill swaync; swaync &
     kitty @ set-colors --all ~/.cache/wal/colors-kitty.conf 2>/dev/null || true
   '';
@@ -29,7 +29,7 @@ in
 {
   imports = [
     ./swaync.nix
-    ./waybar.nix
+    ./ags.nix
     ./hyprlock.nix
     ./hypridle.nix
   ];

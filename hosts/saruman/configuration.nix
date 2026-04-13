@@ -71,6 +71,7 @@
 
   environment.systemPackages = with pkgs; [
     gtk3
+    codex
   ];
 
   system.stateVersion = "25.11";
