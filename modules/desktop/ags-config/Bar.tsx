@@ -81,7 +81,7 @@ function CpuLabel() {
     return (
         <box class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
             <label label="󰍛" />
-            <label class="metric-value" label={cpu((v) => `${v}%`)} />
+            <label class="metric-value" xalign={1} label={cpu((v) => `${v}%`)} />
         </box>
     )
 }
@@ -92,7 +92,7 @@ function RamLabel() {
     return (
         <box class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
             <label label="" />
-            <label class="metric-value" label={ram((v) => `${v}%`)} />
+            <label class="metric-value" xalign={1} label={ram((v) => `${v}%`)} />
         </box>
     )
 }
@@ -103,7 +103,7 @@ function DiskLabel() {
     return (
         <box class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
             <label label="󰋊" />
-            <label class="metric-value" label={disk((v) => `${v}`)} />
+            <label class="metric-value" xalign={1} label={disk((v) => `${v}`)} />
         </box>
     )
 }
@@ -137,7 +137,7 @@ function BatteryLabel() {
                     return "󰁹"
                 } catch { return "󰂎" }
             })} />
-            <label class="metric-value" label={bat((v) => {
+            <label class="metric-value" xalign={1} label={bat((v) => {
                 try { return `${JSON.parse(v).percent}%` } catch { return "--%" }
             })} />
         </box>
