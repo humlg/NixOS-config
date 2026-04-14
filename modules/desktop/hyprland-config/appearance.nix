@@ -5,7 +5,7 @@
       gaps_in              = 1
       gaps_out             = 0
       border_size          = 3
-      col.active_border    = $color2 $color5 45deg
+      col.active_border    = $color2 $color5 $color2 $color5 45deg
       col.inactive_border  = rgba(595959aa)
       resize_on_border     = true
       hover_icon_on_border = true
@@ -44,6 +44,7 @@
 
       animation = global,         1, 10,   default
       animation = border,         1,  5.39, easeOutQuint
+      animation = borderangle,    1, 100,   linear,       loop
       animation = windows,        1,  4.79, easeOutQuint
       animation = windowsIn,      1,  4.1,  easeOutQuint, popin 87%
       animation = windowsOut,     1,  1.49, linear,       popin 87%
