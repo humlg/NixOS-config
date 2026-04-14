@@ -23,8 +23,8 @@ centerbox {
 .workspaces button {
     background: #2a2a2a;
     border-radius: 8px;
-    padding: 0px 4px;
-    margin: 0 1px;
+    padding: 2px 4px;
+    margin: 0px 1px;
     color: #c0c0c0;
     min-height: 18px;
     min-width: 18px;

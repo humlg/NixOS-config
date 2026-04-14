@@ -47,7 +47,7 @@ function Workspaces({ monitor }: { monitor: string }) {
                             onClicked={() => ws.focus()}
                         >
                             <box>
-                                <label label={ws.get_id().toString()} />
+                                <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}:` : ws.get_id().toString())} />
                                 <For each={wsClasses}>
                                     {(cls) => <image class="ws-icon" iconName={getIconName(cls)} />}
                                 </For>
