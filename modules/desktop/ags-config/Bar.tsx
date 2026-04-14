@@ -82,7 +82,7 @@ function BatteryLabel() {
         <label
             visible
             class={charging((ch) => ch ? "metric charging" : "metric")}
-            label={percent((p) => `BAT ${Math.floor(p * 100)}%`)}
+            label={percent((p) => `BAT ${Math.floor(p <= 1 ? p * 100 : p)}%`)}
         />
     )
 }
