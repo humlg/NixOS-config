@@ -77,11 +77,10 @@ function BatteryLabel() {
     const battery = Battery.get_default()
     const percent = createBinding(battery, "percentage")
     const charging = createBinding(battery, "charging")
-    const present = createBinding(battery, "isPresent")
 
     return (
         <label
-            visible={present}
+            visible
             class={charging((ch) => ch ? "metric charging" : "metric")}
             label={percent((p) => `BAT ${Math.floor(p * 100)}%`)}
         />
@@ -147,12 +146,12 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                     <CpuLabel />
                     <RamLabel />
                     <DiskLabel />
+                    <BatteryLabel />
                 </box>
                 <box $type="center">
                     <Workspaces />
                 </box>
                 <box $type="end" spacing={8}>
-                    <BatteryLabel />
                     <SysTray />
                     <Clock />
                 </box>
