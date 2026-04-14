@@ -58,13 +58,19 @@ function CpuLabel() {
 function RamLabel() {
     const ram = createPoll("--", 2000, ["bash", "-c",
         "free -m | awk '/Mem:/ {printf \"%d\", $3*100/$2}'"])
-    return <label class="metric" label={ram((v) => `RAM ${v}%`)} />
+    return <label
+        class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+        label={ram((v) => `RAM ${v}%`)}
+    />
 }
 
 function DiskLabel() {
     const disk = createPoll("--", 10000, ["bash", "-c",
         "df -h / | awk 'NR==2 {print $5}'"])
-    return <label class="metric" label={disk((v) => `DISK ${v}`)} />
+    return <label
+        class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+        label={disk((v) => `DISK ${v}`)}
+    />
 }
 
 function BatteryLabel() {
