@@ -210,7 +210,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
             application={app}
         >
             <centerbox>
-                <box $type="start" class="group">
+                <box $type="start" class="group" spacing={4}>
                     <CpuLabel />
                     <RamLabel />
                     <DiskLabel />
@@ -219,7 +219,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                 <box $type="center">
                     <Workspaces monitor={gdkmonitor.connector!} />
                 </box>
-                <box $type="end" class="group">
+                <box $type="end" class="group" spacing={4}>
                     <SysTray />
                     <Clock />
                 </box>
