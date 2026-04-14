@@ -16,7 +16,7 @@ function Workspaces() {
 
     return (
         <box class="workspaces">
-            <For each={workspaces((ws) => ws.sort((a, b) => a.get_id() - b.get_id()))}>
+            <For each={workspaces((ws) => ws.filter((w) => w.get_id() > 0).sort((a, b) => a.get_id() - b.get_id()))}>
                 {(ws) => (
                     <button
                         class={focused((fw) => fw?.get_id() === ws.get_id() ? "focused" : "")}
