@@ -58,6 +58,7 @@ centerbox {
 .metric-value {
     margin-left: 4px;
     min-width: 40px;
+    -gtk-xalign: 1;
 }
 
 .metric.critical {
