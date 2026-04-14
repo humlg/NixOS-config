@@ -11,8 +11,8 @@ function loadWalColors(): string {
         const fg = json.special.foreground
         const c = json.colors
         return `
-            window > box { background: alpha(${bg}, 0.85); color: ${fg}; }
-            .workspaces button { color: ${c.color7}; }
+            window > box { color: ${fg}; }
+            .workspaces button { color: ${c.color7}; background: alpha(${c.color8}, 0.6); }
             .workspaces button.focused { background: ${c.color5}; color: ${fg}; }
             .metric { background: alpha(${c.color8}, 0.6); }
             .metric.charging { color: ${c.color2}; }
