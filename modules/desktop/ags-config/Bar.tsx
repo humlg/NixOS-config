@@ -9,35 +9,15 @@ import GLib from "gi://GLib"
 import Hyprland from "gi://AstalHyprland"
 import Tray from "gi://AstalTray"
 
-const appIcons: Record<string, string> = {
-    "firefox": "🦊",
-    "kitty": "🐱",
-    "obsidian": "📝",
-    "thunderbird": "📧",
-    "discord": "💬",
-    "Slack": "💬",
-    "teams-for-linux": "💬",
-    "steam": "🎮",
-    "code": "💻",
-    "Code": "💻",
-    "thunar": "📁",
-    "pavucontrol": "🔊",
-    "chromium-browser": "🌐",
-    "chrome": "🌐",
-    "gimp": "🎨",
-    "inkscape": "🎨",
-    "prusa-slicer": "🖨",
-    "freecad": "📐",
-    "virt-manager": "🖥",
-    "remmina": "🖥",
-    "helvum": "🔊",
-}
-
-function getAppIcon(windowClass: string): string {
-    for (const [key, icon] of Object.entries(appIcons)) {
-        if (windowClass.toLowerCase().includes(key.toLowerCase())) return icon
+function getIconName(windowClass: string): string {
+    const lower = windowClass.toLowerCase()
+    // Some apps need manual mapping
+    const overrides: Record<string, string> = {
+        "code": "visual-studio-code",
+        "code - oss": "visual-studio-code",
+        "teams-for-linux": "teams",
     }
-    return "●"
+    return overrides[lower] ?? lower
 }
 
 function Workspaces({ monitor }: { monitor: string }) {
@@ -51,13 +31,12 @@ function Workspaces({ monitor }: { monitor: string }) {
             <For each={workspaces((ws) => ws.filter((w) => w.get_id() > 0).sort((a, b) => a.get_id() - b.get_id()))}>
                 {(ws) => {
                     const onOtherMonitor = ws.get_monitor()?.get_name() !== monitor
-                    const icons = clients((cls) => {
-                        const unique = [...new Set(
+                    const wsClasses = clients((cls) =>
+                        [...new Set(
                             cls.filter((c) => c.get_workspace()?.get_id() === ws.get_id())
-                               .map((c) => getAppIcon(c.get_class()))
+                               .map((c) => c.get_class())
                         )]
-                        return unique.length > 0 ? unique.join("") : ""
-                    })
+                    )
                     return (
                         <button
                             class={focused((fw) => {
@@ -67,7 +46,12 @@ function Workspaces({ monitor }: { monitor: string }) {
                             })}
                             onClicked={() => ws.focus()}
                         >
-                            <label label={icons((i) => `${ws.get_id()}${i ? " " + i : ""}`)} />
+                            <box>
+                                <label label={ws.get_id().toString()} />
+                                <For each={wsClasses}>
+                                    {(cls) => <image class="ws-icon" iconName={getIconName(cls)} />}
+                                </For>
+                            </box>
                         </button>
                     )
                 }}
