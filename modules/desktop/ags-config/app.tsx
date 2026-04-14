@@ -12,11 +12,11 @@ function loadWalColors(): string {
         const c = json.colors
         return `
             window > box { color: ${fg}; }
-            .workspaces button { color: ${c.color7}; background: alpha(${c.color8}, 0.6); }
+            .workspaces button { color: ${c.color7}; background: alpha(${bg}, 0.55); }
             .workspaces button.focused { background: ${c.color2}; color: ${fg}; }
-            .metric { background: alpha(${c.color8}, 0.6); }
+            .metric { background: alpha(${bg}, 0.55); }
             .metric.charging { color: ${c.color2}; }
-            .tray { background: alpha(${c.color8}, 0.6); }
+            .tray { background: alpha(${bg}, 0.55); }
         `
     } catch {
         return ""

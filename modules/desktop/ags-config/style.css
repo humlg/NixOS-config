@@ -22,7 +22,7 @@ centerbox {
 
 .group,
 .workspaces {
-    background: rgba(30, 30, 30, 0.3);
+    background: transparent;
     border-radius: 10px;
     padding: 2px;
 }

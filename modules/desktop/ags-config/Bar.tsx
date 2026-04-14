@@ -112,7 +112,7 @@ function getWalColors(): { bg: string, accent: string } {
     try {
         const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wal/colors.json`))
         return {
-            bg: json.colors.color8 ?? "#2a2a2a",
+            bg: json.special.background ?? "#2a2a2a",
             accent: json.colors.color2 ?? "#6b8f5e",
         }
     } catch { return { bg: "#2a2a2a", accent: "#6b8f5e" } }
@@ -133,7 +133,7 @@ function BatteryLabel() {
                 try {
                     const { percent } = JSON.parse(v)
                     const fill = percent <= 20 ? "#bf616a" : accentColor
-                    return `background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.6) ${percent}%);`
+                    return `background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%);`
                 } catch { return "" }
             })}
         >
@@ -210,7 +210,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
             application={app}
         >
             <centerbox>
-                <box $type="start" css="background: rgba(30,30,30,0.3); border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
+                <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
                     <CpuLabel />
                     <RamLabel />
                     <DiskLabel />
