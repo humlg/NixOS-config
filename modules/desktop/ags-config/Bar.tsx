@@ -108,7 +108,15 @@ function DiskLabel() {
     )
 }
 
+function getWalBg(): string {
+    try {
+        const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wal/colors.json`))
+        return json.colors.color8 ?? "#2a2a2a"
+    } catch { return "#2a2a2a" }
+}
+
 function BatteryLabel() {
+    const bgColor = getWalBg()
     const bat = createPoll("--", 5000, () => {
         const cap = readFile("/sys/class/power_supply/BAT0/capacity").trim()
         const status = readFile("/sys/class/power_supply/BAT0/status").trim()
@@ -122,7 +130,7 @@ function BatteryLabel() {
                 try {
                     const { percent } = JSON.parse(v)
                     const fill = percent <= 20 ? "#bf616a" : "#6b8f5e"
-                    return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
+                    return `background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.6) ${percent}%);`
                 } catch { return "" }
             })}
         >
