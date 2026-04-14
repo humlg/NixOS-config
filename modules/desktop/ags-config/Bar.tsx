@@ -114,11 +114,24 @@ function BatteryLabel() {
         css={bat((v) => {
             try {
                 const { percent } = JSON.parse(v)
-                const fill = percent <= 20 ? "#bf616a" : "#a3be8c"
+                const fill = percent <= 20 ? "#bf616a" : "#6b8f5e"
                 return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
             } catch { return "" }
         })}
-        label={bat((v) => { try { const d = JSON.parse(v); const icon = d.charging ? "󰂄" : "󰂎"; return `${icon} ${d.percent}%` } catch { return "󰂎 --%" } })}
+        label={bat((v) => {
+            try {
+                const d = JSON.parse(v)
+                let icon = "󰂄"
+                if (!d.charging) {
+                    if (d.percent <= 20) icon = "󰁺"
+                    else if (d.percent <= 40) icon = "󰁻"
+                    else if (d.percent <= 60) icon = "󰁽"
+                    else if (d.percent <= 80) icon = "󰂀"
+                    else icon = "󰁹"
+                }
+                return `${icon} ${d.percent}%`
+            } catch { return "󰂎 --%" }
+        })}
     />
 }
 
