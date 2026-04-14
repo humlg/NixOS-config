@@ -20,6 +20,7 @@ centerbox {
     min-height: 0;
 }
 
+.group,
 .workspaces {
     background: rgba(30, 30, 30, 0.3);
     border-radius: 10px;
