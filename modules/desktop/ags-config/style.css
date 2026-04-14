@@ -21,9 +21,9 @@ centerbox {
 }
 
 .workspaces button {
-    background: transparent;
-    border-radius: 6px;
-    padding: 0;
+    background: #2a2a2a;
+    border-radius: 8px;
+    padding: 0px 4px;
     margin: 0 1px;
     color: #c0c0c0;
     min-height: 18px;
