@@ -5,6 +5,6 @@
         "module": "ES2022",
         "moduleResolution": "Bundler",
         "jsx": "react-jsx",
-        "jsxImportSource": "ags"
+        "jsxImportSource": "ags/gtk4"
     }
 }
