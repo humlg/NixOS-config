@@ -9,7 +9,7 @@ import GLib from "gi://GLib"
 import Hyprland from "gi://AstalHyprland"
 import Tray from "gi://AstalTray"
 
-function Workspaces() {
+function Workspaces({ monitor }: { monitor: string }) {
     const hyprland = Hyprland.get_default()
     const workspaces = createBinding(hyprland, "workspaces")
     const focused = createBinding(hyprland, "focusedWorkspace")
@@ -17,14 +17,21 @@ function Workspaces() {
     return (
         <box class="workspaces">
             <For each={workspaces((ws) => ws.filter((w) => w.get_id() > 0).sort((a, b) => a.get_id() - b.get_id()))}>
-                {(ws) => (
-                    <button
-                        class={focused((fw) => fw?.get_id() === ws.get_id() ? "focused" : "")}
-                        onClicked={() => ws.focus()}
-                    >
-                        <label label={ws.get_id().toString()} />
-                    </button>
-                )}
+                {(ws) => {
+                    const onOtherMonitor = ws.get_monitor()?.get_name() !== monitor
+                    return (
+                        <button
+                            class={focused((fw) => {
+                                if (fw?.get_id() === ws.get_id()) return "focused"
+                                if (onOtherMonitor) return "other-monitor"
+                                return ""
+                            })}
+                            onClicked={() => ws.focus()}
+                        >
+                            <label label={ws.get_id().toString()} />
+                        </button>
+                    )
+                }}
             </For>
         </box>
     )
@@ -154,7 +161,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                     <BatteryLabel />
                 </box>
                 <box $type="center">
-                    <Workspaces />
+                    <Workspaces monitor={gdkmonitor.connector!} />
                 </box>
                 <box $type="end" spacing={8}>
                     <SysTray />

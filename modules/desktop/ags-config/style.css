@@ -28,6 +28,10 @@ window > box {
     min-height: 24px;
 }
 
+.workspaces button.other-monitor {
+    color: #636363;
+}
+
 .workspaces button.focused {
     background: #5e81ac;
     color: #ffffff;
