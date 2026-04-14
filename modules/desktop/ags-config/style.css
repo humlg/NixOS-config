@@ -56,6 +56,10 @@ centerbox {
     min-width: 50px;
 }
 
+.metric-value {
+    margin-left: 4px;
+}
+
 .metric.critical {
     background: #bf616a;
     color: #2e3440;

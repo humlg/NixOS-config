@@ -78,28 +78,34 @@ function readCpuUsage(): string {
 
 function CpuLabel() {
     const cpu = createPoll("--", 2000, () => readCpuUsage())
-    return <label
-        class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={cpu((v) => `󰍛 ${v}%`)}
-    />
+    return (
+        <box class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+            <label label="󰍛" />
+            <label class="metric-value" hexpand halign={Gtk.Align.END} label={cpu((v) => `${v}%`)} />
+        </box>
+    )
 }
 
 function RamLabel() {
     const ram = createPoll("--", 2000, ["bash", "-c",
         "free -m | awk '/Mem:/ {printf \"%d\", $3*100/$2}'"])
-    return <label
-        class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={ram((v) => ` ${v}%`)}
-    />
+    return (
+        <box class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+            <label label="" />
+            <label class="metric-value" hexpand halign={Gtk.Align.END} label={ram((v) => `${v}%`)} />
+        </box>
+    )
 }
 
 function DiskLabel() {
     const disk = createPoll("--", 10000, ["bash", "-c",
         "df -h / | awk 'NR==2 {print $5}'"])
-    return <label
-        class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={disk((v) => `󰋊 ${v}`)}
-    />
+    return (
+        <box class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+            <label label="󰋊" />
+            <label class="metric-value" hexpand halign={Gtk.Align.END} label={disk((v) => `${v}`)} />
+        </box>
+    )
 }
 
 function BatteryLabel() {
@@ -108,31 +114,34 @@ function BatteryLabel() {
         const status = readFile("/sys/class/power_supply/BAT0/status").trim()
         return JSON.stringify({ percent: parseInt(cap), charging: status === "Charging" })
     })
-    return <label
-        visible
-        class={bat((v) => { try { return JSON.parse(v).charging ? "battery charging" : "battery" } catch { return "battery" } })}
-        css={bat((v) => {
-            try {
-                const { percent } = JSON.parse(v)
-                const fill = percent <= 20 ? "#bf616a" : "#6b8f5e"
-                return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
-            } catch { return "" }
-        })}
-        label={bat((v) => {
-            try {
-                const d = JSON.parse(v)
-                let icon = "󰂄"
-                if (!d.charging) {
-                    if (d.percent <= 20) icon = "󰁺"
-                    else if (d.percent <= 40) icon = "󰁻"
-                    else if (d.percent <= 60) icon = "󰁽"
-                    else if (d.percent <= 80) icon = "󰂀"
-                    else icon = "󰁹"
-                }
-                return `${icon} ${d.percent}%`
-            } catch { return "󰂎 --%" }
-        })}
-    />
+    return (
+        <box
+            visible
+            class={bat((v) => { try { return JSON.parse(v).charging ? "battery charging" : "battery" } catch { return "battery" } })}
+            css={bat((v) => {
+                try {
+                    const { percent } = JSON.parse(v)
+                    const fill = percent <= 20 ? "#bf616a" : "#6b8f5e"
+                    return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
+                } catch { return "" }
+            })}
+        >
+            <label label={bat((v) => {
+                try {
+                    const d = JSON.parse(v)
+                    if (d.charging) return "󰂄"
+                    if (d.percent <= 20) return "󰁺"
+                    if (d.percent <= 40) return "󰁻"
+                    if (d.percent <= 60) return "󰁽"
+                    if (d.percent <= 80) return "󰂀"
+                    return "󰁹"
+                } catch { return "󰂎" }
+            })} />
+            <label class="metric-value" hexpand halign={Gtk.Align.END} label={bat((v) => {
+                try { return `${JSON.parse(v).percent}%` } catch { return "--%" }
+            })} />
+        </box>
+    )
 }
 
 function Clock() {
