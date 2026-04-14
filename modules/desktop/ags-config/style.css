@@ -53,6 +53,7 @@ centerbox {
     background: #2a2a2a;
     border-radius: 8px;
     padding: 0px 4px;
+    min-width: 80px;
 }
 
 .metric.critical {
@@ -68,6 +69,7 @@ centerbox {
     border-radius: 8px;
     padding: 0px 4px;
     color: #e6e6e6;
+    min-width: 80px;
 }
 
 .battery.charging {
@@ -88,7 +90,7 @@ centerbox {
 }
 
 .tray image {
-    -gtk-icon-size: 14px;
+    -gtk-icon-size: 18px;
     padding: 0;
     margin: 0;
 }
