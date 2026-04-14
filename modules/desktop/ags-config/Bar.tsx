@@ -118,7 +118,7 @@ function BatteryLabel() {
                 return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
             } catch { return "" }
         })}
-        label={bat((v) => { try { return `BAT ${JSON.parse(v).percent}%` } catch { return "BAT --%" } })}
+        label={bat((v) => { try { const d = JSON.parse(v); const icon = d.charging ? "󰂄" : "󰂎"; return `${icon} ${d.percent}%` } catch { return "󰂎 --%" } })}
     />
 }
 
