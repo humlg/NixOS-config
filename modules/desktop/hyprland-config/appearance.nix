@@ -5,8 +5,7 @@
       gaps_in              = 1
       gaps_out             = 0
       border_size          = 3
-      #col.active_border    = $color2 $color4 45deg
-      col.active_border    = rgba(0000ffaa) rgba(ff0000aa) 45deg
+      col.active_border    = $color2 $color5 45deg
       col.inactive_border  = rgba(595959aa)
       resize_on_border     = true
       hover_icon_on_border = true
