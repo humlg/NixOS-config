@@ -48,6 +48,16 @@ window > box {
     color: #a3be8c;
 }
 
+.battery {
+    border-radius: 8px;
+    padding: 0px 4px;
+    color: #e6e6e6;
+}
+
+.battery.charging {
+    color: #2e3440;
+}
+
 .tray {
     background: #2a2a2a;
     border-radius: 8px;

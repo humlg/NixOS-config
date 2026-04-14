@@ -76,12 +76,19 @@ function BatteryLabel() {
     const bat = createPoll("--", 5000, () => {
         const cap = readFile("/sys/class/power_supply/BAT0/capacity").trim()
         const status = readFile("/sys/class/power_supply/BAT0/status").trim()
-        return JSON.stringify({ percent: cap, charging: status === "Charging" })
+        return JSON.stringify({ percent: parseInt(cap), charging: status === "Charging" })
     })
     return <label
         visible
-        class={bat((v) => { try { return JSON.parse(v).charging ? "metric charging" : "metric" } catch { return "metric" } })}
-        label={bat((v) => { try { return `BAT ${JSON.parse(v).percent}%` } catch { return "BAT --%"} })}
+        class={bat((v) => { try { return JSON.parse(v).charging ? "battery charging" : "battery" } catch { return "battery" } })}
+        css={bat((v) => {
+            try {
+                const { percent } = JSON.parse(v)
+                const fill = percent <= 20 ? "#bf616a" : "#a3be8c"
+                return `background: linear-gradient(to right, ${fill} ${percent}%, #2a2a2a ${percent}%);`
+            } catch { return "" }
+        })}
+        label={bat((v) => { try { return `BAT ${JSON.parse(v).percent}%` } catch { return "BAT --%" } })}
     />
 }
 
