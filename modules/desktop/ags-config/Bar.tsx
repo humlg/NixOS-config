@@ -118,14 +118,15 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
             application={app}
         >
             <centerbox>
-                <box $type="start" />
+                <box $type="start" spacing={8}>
+                    <CpuLabel />
+                    <RamLabel />
+                    <DiskLabel />
+                </box>
                 <box $type="center">
                     <Workspaces />
                 </box>
                 <box $type="end" spacing={8}>
-                    <CpuLabel />
-                    <RamLabel />
-                    <DiskLabel />
                     <BatteryLabel />
                     <SysTray />
                     <Clock />

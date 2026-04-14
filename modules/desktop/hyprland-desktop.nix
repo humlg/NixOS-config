@@ -6,7 +6,7 @@ let
 
   reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
     hyprctl reload
-    pkill -f "ags run"; ags run &
+    ags quit -i bar && ags run &
     pkill swaync; swaync &
     kitty @ set-colors --all ~/.cache/wal/colors-kitty.conf 2>/dev/null || true
   '';
