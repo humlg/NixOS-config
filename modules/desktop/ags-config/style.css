@@ -83,12 +83,10 @@ centerbox {
     color: #e6e6e6;
 }
 
-.battery.charging {
-    color: #2e3440;
-}
+
 
 .battery.low {
-    border: 2px solid #bf616a;
+    border: 3px solid #bf616a;
     animation: flash 1s ease-in-out infinite;
 }
 
