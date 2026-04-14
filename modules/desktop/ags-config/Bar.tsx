@@ -210,13 +210,11 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
             application={app}
         >
             <centerbox>
-                <box $type="start">
-                    <box class="group" spacing={4}>
-                        <CpuLabel />
-                        <RamLabel />
-                        <DiskLabel />
-                        <BatteryLabel />
-                    </box>
+                <box $type="start" class="group" spacing={4} halign={Gtk.Align.START}>
+                    <CpuLabel />
+                    <RamLabel />
+                    <DiskLabel />
+                    <BatteryLabel />
                 </box>
                 <box $type="center">
                     <Workspaces monitor={gdkmonitor.connector!} />
