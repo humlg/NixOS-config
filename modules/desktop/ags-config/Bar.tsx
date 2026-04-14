@@ -89,7 +89,7 @@ function RamLabel() {
         "free -m | awk '/Mem:/ {printf \"%d\", $3*100/$2}'"])
     return <label
         class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={ram((v) => ` ${v}%`)}
+        label={ram((v) => ` ${v}%`)}
     />
 }
 
