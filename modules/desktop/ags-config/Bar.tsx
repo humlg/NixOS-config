@@ -49,7 +49,10 @@ function readCpuUsage(): string {
 
 function CpuLabel() {
     const cpu = createPoll("--", 2000, () => readCpuUsage())
-    return <label class="metric" label={cpu((v) => `CPU ${v}%`)} />
+    return <label
+        class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+        label={cpu((v) => `CPU ${v}%`)}
+    />
 }
 
 function RamLabel() {

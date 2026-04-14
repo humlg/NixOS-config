@@ -39,6 +39,11 @@ window > box {
     padding: 0px 4px;
 }
 
+.metric.critical {
+    background: #bf616a;
+    color: #2e3440;
+}
+
 .metric.charging {
     color: #a3be8c;
 }
