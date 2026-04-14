@@ -12,7 +12,7 @@ in
     programs.ags = {
       enable = true;
       configDir = ./ags-config;
-      extraPackages = with inputs.astal.packages.${pkgs.system}; [
+      extraPackages = with inputs.astal.packages.${pkgs.stdenv.hostPlatform.system}; [
         astal4
         battery
         hyprland
