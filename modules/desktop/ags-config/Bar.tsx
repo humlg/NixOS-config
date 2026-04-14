@@ -7,7 +7,6 @@ import Gtk from "gi://Gtk?version=4.0"
 import Gdk from "gi://Gdk?version=4.0"
 import GLib from "gi://GLib"
 import Hyprland from "gi://AstalHyprland"
-import Battery from "gi://AstalBattery"
 import Tray from "gi://AstalTray"
 
 function Workspaces() {
@@ -74,17 +73,16 @@ function DiskLabel() {
 }
 
 function BatteryLabel() {
-    const battery = Battery.get_default()
-    const percent = createBinding(battery, "percentage")
-    const charging = createBinding(battery, "charging")
-
-    return (
-        <label
-            visible
-            class={charging((ch) => ch ? "metric charging" : "metric")}
-            label={percent((p) => `BAT ${Math.floor(p <= 1 ? p * 100 : p)}%`)}
-        />
-    )
+    const bat = createPoll("--", 5000, () => {
+        const cap = readFile("/sys/class/power_supply/BAT0/capacity").trim()
+        const status = readFile("/sys/class/power_supply/BAT0/status").trim()
+        return JSON.stringify({ percent: cap, charging: status === "Charging" })
+    })
+    return <label
+        visible
+        class={bat((v) => { try { return JSON.parse(v).charging ? "metric charging" : "metric" } catch { return "metric" } })}
+        label={bat((v) => { try { return `BAT ${JSON.parse(v).percent}%` } catch { return "BAT --%"} })}
+    />
 }
 
 function Clock() {
