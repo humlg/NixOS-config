@@ -210,7 +210,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
             application={app}
         >
             <centerbox>
-                <box $type="start" class="group" spacing={4} halign={Gtk.Align.START}>
+                <box $type="start" css="background: rgba(30,30,30,0.3); border-radius: 10px; padding: 3px;" spacing={4} halign={Gtk.Align.START}>
                     <CpuLabel />
                     <RamLabel />
                     <DiskLabel />
