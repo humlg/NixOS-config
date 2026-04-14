@@ -16,11 +16,16 @@ window > box {
 .workspaces button {
     background: transparent;
     border-radius: 8px;
-    padding: 4px 4px;
+    padding: 0;
     margin: 0 1px;
     color: #c0c0c0;
-    min-height: 0;
-    min-width: 0;
+    min-height: 24px;
+    min-width: 24px;
+}
+
+.workspaces button label {
+    min-width: 24px;
+    min-height: 24px;
 }
 
 .workspaces button.focused {
