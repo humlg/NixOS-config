@@ -1,5 +1,6 @@
 import { createBinding, For, onCleanup } from "ags"
 import { createPoll } from "ags/time"
+import { readFile } from "ags/file"
 import app from "ags/gtk4/app"
 import Astal from "gi://Astal?version=4.0"
 import Gtk from "gi://Gtk?version=4.0"
@@ -30,9 +31,24 @@ function Workspaces() {
     )
 }
 
+let prevCpuIdle = 0
+let prevCpuTotal = 0
+
+function readCpuUsage(): string {
+    const line = readFile("/proc/stat").split("\n")[0]
+    const parts = line.split(/\s+/).slice(1).map(Number)
+    const idle = parts[3]
+    const total = parts.reduce((a, b) => a + b, 0)
+    const dIdle = idle - prevCpuIdle
+    const dTotal = total - prevCpuTotal
+    prevCpuIdle = idle
+    prevCpuTotal = total
+    if (dTotal === 0) return "--"
+    return Math.round(((dTotal - dIdle) / dTotal) * 100).toString()
+}
+
 function CpuLabel() {
-    const cpu = createPoll("--", 2000, ["bash", "-c",
-        "read cpu u n s i w x y z < /proc/stat; sleep 0.1; read cpu u2 n2 s2 i2 w2 x2 y2 z2 < /proc/stat; t=$((u2+n2+s2+i2+w2+x2+y2+z2)); p=$((u+n+s+i+w+x+y+z)); d=$((t-p)); id=$((i2-i)); echo $(( (100*(d-id))/d ))"])
+    const cpu = createPoll("--", 2000, () => readCpuUsage())
     return <label class="metric" label={cpu((v) => `CPU ${v}%`)} />
 }
 
