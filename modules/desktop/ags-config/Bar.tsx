@@ -128,7 +128,7 @@ function BatteryLabel() {
     return (
         <box
             visible
-            class={bat((v) => { try { return JSON.parse(v).charging ? "battery charging" : "battery" } catch { return "battery" } })}
+            class={bat((v) => { try { const d = JSON.parse(v); if (d.charging) return "battery charging"; if (d.percent <= 20) return "battery low"; return "battery" } catch { return "battery" } })}
             css={bat((v) => {
                 try {
                     const { percent } = JSON.parse(v)

@@ -87,6 +87,10 @@ centerbox {
     color: #2e3440;
 }
 
+.battery.low {
+    border: 2px solid #bf616a;
+}
+
 .tray {
     background: #2a2a2a;
     border-radius: 8px;
