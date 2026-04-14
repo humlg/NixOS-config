@@ -47,7 +47,7 @@ function Workspaces({ monitor }: { monitor: string }) {
                             onClicked={() => ws.focus()}
                         >
                             <box>
-                                <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}:` : ws.get_id().toString())} />
+                                <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}` : ws.get_id().toString())} />
                                 <For each={wsClasses}>
                                     {(cls) => <image class="ws-icon" iconName={getIconName(cls)} />}
                                 </For>
@@ -80,7 +80,7 @@ function CpuLabel() {
     const cpu = createPoll("--", 2000, () => readCpuUsage())
     return <label
         class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={cpu((v) => `CPU ${v}%`)}
+        label={cpu((v) => `󰍛 ${v}%`)}
     />
 }
 
@@ -89,7 +89,7 @@ function RamLabel() {
         "free -m | awk '/Mem:/ {printf \"%d\", $3*100/$2}'"])
     return <label
         class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={ram((v) => `RAM ${v}%`)}
+        label={ram((v) => ` ${v}%`)}
     />
 }
 
@@ -98,7 +98,7 @@ function DiskLabel() {
         "df -h / | awk 'NR==2 {print $5}'"])
     return <label
         class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
-        label={disk((v) => `DISK ${v}`)}
+        label={disk((v) => `󰋊 ${v}`)}
     />
 }
 
