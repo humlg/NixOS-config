@@ -53,11 +53,11 @@ centerbox {
     background: #2a2a2a;
     border-radius: 8px;
     padding: 0px 4px;
-    min-width: 50px;
 }
 
 .metric-value {
     margin-left: 4px;
+    min-width: 32px;
 }
 
 .metric.critical {
@@ -73,7 +73,6 @@ centerbox {
     border-radius: 8px;
     padding: 0px 4px;
     color: #e6e6e6;
-    min-width: 50px;
 }
 
 .battery.charging {
