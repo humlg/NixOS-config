@@ -41,6 +41,7 @@ centerbox {
 }
 
 .workspaces button.other-monitor {
+    background: #1a1a1a;
     color: #636363;
 }
 
@@ -57,7 +58,7 @@ centerbox {
 
 .metric-value {
     margin-left: 4px;
-    min-width: 40px;
+    min-width: 35px;
 }
 
 .metric.critical {
