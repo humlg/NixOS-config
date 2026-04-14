@@ -89,6 +89,12 @@ centerbox {
 
 .battery.low {
     border: 2px solid #bf616a;
+    animation: flash 1s ease-in-out infinite;
+}
+
+@keyframes flash {
+    0%, 100% { border-color: #bf616a; }
+    50% { border-color: transparent; }
 }
 
 .tray {
