@@ -21,9 +21,9 @@ in
       filetype plugin indent on
       autocmd FileType nix setlocal shiftwidth=2 tabstop=2 softtabstop=2 expandtab
 
-      " Source pywal colors if available
-      if filereadable(expand("~/.cache/wal/colors-wal.vim"))
-        source ~/.cache/wal/colors-wal.vim
+      " Source wallust colors if available
+      if filereadable(expand("~/.cache/wallust/colors-wal.vim"))
+        source ~/.cache/wallust/colors-wal.vim
       endif
     '';
   };

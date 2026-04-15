@@ -8,13 +8,13 @@ in
   config = lib.mkIf cfg.enable {
 
     # ── Hyprlock ──────────────────────────────────────────────────────────────
-    # pywal $color* / $wallpaper / $foreground vars come from the source line.
+    # wallust $color* / $wallpaper / $foreground vars come from the source line.
     # extraConfig is appended after any generated settings — since we set no
     # settings{} here the file effectively IS just extraConfig.
     programs.hyprlock = {
       enable = true;
       extraConfig = ''
-        source = ${home}/.cache/wal/colors-hyprland.conf
+        source = ${home}/.cache/wallust/colors-hyprland.conf
 
         $font = Monospace
 

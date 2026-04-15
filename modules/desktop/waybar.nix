@@ -151,10 +151,10 @@ in
         };
       }];
 
-      # Pywal colours are imported at runtime via @import — the absolute path
-      # resolves correctly as long as pywal has been run at least once.
+      # Wallust colours are imported at runtime via @import — the absolute path
+      # resolves correctly as long as wallust has been run at least once.
       style = ''
-        @import url("${home}/.cache/wal/colors-waybar.css");
+        @import url("${home}/.cache/wallust/colors-waybar.css");
 
         * {
             border:        none;

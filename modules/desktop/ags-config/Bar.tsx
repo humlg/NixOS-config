@@ -110,7 +110,7 @@ function DiskLabel() {
 
 function getWalColors(): { bg: string, accent: string } {
     try {
-        const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wal/colors.json`))
+        const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wallust/colors.json`))
         return {
             bg: json.special.background ?? "#2a2a2a",
             accent: json.colors.color2 ?? "#6b8f5e",

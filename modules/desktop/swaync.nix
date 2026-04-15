@@ -158,7 +158,7 @@ in
     };
 
     style = ''
-      @import url("${home}/.cache/wal/colors-waybar.css");
+      @import url("${home}/.cache/wallust/colors-waybar.css");
 
       /* ── Notification color aliases ─────────────────────────────────────── */
       @define-color text            @foreground;

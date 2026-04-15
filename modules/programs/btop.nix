@@ -11,8 +11,8 @@ in
       theme_background = false;
     };
 
-    # Symlink pywal-generated btop theme
+    # Symlink wallust-generated btop theme
     home.file.".config/btop/themes/pywal.theme".source =
-      config.lib.file.mkOutOfStoreSymlink "${home}/.cache/wal/colors-btop";
+      config.lib.file.mkOutOfStoreSymlink "${home}/.cache/wallust/colors-btop";
   };
 }

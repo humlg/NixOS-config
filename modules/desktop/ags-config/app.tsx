@@ -6,7 +6,7 @@ import Bar from "./Bar"
 
 function loadWalColors(): string {
     try {
-        const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wal/colors.json`))
+        const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wallust/colors.json`))
         const bg = json.special.background
         const fg = json.special.foreground
         const c = json.colors

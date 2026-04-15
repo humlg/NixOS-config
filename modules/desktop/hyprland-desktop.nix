@@ -8,7 +8,7 @@ let
     hyprctl reload
     ags quit -i bar && ags run &
     pkill swaync; swaync &
-    kitty @ set-colors --all ~/.cache/wal/colors-kitty.conf 2>/dev/null || true
+    kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
   '';
 
   toggleNotes = pkgs.writeShellScript "toggle-notes" ''
@@ -96,8 +96,7 @@ in
       lxqt.lxqt-policykit
       kdePackages.kwallet
       qt6Packages.qt6ct
-      pywal16
-      pywalfox-native
+      wallust
     ]);
 
     # ── Session variables ───────────────────────────────────────────
@@ -123,8 +122,8 @@ in
         # ── Per-machine: monitors & scaling ─────────────────────────────
         ${cfg.monitors}
 
-        # ── Pywal colours (runtime-generated) ───────────────────────────
-        source = ${home}/.cache/wal/colors-hyprland.conf
+        # ── Wallust colours (runtime-generated) ────────────────────────
+        source = ${home}/.cache/wallust/colors-hyprland.conf
         ${hyprVars}
         ${hyprAutostart}
         ${hyprInput}
@@ -141,7 +140,7 @@ in
     # ── Rofi ────────────────────────────────────────────────────────
     programs.rofi = {
       enable = true;
-      theme = "${home}/.cache/wal/colors-rofi-dark.rasi";
+      theme = "${home}/.cache/wallust/colors-rofi-dark.rasi";
     };
 
     # ── Waypaper seed config ────────────────────────────────────────
@@ -166,7 +165,7 @@ all_subfolders = False
 show_hidden = False
 show_gifs_only = False
 zen_mode = False
-post_command = wal -i "$wallpaper" && reload-desktop
+post_command = wallust run "$wallpaper" && reload-desktop
 number_of_columns = 3
 swww_transition_type = center
 swww_transition_step = 63
@@ -180,16 +179,26 @@ WAYPAPEREOF
       fi
     '';
 
-    # ── Pywal restore (login) ───────────────────────────────────────
-    systemd.user.services.pywal-restore = {
+    # ── Wallust restore (login) ──────────────────────────────────────
+    systemd.user.services.wallust-restore = {
       Unit = {
-        Description = "Restore pywal colors from cache";
+        Description = "Restore wallust colors from swww cache";
         PartOf = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
       };
       Service = {
         Type = "oneshot";
-        ExecStart = "${pkgs.pywal16}/bin/wal -R";
+        ExecStart = toString (pkgs.writeShellScript "wallust-restore" ''
+          # swww stores per-output cache files in ~/.cache/swww/
+          for f in "$HOME"/.cache/swww/*; do
+            [ -f "$f" ] || continue
+            wallpaper="$(cat "$f")"
+            if [ -f "$wallpaper" ]; then
+              ${pkgs.wallust}/bin/wallust run -s "$wallpaper"
+              exit 0
+            fi
+          done
+        '');
       };
       Install.WantedBy = [ "graphical-session.target" ];
     };
@@ -220,5 +229,214 @@ WAYPAPEREOF
         Restart   = "on-failure";
       };
     };
+
+    # ── Wallust config & templates ─────────────────────────────────
+
+    home.file.".config/wallust/wallust.toml".text = ''
+      backend = "kmeans"
+      palette = "dark16"
+      threshold = 11
+
+      [templates]
+      colors-hyprland.template = "colors-hyprland.conf"
+      colors-hyprland.target = "~/.cache/wallust/colors-hyprland.conf"
+
+      colors-kitty.template = "colors-kitty.conf"
+      colors-kitty.target = "~/.cache/wallust/colors-kitty.conf"
+
+      colors-waybar.template = "colors-waybar.css"
+      colors-waybar.target = "~/.cache/wallust/colors-waybar.css"
+
+      colors-rofi.template = "colors-rofi-dark.rasi"
+      colors-rofi.target = "~/.cache/wallust/colors-rofi-dark.rasi"
+
+      colors-json.template = "colors.json"
+      colors-json.target = "~/.cache/wallust/colors.json"
+
+      colors-cava.template = "colors-cava"
+      colors-cava.target = "~/.cache/wallust/colors-cava"
+
+      colors-btop.template = "colors-btop"
+      colors-btop.target = "~/.cache/wallust/colors-btop"
+
+      colors-vim.template = "colors-wal.vim"
+      colors-vim.target = "~/.cache/wallust/colors-wal.vim"
+    '';
+
+    home.file.".config/wallust/templates/colors-hyprland.conf".text = ''
+      $background = rgb({{background.strip}})
+      $foreground = rgb({{foreground.strip}})
+      $color0 = rgb({{color0.strip}})
+      $color1 = rgb({{color1.strip}})
+      $color2 = rgb({{color2.strip}})
+      $color3 = rgb({{color3.strip}})
+      $color4 = rgb({{color4.strip}})
+      $color5 = rgb({{color5.strip}})
+      $color6 = rgb({{color6.strip}})
+      $color7 = rgb({{color7.strip}})
+      $color8 = rgb({{color8.strip}})
+      $color9 = rgb({{color9.strip}})
+      $color10 = rgb({{color10.strip}})
+      $color11 = rgb({{color11.strip}})
+      $color12 = rgb({{color12.strip}})
+      $color13 = rgb({{color13.strip}})
+      $color14 = rgb({{color14.strip}})
+      $color15 = rgb({{color15.strip}})
+      $wallpaper = {{wallpaper}}
+    '';
+
+    home.file.".config/wallust/templates/colors-kitty.conf".text = ''
+      foreground {{foreground}}
+      background {{background}}
+      cursor     {{foreground}}
+      color0  {{color0}}
+      color1  {{color1}}
+      color2  {{color2}}
+      color3  {{color3}}
+      color4  {{color4}}
+      color5  {{color5}}
+      color6  {{color6}}
+      color7  {{color7}}
+      color8  {{color8}}
+      color9  {{color9}}
+      color10 {{color10}}
+      color11 {{color11}}
+      color12 {{color12}}
+      color13 {{color13}}
+      color14 {{color14}}
+      color15 {{color15}}
+    '';
+
+    home.file.".config/wallust/templates/colors-waybar.css".text = ''
+      @define-color background {{background}};
+      @define-color foreground {{foreground}};
+      @define-color color0  {{color0}};
+      @define-color color1  {{color1}};
+      @define-color color2  {{color2}};
+      @define-color color3  {{color3}};
+      @define-color color4  {{color4}};
+      @define-color color5  {{color5}};
+      @define-color color6  {{color6}};
+      @define-color color7  {{color7}};
+      @define-color color8  {{color8}};
+      @define-color color9  {{color9}};
+      @define-color color10 {{color10}};
+      @define-color color11 {{color11}};
+      @define-color color12 {{color12}};
+      @define-color color13 {{color13}};
+      @define-color color14 {{color14}};
+      @define-color color15 {{color15}};
+    '';
+
+    home.file.".config/wallust/templates/colors-rofi-dark.rasi".text = ''
+      * {{
+          background:     {{background}};
+          foreground:     {{foreground}};
+          active-bg:      {{color2}};
+          urgent-bg:      {{color1}};
+          selected-bg:    {{color2}};
+          selected-fg:    {{foreground}};
+      }}
+    '';
+
+    home.file.".config/wallust/templates/colors.json".text = builtins.toJSON {
+      special = {
+        background  = "{{background}}";
+        foreground  = "{{foreground}}";
+        cursor      = "{{foreground}}";
+      };
+      colors = {
+        color0  = "{{color0}}";
+        color1  = "{{color1}}";
+        color2  = "{{color2}}";
+        color3  = "{{color3}}";
+        color4  = "{{color4}}";
+        color5  = "{{color5}}";
+        color6  = "{{color6}}";
+        color7  = "{{color7}}";
+        color8  = "{{color8}}";
+        color9  = "{{color9}}";
+        color10 = "{{color10}}";
+        color11 = "{{color11}}";
+        color12 = "{{color12}}";
+        color13 = "{{color13}}";
+        color14 = "{{color14}}";
+        color15 = "{{color15}}";
+      };
+    };
+
+    home.file.".config/wallust/templates/colors-cava".text = ''
+      [color]
+      gradient = 0
+      gradient_count = 0
+      foreground = '{{foreground}}'
+      color1 = '{{color1}}'
+      color2 = '{{color2}}'
+      color3 = '{{color3}}'
+      color4 = '{{color4}}'
+      color5 = '{{color5}}'
+      color6 = '{{color6}}'
+      color7 = '{{color7}}'
+    '';
+
+    home.file.".config/wallust/templates/colors-btop".text = ''
+      theme[main_bg]="{{background}}"
+      theme[main_fg]="{{foreground}}"
+      theme[title]="{{foreground}}"
+      theme[hi_fg]="{{color2}}"
+      theme[selected_bg]="{{color1}}"
+      theme[selected_fg]="{{foreground}}"
+      theme[inactive_fg]="{{color8}}"
+      theme[proc_misc]="{{color6}}"
+      theme[cpu_box]="{{color2}}"
+      theme[mem_box]="{{color3}}"
+      theme[net_box]="{{color4}}"
+      theme[proc_box]="{{color5}}"
+      theme[div_line]="{{color8}}"
+      theme[temp_start]="{{color2}}"
+      theme[temp_mid]="{{color3}}"
+      theme[temp_end]="{{color1}}"
+      theme[cpu_start]="{{color2}}"
+      theme[cpu_mid]="{{color4}}"
+      theme[cpu_end]="{{color1}}"
+      theme[free_start]="{{color2}}"
+      theme[free_mid]="{{color4}}"
+      theme[free_end]="{{color6}}"
+      theme[cached_start]="{{color6}}"
+      theme[cached_mid]="{{color4}}"
+      theme[cached_end]="{{color2}}"
+      theme[available_start]="{{color3}}"
+      theme[available_mid]="{{color2}}"
+      theme[available_end]="{{color6}}"
+      theme[used_start]="{{color1}}"
+      theme[used_mid]="{{color3}}"
+      theme[used_end]="{{color2}}"
+      theme[download_start]="{{color4}}"
+      theme[download_mid]="{{color2}}"
+      theme[download_end]="{{color6}}"
+      theme[upload_start]="{{color1}}"
+      theme[upload_mid]="{{color3}}"
+      theme[upload_end]="{{color2}}"
+    '';
+
+    home.file.".config/wallust/templates/colors-wal.vim".text = ''
+      highlight Normal     ctermbg=NONE guibg={{background}} guifg={{foreground}}
+      highlight Comment    guifg={{color8}}
+      highlight Constant   guifg={{color3}}
+      highlight Identifier guifg={{color4}}
+      highlight Statement  guifg={{color1}}
+      highlight PreProc    guifg={{color5}}
+      highlight Type       guifg={{color6}}
+      highlight Special    guifg={{color2}}
+      highlight Underlined guifg={{color4}} gui=underline
+      highlight Error      guifg={{color1}} guibg={{background}}
+      highlight Todo       guifg={{color3}} guibg={{background}} gui=bold
+      highlight LineNr     guifg={{color8}}
+      highlight CursorLine guibg={{color0}}
+      highlight StatusLine guibg={{color1}} guifg={{foreground}}
+      highlight Pmenu      guibg={{color0}} guifg={{foreground}}
+      highlight PmenuSel   guibg={{color2}} guifg={{background}}
+      set background=dark
+    '';
   };
 }
