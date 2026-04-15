@@ -99,6 +99,7 @@ in
       qt6Packages.qt6ct
       wallust
       pywalfox-native
+      albert
     ]);
 
     # ── Session variables ───────────────────────────────────────────
