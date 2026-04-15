@@ -345,6 +345,7 @@ WAYPAPEREOF
 
     home.file.".config/wallust/templates/colors.json".text = ''
       {
+        "wallpaper": "{{ wallpaper }}",
         "special": {
           "background": "{{ background }}",
           "foreground": "{{ foreground }}",
