@@ -205,8 +205,9 @@ function Volume() {
         >
             <box>
                 <label label={mute((m) => m ? "󰝟" : "󰕾")} />
-                <label class="metric-value" xalign={1} label={mute((m) =>
-                    m ? "--%" : `${Math.round(speaker.volume * 100)}%`
+                <label class="metric-value" visible={mute((m) => m)} xalign={1} label="--%" />
+                <label class="metric-value" visible={mute((m) => !m)} xalign={1} label={volume((v) =>
+                    `${Math.round(v * 100)}%`
                 )} />
             </box>
         </button>
