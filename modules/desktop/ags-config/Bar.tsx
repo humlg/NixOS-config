@@ -8,6 +8,7 @@ import Gdk from "gi://Gdk?version=4.0"
 import GLib from "gi://GLib"
 import Hyprland from "gi://AstalHyprland"
 import Tray from "gi://AstalTray"
+import Wp from "gi://AstalWp"
 
 function getIconName(windowClass: string): string {
     const lower = windowClass.toLowerCase()
@@ -191,6 +192,27 @@ function SysTray() {
     )
 }
 
+function Volume() {
+    const wp = Wp.get_default()
+    const speaker = wp.audio.get_default_speaker()!
+    const volume = createBinding(speaker, "volume")
+    const mute = createBinding(speaker, "mute")
+
+    return (
+        <button
+            class={mute((m) => m ? "metric muted" : "metric")}
+            onClicked={() => { speaker.mute = !speaker.mute }}
+        >
+            <box>
+                <label label={mute((m) => m ? "󰝟" : "󰕾")} />
+                <label class="metric-value" xalign={1} label={volume((v) =>
+                    speaker.mute ? "--%"  : `${Math.round(v * 100)}%`
+                )} />
+            </box>
+        </button>
+    )
+}
+
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
@@ -221,6 +243,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                 </box>
                 <box $type="end" class="group" spacing={4}>
                     <SysTray />
+                    <Volume />
                     <Clock />
                 </box>
             </centerbox>

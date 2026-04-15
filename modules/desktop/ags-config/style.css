@@ -75,6 +75,10 @@ centerbox {
     color: #2e3440;
 }
 
+.metric.muted {
+    color: #bf616a;
+}
+
 .metric.charging {
     color: #a3be8c;
 }
