@@ -9,6 +9,7 @@ let
     ags quit -i bar && ags run &
     pkill swaync; swaync &
     kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
+    pywalfox update
   '';
 
   toggleNotes = pkgs.writeShellScript "toggle-notes" ''
