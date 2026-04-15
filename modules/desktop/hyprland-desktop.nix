@@ -97,6 +97,7 @@ in
       kdePackages.kwallet
       qt6Packages.qt6ct
       wallust
+      pywalfox-native
     ]);
 
     # ── Session variables ───────────────────────────────────────────
@@ -252,6 +253,9 @@ WAYPAPEREOF
 
       colors-json.template = "colors.json"
       colors-json.target = "~/.cache/wallust/colors.json"
+
+      pywal-json.template = "colors.json"
+      pywal-json.target = "~/.cache/wal/colors.json"
 
       colors-cava.template = "colors-cava"
       colors-cava.target = "~/.cache/wallust/colors-cava"
