@@ -116,7 +116,7 @@
   bindm = $mainMod, mouse:273, resizewindow
 
   # Media / brightness / volume
-  bindel = , XF86AudioRaiseVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@   5%+
+  bindel = , XF86AudioRaiseVolume,  exec, wpctl set-volume --limit 1.5 @DEFAULT_AUDIO_SINK@   5%+
   bindel = , XF86AudioLowerVolume,  exec, wpctl set-volume @DEFAULT_AUDIO_SINK@   5%-
   bindel = , XF86AudioMute,         exec, wpctl set-mute   @DEFAULT_AUDIO_SINK@   toggle
   bindel = , XF86AudioMicMute,      exec, wpctl set-mute   @DEFAULT_AUDIO_SOURCE@ toggle

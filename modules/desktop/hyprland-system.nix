@@ -31,7 +31,15 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
-    wireplumber.enable = true;
+    wireplumber = {
+      enable = true;
+      extraConfig."50-volume-limit" = {
+        "monitor.alsa.rules" = [{
+          matches = [{ "node.name" = "~alsa_output.*"; }];
+          actions.update-props."volume.max" = 1.5;
+        }];
+      };
+    };
   };
 
   services.printing = {
