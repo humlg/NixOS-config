@@ -1,4 +1,4 @@
-import { createBinding, For, onCleanup } from "ags"
+import { createBinding, createConnection, For, onCleanup } from "ags"
 import { createPoll } from "ags/time"
 import { readFile } from "ags/file"
 import app from "ags/gtk4/app"
@@ -25,7 +25,15 @@ function Workspaces({ monitor }: { monitor: string }) {
     const hyprland = Hyprland.get_default()
     const workspaces = createBinding(hyprland, "workspaces")
     const focused = createBinding(hyprland, "focusedWorkspace")
-    const clients = createBinding(hyprland, "clients")
+    // The "clients" property only notifies on add/remove, not on moves between
+    // workspaces. Re-read the list on client-moved too so workspace icons
+    // follow windows across workspaces.
+    const clients = createConnection<Hyprland.Client[]>(
+        hyprland.get_clients(),
+        [hyprland, "client-added", () => hyprland.get_clients()],
+        [hyprland, "client-removed", () => hyprland.get_clients()],
+        [hyprland, "client-moved", () => hyprland.get_clients()],
+    )
 
     return (
         <box class="workspaces">
