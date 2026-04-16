@@ -6,7 +6,7 @@ let
 
   reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
     hyprctl reload
-    ags quit -i bar && ags run &
+    (ags quit -i bar 2>/dev/null; ags run) &
     pkill swaync; swaync &
     kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
     pywalfox update
