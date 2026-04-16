@@ -4,7 +4,7 @@
   windowrule = workspace special:mail silent,  match:initial_class ^(thunderbird)$
   windowrule = workspace special:notes silent, match:initial_class ^(obsidian)$
 
-  windowrule = match:initial_class ^(albert)$, decorate false, border false, shadow false, rounding false
+  windowrule = match:initial_class ^(albert)$, decorate off, no_shadow on, border_size 0, rounding 0, no_blur on
 
   windowrule = match:title File Operation Progress,   float on, center on
   windowrule = match:initial_title ^Write:.*,         float on, center on
