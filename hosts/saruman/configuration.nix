@@ -72,6 +72,7 @@
   environment.systemPackages = with pkgs; [
     gtk3
     codex
+    davinci-resolve
   ];
 
   system.stateVersion = "25.11";
