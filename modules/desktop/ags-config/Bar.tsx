@@ -210,18 +210,24 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
 
     return (
         <window
-            $={(self) => { menuWindow.current = self }}
+            $={(self) => {
+                menuWindow.current = self
+                const keyCtrl = new Gtk.EventControllerKey()
+                keyCtrl.connect("key-pressed", (_ctrl: any, keyval: number) => {
+                    if (keyval === Gdk.KEY_Escape) {
+                        self.visible = false
+                        return true
+                    }
+                    return false
+                })
+                self.add_controller(keyCtrl)
+            }}
             name="audio-device-menu"
             visible={false}
             anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.RIGHT}
             exclusivity={Astal.Exclusivity.NORMAL}
             keymode={Astal.Keymode.ON_DEMAND}
             application={app}
-            onKeyPressEvent={(self, event) => {
-                if (event.get_keyval()[1] === Gdk.KEY_Escape) {
-                    self.visible = false
-                }
-            }}
         >
             <box class="audio-menu" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
                 <box orientation={Gtk.Orientation.VERTICAL} spacing={4}>
