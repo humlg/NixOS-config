@@ -242,7 +242,7 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
                                 }}
                             >
                                 <box spacing={8}>
-                                    <label label={defaultSpeaker((def) => def?.id === speaker.id ? "󰄬" : "󰝝")} />
+                                    <label label={defaultSpeaker((def) => def?.id === speaker.id ? "󰄮" : "󰄯")} />
                                     <label label={speaker.description || speaker.name || "Unknown"} halign={Gtk.Align.START} />
                                 </box>
                             </button>
@@ -261,7 +261,7 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
                                 }}
                             >
                                 <box spacing={8}>
-                                    <label label={defaultMicrophone((def) => def?.id === mic.id ? "󰄬" : "󰝝")} />
+                                    <label label={defaultMicrophone((def) => def?.id === mic.id ? "󰄮" : "󰄯")} />
                                     <label label={mic.description || mic.name || "Unknown"} halign={Gtk.Align.START} />
                                 </box>
                             </button>
