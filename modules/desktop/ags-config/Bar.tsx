@@ -223,8 +223,8 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
                 }
             }}
         >
-            <box class="audio-menu" vertical spacing={8}>
-                <box vertical spacing={4}>
+            <box class="audio-menu" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
+                <box orientation={Gtk.Orientation.VERTICAL} spacing={4}>
                     <label class="audio-menu-header" label="Output Device" halign={Gtk.Align.START} />
                     <For each={speakers}>
                         {(speaker) => (
@@ -243,7 +243,7 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
                         )}
                     </For>
                 </box>
-                <box vertical spacing={4}>
+                <box orientation={Gtk.Orientation.VERTICAL} spacing={4}>
                     <label class="audio-menu-header" label="Input Device" halign={Gtk.Align.START} />
                     <For each={microphones}>
                         {(mic) => (
