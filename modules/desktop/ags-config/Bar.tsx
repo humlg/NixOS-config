@@ -288,16 +288,14 @@ function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }
 
     return (
         <button
+            $={(self) => {
+                const rightClick = new Gtk.GestureClick({ button: Gdk.BUTTON_SECONDARY })
+                rightClick.connect("released", () => { toggleMenu() })
+                self.add_controller(rightClick)
+            }}
             class={mute((m) => m ? "metric muted" : "metric")}
             css={`color: ${fgColor};`}
             onClicked={() => { speaker.mute = !speaker.mute }}
-            onClickRelease={(self, event) => {
-                if (event.get_button()[1] === Gdk.BUTTON_SECONDARY) {
-                    toggleMenu()
-                    return true
-                }
-                return false
-            }}
         >
             <box>
                 <label label={mute((m) => m ? "󰝟" : "󰕾")} />
