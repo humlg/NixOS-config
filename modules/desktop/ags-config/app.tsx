@@ -13,7 +13,7 @@ function loadWalColors(): string {
         return `
             window > box { color: ${fg}; }
             .workspaces button { color: ${c.color7}; background: alpha(${bg}, 0.55); }
-            .workspaces button.focused { background: ${c.color2}; color: ${fg}; }
+            .workspaces button.focused { background: ${c.color12}; color: ${fg}; }
             .metric { background: alpha(${bg}, 0.55); }
             .metric.charging { color: ${c.color2}; }
             .tray { background: alpha(${bg}, 0.55); }

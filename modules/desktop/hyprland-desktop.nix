@@ -267,6 +267,9 @@ WAYPAPEREOF
 
       colors-vim.template = "colors-wal.vim"
       colors-vim.target = "~/.cache/wallust/colors-wal.vim"
+
+      colors-albert.template = "colors-albert.ini"
+      colors-albert.target = "~/.local/share/albert/widgetsboxmodel/themes/Wallust.ini"
     '';
 
     home.file.".config/wallust/templates/colors-hyprland.conf".text = ''
@@ -426,6 +429,44 @@ WAYPAPEREOF
       theme[upload_start]="{{ color1 }}"
       theme[upload_mid]="{{ color3 }}"
       theme[upload_end]="{{ color2 }}"
+    '';
+
+    home.file.".config/wallust/templates/colors-albert.ini".text = ''
+      ;
+      ; Wallust Dynamic Theme
+      ;
+
+      accent={{ color2 }}
+      accent_semi=#80{{ color2 | replace("#", "") }}
+
+      [palette]
+      base={{ background }}
+      text={{ foreground }}
+
+      window={{ color0 }}
+      window_text={{ foreground }}
+
+      button={{ color8 }}
+      button_text={{ foreground }}
+
+      highlight={{ color2 }}
+      highlight_text={{ background }}
+
+      placeholder_text={{ color8 }}
+
+      link={{ color4 }}
+      link_visited={{ color5 }}
+
+      [window]
+      window_border_brush=transparent
+      input_trigger_color=$accent
+      input_hint_color=$palette/placeholder_text
+      result_item_selection_background_brush=$accent_semi
+      result_item_selection_border_brush=transparent
+      result_item_selection_text_color=$palette/button_text
+      result_item_selection_subtext_color=$palette/placeholder_text
+      result_item_text_color=$palette/window_text
+      result_item_subtext_color=$palette/placeholder_text
     '';
 
     home.file.".config/wallust/templates/colors-wal.vim".text = ''

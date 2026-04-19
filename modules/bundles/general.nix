@@ -34,6 +34,7 @@ in
       vlc
       feh
       kdePackages.gwenview
+      kdePackages.okular
       mc
 
       # Archives / utilities
@@ -45,6 +46,7 @@ in
       tree
       fzf
       qdirstat
+      kdePackages.ark
 
       # AppImage management
       gearlever

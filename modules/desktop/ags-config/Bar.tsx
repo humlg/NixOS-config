@@ -122,7 +122,7 @@ function getWalColors(): { bg: string, accent: string } {
         const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wallust/colors.json`))
         return {
             bg: json.special.background ?? "#2a2a2a",
-            accent: json.colors.color2 ?? "#6b8f5e",
+            accent: json.colors.color12 ?? "#6b8f5e",
         }
     } catch { return { bg: "#2a2a2a", accent: "#6b8f5e" } }
 }
@@ -137,11 +137,11 @@ function BatteryLabel() {
     return (
         <box
             visible
-            class={bat((v) => { try { const d = JSON.parse(v); if (d.charging) return "battery charging"; if (d.percent <= 20) return "battery low"; return "battery" } catch { return "battery" } })}
+            class={bat((v) => { try { const d = JSON.parse(v); if (d.charging) return "battery charging"; if (d.percent <= 10) return "battery low"; return "battery" } catch { return "battery" } })}
             css={bat((v) => {
                 try {
                     const { percent } = JSON.parse(v)
-                    const fill = percent <= 20 ? "#bf616a" : accentColor
+                    const fill = percent <= 10 ? "#bf616a" : accentColor
                     return `background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%);`
                 } catch { return "" }
             })}
@@ -150,7 +150,7 @@ function BatteryLabel() {
                 try {
                     const d = JSON.parse(v)
                     if (d.charging) return "󰂄"
-                    if (d.percent <= 20) return "󰁺"
+                    if (d.percent <= 10) return "󰁺"
                     if (d.percent <= 40) return "󰁻"
                     if (d.percent <= 60) return "󰁽"
                     if (d.percent <= 80) return "󰂀"
