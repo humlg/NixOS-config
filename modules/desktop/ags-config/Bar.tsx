@@ -201,6 +201,73 @@ function SysTray() {
     )
 }
 
+function AudioDeviceMenu() {
+    const wp = Wp.get_default()
+    const speakers = createBinding(wp.audio, "speakers")
+    const microphones = createBinding(wp.audio, "microphones")
+    const defaultSpeaker = createBinding(wp.audio, "defaultSpeaker")
+    const defaultMicrophone = createBinding(wp.audio, "defaultMicrophone")
+
+    return (
+        <window
+            name="audio-device-menu"
+            visible={false}
+            anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.RIGHT}
+            exclusivity={Astal.Exclusivity.NORMAL}
+            keymode={Astal.Keymode.ON_DEMAND}
+            application={app}
+            onKeyPressEvent={(self, event) => {
+                if (event.get_keyval()[1] === Gdk.KEY_Escape) {
+                    self.visible = false
+                }
+            }}
+        >
+            <box class="audio-menu" vertical spacing={8}>
+                <box vertical spacing={4}>
+                    <label class="audio-menu-header" label="Output Device" halign={Gtk.Align.START} />
+                    <For each={speakers}>
+                        {(speaker) => (
+                            <button
+                                class={defaultSpeaker((def) => def?.id === speaker.id ? "audio-device-item active" : "audio-device-item")}
+                                onClicked={() => {
+                                    wp.audio.defaultSpeaker = speaker
+                                    const win = app.get_window("audio-device-menu")
+                                    if (win) win.visible = false
+                                }}
+                            >
+                                <box spacing={8}>
+                                    <label label={defaultSpeaker((def) => def?.id === speaker.id ? "󰄬" : "󰝝")} />
+                                    <label label={speaker.description || speaker.name || "Unknown"} halign={Gtk.Align.START} />
+                                </box>
+                            </button>
+                        )}
+                    </For>
+                </box>
+                <box vertical spacing={4}>
+                    <label class="audio-menu-header" label="Input Device" halign={Gtk.Align.START} />
+                    <For each={microphones}>
+                        {(mic) => (
+                            <button
+                                class={defaultMicrophone((def) => def?.id === mic.id ? "audio-device-item active" : "audio-device-item")}
+                                onClicked={() => {
+                                    wp.audio.defaultMicrophone = mic
+                                    const win = app.get_window("audio-device-menu")
+                                    if (win) win.visible = false
+                                }}
+                            >
+                                <box spacing={8}>
+                                    <label label={defaultMicrophone((def) => def?.id === mic.id ? "󰄬" : "󰝝")} />
+                                    <label label={mic.description || mic.name || "Unknown"} halign={Gtk.Align.START} />
+                                </box>
+                            </button>
+                        )}
+                    </For>
+                </box>
+            </box>
+        </window>
+    )
+}
+
 function Volume() {
     const { fg: fgColor } = getWalColors()
     const wp = Wp.get_default()
@@ -208,11 +275,25 @@ function Volume() {
     const volume = createBinding(speaker, "volume")
     const mute = createBinding(speaker, "mute")
 
+    const toggleMenu = () => {
+        const win = app.get_window("audio-device-menu")
+        if (win) {
+            win.visible = !win.visible
+        }
+    }
+
     return (
         <button
             class={mute((m) => m ? "metric muted" : "metric")}
             css={`color: ${fgColor};`}
             onClicked={() => { speaker.mute = !speaker.mute }}
+            onClickRelease={(self, event) => {
+                if (event.get_button()[1] === Gdk.BUTTON_SECONDARY) {
+                    toggleMenu()
+                    return true
+                }
+                return false
+            }}
         >
             <box>
                 <label label={mute((m) => m ? "󰝟" : "󰕾")} />
@@ -227,38 +308,43 @@ function Volume() {
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
+    let menuWin: Astal.Window
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
     onCleanup(() => {
         win.destroy()
+        if (menuWin) menuWin.destroy()
     })
 
     return (
-        <window
-            $={(self) => (win = self)}
-            visible
-            name={`bar-${gdkmonitor.connector}`}
-            gdkmonitor={gdkmonitor}
-            exclusivity={Astal.Exclusivity.EXCLUSIVE}
-            anchor={TOP | LEFT | RIGHT}
-            application={app}
-        >
-            <centerbox>
-                <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
-                    <CpuLabel />
-                    <RamLabel />
-                    <DiskLabel />
-                    <BatteryLabel />
-                </box>
-                <box $type="center">
-                    <Workspaces monitor={gdkmonitor.connector!} />
-                </box>
-                <box $type="end" class="group" spacing={4}>
-                    <SysTray />
-                    <Volume />
-                    <Clock />
-                </box>
-            </centerbox>
-        </window>
+        <>
+            <AudioDeviceMenu />
+            <window
+                $={(self) => (win = self)}
+                visible
+                name={`bar-${gdkmonitor.connector}`}
+                gdkmonitor={gdkmonitor}
+                exclusivity={Astal.Exclusivity.EXCLUSIVE}
+                anchor={TOP | LEFT | RIGHT}
+                application={app}
+            >
+                <centerbox>
+                    <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
+                        <CpuLabel />
+                        <RamLabel />
+                        <DiskLabel />
+                        <BatteryLabel />
+                    </box>
+                    <box $type="center">
+                        <Workspaces monitor={gdkmonitor.connector!} />
+                    </box>
+                    <box $type="end" class="group" spacing={4}>
+                        <SysTray />
+                        <Volume />
+                        <Clock />
+                    </box>
+                </centerbox>
+            </window>
+        </>
     )
 }
