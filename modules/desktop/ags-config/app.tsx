@@ -28,6 +28,10 @@ import GLib from "gi://GLib"
 app.start({
     css: style + loadWalColors(),
     instanceName: "bar",
+    requestHandler(request: string, conn: any) {
+        // Handle requests if needed
+        return ""
+    },
     main() {
         const monitors = createBinding(app, "monitors")
         return (
