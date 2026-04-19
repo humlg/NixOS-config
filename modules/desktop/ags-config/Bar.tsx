@@ -304,45 +304,45 @@ function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }
     )
 }
 
+// Shared reference for the audio device menu window
+export const audioMenuWindow = { current: null as Astal.Window | null }
+
+export { AudioDeviceMenu }
+
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
-    const menuWindow = { current: null as Astal.Window | null }
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
     onCleanup(() => {
         win.destroy()
-        if (menuWindow.current) menuWindow.current.destroy()
     })
 
     return (
-        <>
-            <AudioDeviceMenu menuWindow={menuWindow} />
-            <window
-                $={(self) => (win = self)}
-                visible
-                name={`bar-${gdkmonitor.connector}`}
-                gdkmonitor={gdkmonitor}
-                exclusivity={Astal.Exclusivity.EXCLUSIVE}
-                anchor={TOP | LEFT | RIGHT}
-                application={app}
-            >
-                <centerbox>
-                    <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
-                        <CpuLabel />
-                        <RamLabel />
-                        <DiskLabel />
-                        <BatteryLabel />
-                    </box>
-                    <box $type="center">
-                        <Workspaces monitor={gdkmonitor.connector!} />
-                    </box>
-                    <box $type="end" class="group" spacing={4}>
-                        <SysTray />
-                        <Volume menuWindow={menuWindow} />
-                        <Clock />
-                    </box>
-                </centerbox>
-            </window>
-        </>
+        <window
+            $={(self) => (win = self)}
+            visible
+            name={`bar-${gdkmonitor.connector}`}
+            gdkmonitor={gdkmonitor}
+            exclusivity={Astal.Exclusivity.EXCLUSIVE}
+            anchor={TOP | LEFT | RIGHT}
+            application={app}
+        >
+            <centerbox>
+                <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
+                    <CpuLabel />
+                    <RamLabel />
+                    <DiskLabel />
+                    <BatteryLabel />
+                </box>
+                <box $type="center">
+                    <Workspaces monitor={gdkmonitor.connector!} />
+                </box>
+                <box $type="end" class="group" spacing={4}>
+                    <SysTray />
+                    <Volume menuWindow={audioMenuWindow} />
+                    <Clock />
+                </box>
+            </centerbox>
+        </window>
     )
 }

@@ -2,7 +2,7 @@ import { createBinding, For } from "ags"
 import { readFile } from "ags/file"
 import app from "ags/gtk4/app"
 import style from "./style.css"
-import Bar from "./Bar"
+import Bar, { AudioDeviceMenu, audioMenuWindow } from "./Bar"
 
 function loadWalColors(): string {
     try {
@@ -34,10 +34,11 @@ app.start({
     },
     main() {
         const monitors = createBinding(app, "monitors")
-        return (
+        return [
+            <AudioDeviceMenu menuWindow={audioMenuWindow} />,
             <For each={monitors}>
                 {(monitor) => <Bar gdkmonitor={monitor} />}
-            </For>
-        )
+            </For>,
+        ]
     },
 })
