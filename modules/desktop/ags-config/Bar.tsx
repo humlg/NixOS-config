@@ -117,18 +117,19 @@ function DiskLabel() {
     )
 }
 
-function getWalColors(): { bg: string, accent: string } {
+function getWalColors(): { bg: string, accent: string, fg: string } {
     try {
         const json = JSON.parse(readFile(`${GLib.get_home_dir()}/.cache/wallust/colors.json`))
         return {
             bg: json.special.background ?? "#2a2a2a",
             accent: json.colors.color12 ?? "#6b8f5e",
+            fg: json.special.foreground ?? "#e6e6e6",
         }
-    } catch { return { bg: "#2a2a2a", accent: "#6b8f5e" } }
+    } catch { return { bg: "#2a2a2a", accent: "#6b8f5e", fg: "#e6e6e6" } }
 }
 
 function BatteryLabel() {
-    const { bg: bgColor, accent: accentColor } = getWalColors()
+    const { bg: bgColor, accent: accentColor, fg: fgColor } = getWalColors()
     const bat = createPoll("--", 5000, () => {
         const cap = readFile("/sys/class/power_supply/BAT0/capacity").trim()
         const status = readFile("/sys/class/power_supply/BAT0/status").trim()
@@ -142,7 +143,7 @@ function BatteryLabel() {
                 try {
                     const { percent } = JSON.parse(v)
                     const fill = percent <= 10 ? "#bf616a" : accentColor
-                    return `background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%);`
+                    return `color: ${fgColor}; background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%);`
                 } catch { return "" }
             })}
         >
