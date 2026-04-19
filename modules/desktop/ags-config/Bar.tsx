@@ -201,7 +201,7 @@ function SysTray() {
     )
 }
 
-function AudioDeviceMenu() {
+function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
     const wp = Wp.get_default()
     const speakers = createBinding(wp.audio, "speakers")
     const microphones = createBinding(wp.audio, "microphones")
@@ -210,6 +210,7 @@ function AudioDeviceMenu() {
 
     return (
         <window
+            $={(self) => { menuWindow.current = self }}
             name="audio-device-menu"
             visible={false}
             anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.RIGHT}
@@ -231,8 +232,7 @@ function AudioDeviceMenu() {
                                 class={defaultSpeaker((def) => def?.id === speaker.id ? "audio-device-item active" : "audio-device-item")}
                                 onClicked={() => {
                                     wp.audio.defaultSpeaker = speaker
-                                    const win = app.get_window("audio-device-menu")
-                                    if (win) win.visible = false
+                                    if (menuWindow.current) menuWindow.current.visible = false
                                 }}
                             >
                                 <box spacing={8}>
@@ -251,8 +251,7 @@ function AudioDeviceMenu() {
                                 class={defaultMicrophone((def) => def?.id === mic.id ? "audio-device-item active" : "audio-device-item")}
                                 onClicked={() => {
                                     wp.audio.defaultMicrophone = mic
-                                    const win = app.get_window("audio-device-menu")
-                                    if (win) win.visible = false
+                                    if (menuWindow.current) menuWindow.current.visible = false
                                 }}
                             >
                                 <box spacing={8}>
@@ -268,7 +267,7 @@ function AudioDeviceMenu() {
     )
 }
 
-function Volume() {
+function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
     const { fg: fgColor } = getWalColors()
     const wp = Wp.get_default()
     const speaker = wp.audio.get_default_speaker()!
@@ -276,9 +275,8 @@ function Volume() {
     const mute = createBinding(speaker, "mute")
 
     const toggleMenu = () => {
-        const win = app.get_window("audio-device-menu")
-        if (win) {
-            win.visible = !win.visible
+        if (menuWindow.current) {
+            menuWindow.current.visible = !menuWindow.current.visible
         }
     }
 
@@ -308,17 +306,17 @@ function Volume() {
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
-    let menuWin: Astal.Window
+    const menuWindow = { current: null as Astal.Window | null }
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
     onCleanup(() => {
         win.destroy()
-        if (menuWin) menuWin.destroy()
+        if (menuWindow.current) menuWindow.current.destroy()
     })
 
     return (
         <>
-            <AudioDeviceMenu />
+            <AudioDeviceMenu menuWindow={menuWindow} />
             <window
                 $={(self) => (win = self)}
                 visible
@@ -340,7 +338,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                     </box>
                     <box $type="end" class="group" spacing={4}>
                         <SysTray />
-                        <Volume />
+                        <Volume menuWindow={menuWindow} />
                         <Clock />
                     </box>
                 </centerbox>
