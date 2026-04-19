@@ -202,6 +202,7 @@ function SysTray() {
 }
 
 function Volume() {
+    const { fg: fgColor } = getWalColors()
     const wp = Wp.get_default()
     const speaker = wp.audio.get_default_speaker()!
     const volume = createBinding(speaker, "volume")
@@ -210,6 +211,7 @@ function Volume() {
     return (
         <button
             class={mute((m) => m ? "metric muted" : "metric")}
+            css={`color: ${fgColor};`}
             onClicked={() => { speaker.mute = !speaker.mute }}
         >
             <box>
