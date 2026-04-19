@@ -17,6 +17,7 @@ function loadWalColors(): string {
             .metric { background: alpha(${bg}, 0.55); }
             .metric.charging { color: ${c.color2}; }
             .tray { background: alpha(${bg}, 0.55); }
+            .audio-menu { background: alpha(${bg}, 0.55); }
         `
     } catch {
         return ""

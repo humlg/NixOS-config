@@ -122,7 +122,7 @@ centerbox {
 }
 
 .audio-menu {
-    background: #2a2a2a;
+    background: alpha(#2a2a2a, 0.55);
     border-radius: 10px;
     padding: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
