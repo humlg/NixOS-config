@@ -45,7 +45,7 @@
   };
 
   home.packages  = [
-    pkgs.helvum
+    pkgs.crosspipe
     pkgs.qemu
     pkgs.cameractrls-gtk4
     pkgs.remmina
