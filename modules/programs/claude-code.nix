@@ -18,6 +18,30 @@ in
         commit = "";
         pr = "";
       };
+      hooks = {
+        Notification = [
+          {
+            hooks = [
+              {
+                type = "command";
+                command = "pw-play /run/current-system/sw/share/sounds/freedesktop/stereo/bell.oga 2>/dev/null || true";
+                async = true;
+              }
+            ];
+          }
+        ];
+        Stop = [
+          {
+            hooks = [
+              {
+                type = "command";
+                command = "pw-play /run/current-system/sw/share/sounds/freedesktop/stereo/complete.oga 2>/dev/null || true";
+                async = true;
+              }
+            ];
+          }
+        ];
+      };
     };
   };
 }
