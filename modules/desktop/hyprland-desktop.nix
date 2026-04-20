@@ -7,7 +7,7 @@ let
   reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
     hyprctl reload
     (ags quit -i bar 2>/dev/null; ags run) &
-    pkill swaync; swaync &
+    systemctl --user restart swaync.service
     kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
     pywalfox update
   '';
@@ -83,7 +83,7 @@ in
     ] ++ (with pkgs; [
       hyprshot
       hyprpicker
-      swww
+      awww
       waypaper
       rofi
       cliphist
@@ -159,7 +159,7 @@ folder = ~/Pictures/Wallpapers
 monitors = All
 wallpaper = ~/Pictures/Wallpapers/default.jpg
 show_path_in_tooltip = True
-backend = swww
+backend = awww
 fill = stretch
 sort = name
 color = #ffffff
