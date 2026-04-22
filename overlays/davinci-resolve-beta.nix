@@ -105,6 +105,7 @@ in
       nspr
       ocl-icd
       opencl-headers
+      rocmPackages.clr.icd
       python3
       python3.pkgs.numpy
       udev
@@ -138,6 +139,8 @@ in
       export QT_XKB_CONFIG_ROOT="${prev.xkeyboard_config}/share/X11/xkb"
       export QT_PLUGIN_PATH="${davinci}/libs/plugins:$QT_PLUGIN_PATH"
       export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib:/usr/lib32:${davinci}/libs
+      # RDNA 3.5 (Radeon 880M/890M) may need GFX version override for ROCm compatibility
+      export HSA_OVERRIDE_GFX_VERSION=''${HSA_OVERRIDE_GFX_VERSION:-11.0.0}
       ${davinci}/bin/resolve
     ''}";
 

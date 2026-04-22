@@ -9,10 +9,12 @@
     ../../modules/programs/cava.nix
     ../../modules/services/megacmd.nix
     ../../modules/bundles/desktop-apps.nix
+    ../../modules/programs/librewolf.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
+  programs.librewolf-custom.enable = true;
 
   services.megacmd = {
     enable = true;

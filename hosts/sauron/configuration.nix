@@ -43,7 +43,7 @@
 
   home-manager = {
     backupFileExtension = "hm-bak";
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = { inherit inputs; nur = inputs.nur; };
     users = {
       "david" = import ./home.nix;
     };

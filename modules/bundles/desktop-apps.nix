@@ -14,7 +14,6 @@ in
       vscode
       kdePackages.kate
       chromium
-      librewolf
       spotify
     ];
   };

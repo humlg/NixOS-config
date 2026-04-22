@@ -9,6 +9,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     ags = {
       url = "github:aylur/ags";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -33,7 +38,7 @@
     nixosConfigurations = {
 
       sauron = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs;};
+        specialArgs = { inherit inputs; nur = inputs.nur; };
         modules = [
           overlayModule
           ./hosts/sauron/configuration.nix
@@ -43,7 +48,7 @@
       };
 
       nixosvm = nixpkgs.lib.nixosSystem{
-        specialArgs = {inherit inputs;};
+        specialArgs = { inherit inputs; nur = inputs.nur; };
         modules = [
           overlayModule
           ./hosts/nixosvm/configuration.nix
@@ -52,7 +57,7 @@
       };
 
       saruman = nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
+        specialArgs = { inherit inputs; nur = inputs.nur; };
         modules = [
           overlayModule
           ./hosts/saruman/configuration.nix

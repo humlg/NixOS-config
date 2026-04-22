@@ -63,16 +63,22 @@
 
   home-manager = {
     backupFileExtension = "hm-bak";
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = { inherit inputs; nur = inputs.nur; };
     users = {
       "david" = import ./home.nix;
     };
   };
 
+  # AMD GPU: ROCm OpenCL for DaVinci Resolve and other GPU-accelerated apps
+  hardware.graphics.extraPackages = with pkgs; [
+    rocmPackages.clr.icd
+  ];
+
   environment.systemPackages = with pkgs; [
     gtk3
     codex
     davinci-resolve
+    clinfo
   ];
 
   system.stateVersion = "25.11";
