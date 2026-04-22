@@ -32,8 +32,8 @@ in
         settings = {
           # Dark browser UI theme
           "extensions.activeThemeID" = "firefox-compact-dark@mozilla.org";
-          # Force dark color scheme for web content
-          "layout.css.prefers-color-scheme.content-override" = 2;
+          # Force dark color scheme for web content (1 = dark, 2 = follow system)
+          "layout.css.prefers-color-scheme.content-override" = 1;
           # Disable first-run page
           "browser.startup.homepage_override.mstone" = "ignore";
           # Pywalfox native messaging
