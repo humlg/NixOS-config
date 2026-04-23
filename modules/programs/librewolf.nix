@@ -37,6 +37,12 @@ in
           "browser.startup.homepage_override.mstone" = "ignore";
           # Pywalfox native messaging
           "extensions.autoDisableScopes" = 0;
+          # Fingerprinting: use granular protection instead of resistFingerprinting.
+          # -CSSPrefersColorScheme and -JSDateTimeUTC allow dark mode and local time
+          # to pass through to sites.
+          "privacy.resistFingerprinting" = false;
+          "privacy.fingerprintingProtection" = true;
+          "privacy.fingerprintingProtection.overrides" = "+AllTargets,-CSSPrefersColorScheme,-JSDateTimeUTC";
         };
       };
     };
