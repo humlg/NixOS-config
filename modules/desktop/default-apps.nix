@@ -13,13 +13,13 @@
       "image/svg+xml" = "org.kde.gwenview.desktop";
       "image/tiff" = "org.kde.gwenview.desktop";
 
-      # Web browser — Firefox
-      "x-scheme-handler/http" = "firefox.desktop";
-      "x-scheme-handler/https" = "firefox.desktop";
-      "x-scheme-handler/about" = "firefox.desktop";
-      "x-scheme-handler/unknown" = "firefox.desktop";
-      "text/html" = "firefox.desktop";
-      "application/xhtml+xml" = "firefox.desktop";
+      # Web browser — LibreWolf
+      "x-scheme-handler/http" = "librewolf.desktop";
+      "x-scheme-handler/https" = "librewolf.desktop";
+      "x-scheme-handler/about" = "librewolf.desktop";
+      "x-scheme-handler/unknown" = "librewolf.desktop";
+      "text/html" = "librewolf.desktop";
+      "application/xhtml+xml" = "librewolf.desktop";
 
       # Teams meetings
       "x-scheme-handler/msteams" = "teams-for-linux.desktop";
