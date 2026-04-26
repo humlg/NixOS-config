@@ -2,6 +2,18 @@
 
 let
   cfg = config.bundles.photography;
+
+  # DaVinci Resolve uses bundled Qt5. When WAYLAND_DISPLAY is set (Hyprland),
+  # Qt defaults to the Wayland platform which DR doesn't support — force xcb.
+  davinci-resolve-xcb = pkgs.symlinkJoin {
+    name = "davinci-resolve";
+    paths = [ pkgs.davinci-resolve ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      wrapProgram $out/bin/davinci-resolve \
+        --set QT_QPA_PLATFORM xcb
+    '';
+  };
 in
 {
   options.bundles.photography = {
@@ -16,7 +28,7 @@ in
       darktable     # Photography workflow and RAW developer
       #rawtherapee
       gphoto2
-      davinci-resolve
+      davinci-resolve-xcb
     ];
   };
 }
