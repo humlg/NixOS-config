@@ -29,6 +29,8 @@ in
         };
 
         settings = {
+          # Tell sites/extensions the system uses a dark theme
+          "ui.systemUsesDarkTheme" = 1;
           # Dark browser UI theme
           "extensions.activeThemeID" = "firefox-compact-dark@mozilla.org";
           # Force dark color scheme for web content (1 = dark, 2 = follow system)
