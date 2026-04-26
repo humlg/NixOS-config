@@ -16,6 +16,7 @@ in
       darktable     # Photography workflow and RAW developer
       #rawtherapee
       gphoto2
+      davinci-resolve
     ];
   };
 }

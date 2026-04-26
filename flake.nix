@@ -30,7 +30,6 @@
   let
     overlays = [
       (import ./overlays/rawtherapee-dev.nix)
-      (import ./overlays/davinci-resolve-beta.nix)
     ];
     overlayModule = { nixpkgs.overlays = overlays; };
   in
