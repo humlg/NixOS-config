@@ -74,10 +74,13 @@
     rocmPackages.clr.icd
   ];
 
+  # RDNA 3.5 (Radeon 880M/890M) is not yet officially supported by ROCm.
+  # Override the GFX version so ROCm treats it as gfx1100 (RDNA 3).
+  environment.variables.HSA_OVERRIDE_GFX_VERSION = "11.0.0";
+
   environment.systemPackages = with pkgs; [
     gtk3
     codex
-    davinci-resolve
     clinfo
   ];
 
