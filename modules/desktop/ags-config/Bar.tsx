@@ -69,24 +69,21 @@ function Workspaces({ monitor }: { monitor: string }) {
     )
 }
 
-let prevCpuIdle = 0
-let prevCpuTotal = 0
-
-function readCpuUsage(): string {
-    const line = readFile("/proc/stat").split("\n")[0]
-    const parts = line.split(/\s+/).slice(1).map(Number)
-    const idle = parts[3]
-    const total = parts.reduce((a, b) => a + b, 0)
-    const dIdle = idle - prevCpuIdle
-    const dTotal = total - prevCpuTotal
-    prevCpuIdle = idle
-    prevCpuTotal = total
-    if (dTotal === 0) return "--"
-    return Math.round(((dTotal - dIdle) / dTotal) * 100).toString()
-}
-
 function CpuLabel() {
-    const cpu = createPoll("--", 2000, () => readCpuUsage())
+    let prevCpuIdle = 0
+    let prevCpuTotal = 0
+    const cpu = createPoll("--", 2000, () => {
+        const line = readFile("/proc/stat").split("\n")[0]
+        const parts = line.split(/\s+/).slice(1).map(Number)
+        const idle = parts[3]
+        const total = parts.reduce((a, b) => a + b, 0)
+        const dIdle = idle - prevCpuIdle
+        const dTotal = total - prevCpuTotal
+        prevCpuIdle = idle
+        prevCpuTotal = total
+        if (dTotal === 0) return "--"
+        return Math.round(((dTotal - dIdle) / dTotal) * 100).toString()
+    })
     return (
         <box class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
             <label label="󰍛" />
