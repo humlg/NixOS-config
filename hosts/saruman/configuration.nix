@@ -26,7 +26,7 @@
 
   # Plymouth boot splash (shows * for LUKS password entry)
   boot.initrd.systemd.enable = true;
-  boot.kernelParams = [ "quiet" ];
+  boot.kernelParams = [ "quiet" "amd_pstate=active" ];
   boot.plymouth = {
     enable = true;
     theme = "motion";
@@ -36,6 +36,9 @@
   };
 
   services.colord.enable = true;
+
+  # Power management
+  services.tlp.enable = true;
 
   # Power button suspends instead of powering off
   services.logind.settings.Login.HandlePowerKey = "suspend";
