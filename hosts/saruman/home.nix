@@ -44,6 +44,12 @@
     lockScreen    = "hyprlock";
     terminal      = "kitty";
     fileManager   = "thunar";
+
+    extraConfig = ''
+      xwayland {
+          force_zero_g = true
+      }
+    '';
   };
 
   home.packages  = [
