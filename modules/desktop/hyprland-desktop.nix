@@ -12,13 +12,8 @@ let
     pywalfox update
   '';
 
-  toggleNotes = pkgs.writeShellScript "toggle-notes" ''
-    hyprctl clients -j | grep -q '"class": "obsidian"' || hyprctl dispatch exec obsidian
-    hyprctl dispatch togglespecialworkspace notes
-  '';
-
   # Import Hyprland config fragments
-  args = { inherit cfg home pkgs reloadDesktop toggleNotes; };
+  args = { inherit cfg home pkgs reloadDesktop; };
   hyprVars      = import ./hyprland-config/variables.nix args;
   hyprAutostart = import ./hyprland-config/autostart.nix args;
   hyprInput     = import ./hyprland-config/input.nix args;

@@ -1,4 +1,4 @@
-{ reloadDesktop, toggleNotes, ... }:
+{ reloadDesktop, ... }:
 ''
   # ── Keybinds ────────────────────────────────────────────────────
   $mainMod = SUPER
@@ -98,7 +98,7 @@
   bind = $mainMod CTRL SHIFT, right, movecurrentworkspacetomonitor, r
 
   # Special workspaces
-  bind = $mainMod,       S, exec, ${toggleNotes}
+  bind = $mainMod,       S, togglespecialworkspace, notes
   bind = $mainMod SHIFT, S, movetoworkspace,        special:notes
   bind = $mainMod,       X, togglespecialworkspace, dashboard
   bind = $mainMod SHIFT, X, movetoworkspace,        special:dashboard
