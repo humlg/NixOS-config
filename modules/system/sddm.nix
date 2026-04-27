@@ -24,7 +24,8 @@
     };
   };
 
-  security.pam.services.sddm.kwallet.enable = true;
+  security.pam.services.sddm.enableGnomeKeyring = true;
+  services.gnome.gnome-keyring.enable = true;
 
   environment.systemPackages = with pkgs; [
     sddm-astronaut

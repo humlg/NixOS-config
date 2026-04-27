@@ -90,7 +90,6 @@ in
       gnome-calculator
       pavucontrol
       lxqt.lxqt-policykit
-      kdePackages.kwallet
       qt6Packages.qt6ct
       wallust
       pywalfox-native

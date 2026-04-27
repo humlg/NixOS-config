@@ -56,6 +56,7 @@ in
 
       python315
       wev
+      powertop
     ];
   };
 }
