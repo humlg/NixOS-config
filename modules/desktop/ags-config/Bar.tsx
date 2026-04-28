@@ -289,6 +289,14 @@ function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }
                 const rightClick = new Gtk.GestureClick({ button: Gdk.BUTTON_SECONDARY })
                 rightClick.connect("released", () => { toggleMenu() })
                 self.add_controller(rightClick)
+
+                const scroll = new Gtk.EventControllerScroll({ flags: Gtk.EventControllerScrollFlags.VERTICAL })
+                scroll.connect("scroll", (_ctrl: any, _dx: number, dy: number) => {
+                    const current = speaker.volume
+                    speaker.volume = Math.min(1, Math.max(0, current - dy * 0.05))
+                    return true
+                })
+                self.add_controller(scroll)
             }}
             class={mute((m) => m ? "metric muted" : "metric")}
             css={`color: ${fgColor};`}
