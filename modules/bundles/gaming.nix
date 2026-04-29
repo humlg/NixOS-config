@@ -12,6 +12,21 @@ in
     programs.steam.enable = true;
     programs.gamemode.enable = true;
 
+    # Fix for Steam Linux Runtime (pressure-vessel) on NixOS:
+    # Inside the container, /sbin/ldconfig is a symlink chain that ultimately
+    # resolves to the NixOS sbin-ldconfig stub, which points to /bin/ldconfig
+    # (an absolute path). Inside the container /bin/ldconfig -> /sbin/ldconfig,
+    # creating a loop. Pressure-vessel then fails to set LD_LIBRARY_PATH,
+    # so LD_PRELOAD'd libraries (gameoverlayrenderer.so) can't find libGL.so.1.
+    # Fix: put a real ldconfig at /usr/sbin/ldconfig so the chain terminates.
+    system.activationScripts.steamLdconfig = {
+      text = ''
+        mkdir -p /usr/sbin
+        ln -sfn ${pkgs.glibc.bin}/bin/ldconfig /usr/sbin/ldconfig
+      '';
+      deps = [];
+    };
+
     hardware.graphics.enable = true;
     hardware.graphics.enable32Bit = true;
 

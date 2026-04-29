@@ -72,9 +72,12 @@
     };
   };
 
-  # AMD GPU: ROCm OpenCL for DaVinci Resolve and other GPU-accelerated apps
+  # AMD GPU: ROCm OpenCL for DaVinci Resolve and other GPU-accelerated apps.
+  # libglvnd provides libGL.so.1 (the GL dispatch library), which the Steam
+  # Linux Runtime's pressure-vessel container needs but Mesa does not include.
   hardware.graphics.extraPackages = with pkgs; [
     rocmPackages.clr.icd
+    libglvnd
   ];
 
   # RDNA 3.5 (Radeon 880M/890M) is not yet officially supported by ROCm.
