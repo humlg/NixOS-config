@@ -114,7 +114,7 @@ in
       enable          = true;
       xwayland.enable = true;
       systemd.enable  = false;
-      plugins         = [ pkgs.hyprlandPlugins.hyprscroller ];
+      plugins         = [ pkgs.hyprlandPlugins.hyprscrolling ];
 
       extraConfig = ''
         # ── Per-machine: monitors & scaling ─────────────────────────────
