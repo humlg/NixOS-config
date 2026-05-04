@@ -10,26 +10,31 @@
 
     "/home/david/Documents" = {
       device = "/mnt/data1/Documents";
+      fsType = "none";
       options = [ "bind" ];
     };
 
     "/home/david/Downloads" = {
       device = "/mnt/data1/Downloads";
+      fsType = "none";
       options = [ "bind" ];
     };
 
     "/home/david/Pictures" = {
       device = "/mnt/data1/Pictures";
+      fsType = "none";
       options = [ "bind" ];
     };
 
     "/home/david/Music" = {
       device = "/mnt/data1/Music";
+      fsType = "none";
       options = [ "bind" ];
     };
 
     "/home/david/Videos" = {
       device = "/mnt/data1/Videos";
+      fsType = "none";
       options = [ "bind" ];
     };
 
