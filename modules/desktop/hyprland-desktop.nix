@@ -12,6 +12,34 @@ let
     pywalfox update
   '';
 
+  waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
+    [Settings]
+    language = en
+    folder = ~/Pictures/Wallpapers
+    monitors = All
+    wallpaper = ~/Pictures/Wallpapers/default.jpg
+    show_path_in_tooltip = True
+    backend = awww
+    fill = stretch
+    sort = name
+    color = #ffffff
+    subfolders = True
+    all_subfolders = False
+    show_hidden = False
+    show_gifs_only = False
+    zen_mode = False
+    post_command = wallust run "$wallpaper" && reload-desktop
+    number_of_columns = 3
+    awww_transition_type = center
+    awww_transition_step = 63
+    awww_transition_angle = 0
+    awww_transition_duration = 2
+    awww_transition_fps = 60
+    mpvpaper_sound = False
+    mpvpaper_options =
+    use_xdg_state = False
+  '';
+
   # Import Hyprland config fragments
   args = { inherit cfg home pkgs reloadDesktop; };
   hyprVars      = import ./hyprland-config/variables.nix args;
@@ -142,37 +170,9 @@ in
 
     # ── Waypaper seed config ────────────────────────────────────────
     home.activation.seedWaypaperConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      config_dir="${home}/.config/waypaper"
-      config_file="$config_dir/config.ini"
-      if [ ! -f "$config_file" ]; then
-        run mkdir -p "$config_dir"
-        cat > "$config_file" << 'WAYPAPEREOF'
-[Settings]
-language = en
-folder = ~/Pictures/Wallpapers
-monitors = All
-wallpaper = ~/Pictures/Wallpapers/default.jpg
-show_path_in_tooltip = True
-backend = awww
-fill = stretch
-sort = name
-color = #ffffff
-subfolders = True
-all_subfolders = False
-show_hidden = False
-show_gifs_only = False
-zen_mode = False
-post_command = wallust run "$wallpaper" && reload-desktop
-number_of_columns = 3
-swww_transition_type = center
-swww_transition_step = 63
-swww_transition_angle = 0
-swww_transition_duration = 2
-swww_transition_fps = 60
-mpvpaper_sound = False
-mpvpaper_options =
-use_xdg_state = False
-WAYPAPEREOF
+      if [[ ! -f "$HOME/.config/waypaper/config.ini" ]]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.config/waypaper"
+        $DRY_RUN_CMD cp ${waypaperDefaultConfig} "$HOME/.config/waypaper/config.ini"
       fi
     '';
 
