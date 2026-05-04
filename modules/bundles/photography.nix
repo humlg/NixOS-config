@@ -29,6 +29,7 @@ in
       #rawtherapee
       gphoto2
       davinci-resolve-xcb
+      audacity
     ];
   };
 }
