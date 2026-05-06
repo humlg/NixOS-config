@@ -17,6 +17,7 @@
     ../../modules/programs/winboat.nix
     ../../modules/services/ollama.nix
     ../../modules/bundles/gaming.nix
+    ../../modules/programs/zen-browser.nix
   ];
 
   networking.hostName = "saruman";
@@ -89,6 +90,8 @@
     codex
     clinfo
   ];
+
+  programs.zen-browser-custom.enable = true;
 
   system.stateVersion = "25.11";
 }
