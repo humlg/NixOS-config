@@ -186,11 +186,12 @@ function SysTrayItem({ item }: { item: Tray.TrayItem }) {
 }
 
 function SysTray() {
+    const { accent: accentColor } = getWalColors()
     const tray = Tray.get_default()
     const items = createBinding(tray, "items")
 
     return (
-        <box class="tray">
+        <box class="tray" css={`color: ${accentColor};`}>
             <For each={items}>
                 {(item) => <SysTrayItem item={item} />}
             </For>
