@@ -10,15 +10,6 @@ import Hyprland from "gi://AstalHyprland"
 import Tray from "gi://AstalTray"
 import Wp from "gi://AstalWp"
 
-// Icons for known special workspaces shown in the indicator
-const specialWsIcons: Record<string, string> = {
-    mail:      "󰇰",
-    notes:     "󱂅",
-    dashboard: "󰕮",
-    music:     "󰎄",
-    chat:      "󰭹",
-}
-
 function getIconName(windowClass: string): string {
     const lower = windowClass.toLowerCase()
     // Some apps need manual mapping
@@ -93,13 +84,22 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
         return name.startsWith("special:") ? name.replace("special:", "") : null
     }
 
+    const getSpecialClasses = (): string[] => {
+        const name = getSpecialName()
+        if (!name) return []
+        const wsName = `special:${name}`
+        return [...new Set(
+            hyprland.get_clients()
+                .filter((c) => (c.get_workspace() as any)?.name === wsName)
+                .map((c) => c.get_class())
+        )]
+    }
+
     // "event" fires for every raw Hyprland IPC event, including "activespecial"
     // which triggers on special workspace toggle regardless of whether the
     // workspace is empty (notify::focused-workspace misses the empty case).
-    const specialName = createConnection<string | null>(
-        getSpecialName(),
-        [hyprland, "event", () => getSpecialName()],
-    )
+    const specialName    = createConnection<string | null>(getSpecialName(),    [hyprland, "event", () => getSpecialName()])
+    const specialClasses = createConnection<string[]>     (getSpecialClasses(), [hyprland, "event", () => getSpecialClasses()])
 
     return (
         <overlay
@@ -112,15 +112,12 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
                         visible={specialName((n) => n !== null)}
                         css={`background: alpha(${accentColor}, 0.85); border: 1px solid alpha(${accentColor}, 0.55);`}
                     >
-                        <label
-                            halign={Gtk.Align.CENTER}
-                            hexpand
-                            label={specialName((n) => {
-                                if (!n) return ""
-                                const icon = specialWsIcons[n] ?? "󰿅"
-                                return `${icon}  ${n}`
-                            })}
-                        />
+                        <box halign={Gtk.Align.CENTER} hexpand spacing={4}>
+                            <label label={specialName((n) => n ?? "")} />
+                            <For each={specialClasses}>
+                                {(cls) => <image class="ws-icon" iconName={getIconName(cls)} />}
+                            </For>
+                        </box>
                     </box>
                 ) as Gtk.Widget
                 self.add_overlay(indicator)
