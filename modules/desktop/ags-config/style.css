@@ -121,6 +121,18 @@ centerbox {
     margin: 0;
 }
 
+.special-ws-indicator {
+    border-radius: 8px;
+    padding: 0 10px;
+    /* background and border set dynamically via inline CSS (wallust accent) */
+}
+
+.special-ws-indicator label {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
 .audio-menu {
     background: alpha(#2a2a2a, 0.55);
     border-radius: 10px;

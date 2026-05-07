@@ -10,6 +10,15 @@ import Hyprland from "gi://AstalHyprland"
 import Tray from "gi://AstalTray"
 import Wp from "gi://AstalWp"
 
+// Icons for known special workspaces shown in the indicator
+const specialWsIcons: Record<string, string> = {
+    mail:      "󰇰",
+    notes:     "󱂅",
+    dashboard: "󰕮",
+    music:     "󰎄",
+    chat:      "󰭹",
+}
+
 function getIconName(windowClass: string): string {
     const lower = windowClass.toLowerCase()
     // Some apps need manual mapping
@@ -66,6 +75,61 @@ function Workspaces({ monitor }: { monitor: string }) {
                 }}
             </For>
         </box>
+    )
+}
+
+// Wraps the workspace widget in a Gtk.Overlay and places a full-width
+// indicator on top whenever a special workspace is active on this monitor.
+function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
+    const hyprland = Hyprland.get_default()
+    const { accent: accentColor } = getWalColors()
+
+    const getSpecialName = (): string | null => {
+        const mon = hyprland.get_monitors().find((m) => m.get_name() === monitor)
+        if (!mon) return null
+        // Monitor.specialWorkspace is a Workspace GObject; name="" when none active
+        const sw = (mon as any).specialWorkspace as { name: string } | null | undefined
+        const name = sw?.name ?? ""
+        return name.startsWith("special:") ? name.replace("special:", "") : null
+    }
+
+    const specialName = createConnection<string | null>(
+        getSpecialName(),
+        [hyprland, "notify::focused-workspace", getSpecialName],
+        [hyprland, "notify::workspaces",        getSpecialName],
+        [hyprland, "client-added",              getSpecialName],
+        [hyprland, "client-removed",            getSpecialName],
+    )
+
+    return (
+        <overlay
+            $={(self: Gtk.Overlay) => {
+                const indicator = (
+                    <box
+                        class="special-ws-indicator"
+                        halign={Gtk.Align.FILL}
+                        valign={Gtk.Align.FILL}
+                        visible={specialName((n) => n !== null)}
+                        css={`background: alpha(${accentColor}, 0.18); border: 1px solid alpha(${accentColor}, 0.55);`}
+                    >
+                        <label
+                            halign={Gtk.Align.CENTER}
+                            hexpand
+                            label={specialName((n) => {
+                                if (!n) return ""
+                                const icon = specialWsIcons[n] ?? "󰿅"
+                                return `${icon}  ${n}`
+                            })}
+                        />
+                    </box>
+                ) as Gtk.Widget
+                self.add_overlay(indicator)
+                // Let clicks pass through so workspace buttons remain clickable
+                self.set_overlay_pass_through(indicator, true)
+            }}
+        >
+            <Workspaces monitor={monitor} />
+        </overlay>
     )
 }
 
@@ -345,7 +409,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                     <BatteryLabel />
                 </box>
                 <box $type="center">
-                    <Workspaces monitor={gdkmonitor.connector!} />
+                    <WorkspacesWithSpecialOverlay monitor={gdkmonitor.connector!} />
                 </box>
                 <box $type="end" class="group" spacing={4}>
                     <SysTray />
