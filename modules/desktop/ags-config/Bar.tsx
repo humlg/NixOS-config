@@ -110,7 +110,7 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
                         halign={Gtk.Align.FILL}
                         valign={Gtk.Align.FILL}
                         visible={specialName((n) => n !== null)}
-                        css={`background: alpha(${accentColor}, 0.18); border: 1px solid alpha(${accentColor}, 0.55);`}
+                        css={`background: alpha(${accentColor}, 0.85); border: 1px solid alpha(${accentColor}, 0.55);`}
                     >
                         <label
                             halign={Gtk.Align.CENTER}
