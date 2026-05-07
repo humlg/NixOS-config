@@ -27,20 +27,7 @@ in
     home.packages = with pkgs; [
       firefox
       thunderbird
-      # Override to fix window class: the nixpkgs wrapper puts app.asar before "$@",
-      # so --class=obsidian passed at launch time is treated as an app arg by Chromium,
-      # not a Chrome flag.  In native Wayland mode (NIXOS_OZONE_WL), Electron 41 also
-      # reports app_id as "electron" instead of "obsidian".  Solution: rewrite the
-      # wrapper to put --class=obsidian BEFORE app.asar and drop the Wayland backend
-      # so XWayland is used, where --class actually works.
-      (obsidian.overrideAttrs (old: {
-        postFixup = (old.postFixup or "") + ''
-          shebang=$(head -1 "$out/bin/obsidian")
-          electronBin=$(sed -n 's/^exec "\([^"]*\)".*/\1/p' "$out/bin/obsidian")
-          printf '%s\nexec "%s" --class=obsidian "%s/share/obsidian/app.asar" "$@"\n' \
-            "$shebang" "$electronBin" "$out" > "$out/bin/obsidian"
-        '';
-      }))
+      obsidian
 
       # Common daily drivers (adjust to taste)
       mpv
