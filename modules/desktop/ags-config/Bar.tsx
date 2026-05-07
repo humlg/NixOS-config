@@ -93,12 +93,12 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
         return name.startsWith("special:") ? name.replace("special:", "") : null
     }
 
+    // "event" fires for every raw Hyprland IPC event, including "activespecial"
+    // which triggers on special workspace toggle regardless of whether the
+    // workspace is empty (notify::focused-workspace misses the empty case).
     const specialName = createConnection<string | null>(
         getSpecialName(),
-        [hyprland, "notify::focused-workspace", getSpecialName],
-        [hyprland, "notify::workspaces",        getSpecialName],
-        [hyprland, "client-added",              getSpecialName],
-        [hyprland, "client-removed",            getSpecialName],
+        [hyprland, "event", () => getSpecialName()],
     )
 
     return (
