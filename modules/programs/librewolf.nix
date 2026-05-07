@@ -2,7 +2,7 @@
 
 let
   cfg = config.programs.librewolf-custom;
-  addons = nur.legacyPackages.${pkgs.system}.repos.rycee.firefox-addons;
+  addons = nur.legacyPackages.${pkgs.stdenv.hostPlatform.system}.repos.rycee.firefox-addons;
 in
 {
   options.programs.librewolf-custom = {
