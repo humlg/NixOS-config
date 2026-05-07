@@ -3,7 +3,7 @@
 let
   cfg = config.programs.webapps;
 
-  iconDir = "${config.home.homeDirectory}/.local/share/webapp-icons";
+  iconDir = "${config.home.homeDirectory}/.local/share/icons/hicolor/128x128/apps";
 
   getDomain = url:
     let m = builtins.match "https?://([^/]+).*" url;
@@ -54,9 +54,11 @@ let
           --user-data-dir="$HOME/.local/share/webapps/${app.name}" \
           ${lib.escapeShellArgs app.extraArgs} "$@"
       '';
+      # Use a theme icon name so GTK (and AGS) can find it by name.
+      # Auto-fetched icons are installed into the hicolor theme as webapp-<key>.
       effectiveIcon =
         if app.icon != null then app.icon
-        else "${iconDir}/${key}.png";
+        else "webapp-${lib.toLower key}";
     in
     {
       name       = app.name;
@@ -85,14 +87,18 @@ in
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         mkdir -p "${iconDir}"
         ${lib.concatStringsSep "\n" (lib.mapAttrsToList (key: app:
-          let domain = getDomain app.url;
+          let
+            domain   = getDomain app.url;
+            iconName = "webapp-${lib.toLower key}";
           in lib.optionalString (domain != null) ''
-            if [ ! -f "${iconDir}/${key}.png" ]; then
-              ${pkgs.curl}/bin/curl -fsSL -o "${iconDir}/${key}.png" \
+            if [ ! -f "${iconDir}/${iconName}.png" ]; then
+              ${pkgs.curl}/bin/curl -fsSL -o "${iconDir}/${iconName}.png" \
                 "https://www.google.com/s2/favicons?domain=${domain}&sz=128" 2>/dev/null || true
             fi
           ''
         ) autoIconApps)}
+        ${pkgs.gtk3}/bin/gtk-update-icon-cache -f -t \
+          "${config.home.homeDirectory}/.local/share/icons/hicolor" 2>/dev/null || true
       ''
     );
   };
