@@ -124,8 +124,6 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
                     </box>
                 ) as Gtk.Widget
                 self.add_overlay(indicator)
-                // Let clicks pass through so workspace buttons remain clickable
-                self.set_overlay_pass_through(indicator, true)
             }}
         >
             <Workspaces monitor={monitor} />
