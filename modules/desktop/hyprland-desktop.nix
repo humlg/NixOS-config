@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }: # HM
 
 let
   cfg = config.desktop.hyprland-desktop;
@@ -179,17 +179,22 @@ in
     # ── Wallust restore (login) ──────────────────────────────────────
     systemd.user.services.wallust-restore = {
       Unit = {
-        Description = "Restore wallust colors from swww cache";
+        Description = "Restore wallust colors from awww cache";
         PartOf = [ "graphical-session.target" ];
         After = [ "graphical-session.target" ];
       };
       Service = {
         Type = "oneshot";
+        TimeoutStartSec = 30;
         ExecStart = toString (pkgs.writeShellScript "wallust-restore" ''
-          # swww stores per-output cache files in ~/.cache/swww/
-          # Use tr to strip null bytes — swww cache files may be binary and bash 5.3
+          # Bail out cleanly if awww daemon is not running (e.g. during nixos-rebuild).
+          # wallust run would otherwise hang waiting for the awww socket.
+          pgrep -x awww-daemon > /dev/null || exit 0
+
+          # awww stores per-output cache files in ~/.cache/awww/
+          # Use tr to strip null bytes — awww cache files may be binary and bash 5.3
           # crashes with SEGV when command substitution receives a string with null bytes.
-          for f in "$HOME"/.cache/swww/*; do
+          for f in "$HOME"/.cache/awww/*; do
             [ -f "$f" ] || continue
             wallpaper="$(tr -d '\0' < "$f")"
             if [ -f "$wallpaper" ]; then
