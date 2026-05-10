@@ -25,7 +25,6 @@ function Workspaces({ monitor }: { monitor: string }) {
     const hyprland = Hyprland.get_default()
     const { accent: accentColor } = getWalColors()
     const workspaces = createBinding(hyprland, "workspaces")
-    const focused = createBinding(hyprland, "focusedWorkspace")
     // The "clients" property only notifies on add/remove, not on moves between
     // workspaces. Re-read the list on client-moved too so workspace icons
     // follow windows across workspaces.
@@ -40,21 +39,27 @@ function Workspaces({ monitor }: { monitor: string }) {
         <box class="workspaces">
             <For each={workspaces((ws) => ws.filter((w) => w.get_id() > 0).sort((a, b) => a.get_id() - b.get_id()))}>
                 {(ws) => {
-                    const onOtherMonitor = ws.get_monitor()?.get_name() !== monitor
                     const wsClasses = clients((cls) =>
                         [...new Set(
                             cls.filter((c) => c.get_workspace()?.get_id() === ws.get_id())
                                .map((c) => c.get_class())
                         )]
                     )
+                    // Both class and css must react to workspace-moved events, since
+                    // ws.get_monitor() is live state that changes when the workspace
+                    // is moved between monitors.
+                    const getClass = () => {
+                        if (hyprland.focusedWorkspace?.get_id() === ws.get_id()) return "focused"
+                        if (ws.get_monitor()?.get_name() !== monitor) return "other-monitor"
+                        return ""
+                    }
+                    const getCSS = () => ws.get_monitor()?.get_name() === monitor
+                        ? `border-color: ${accentColor};`
+                        : ""
                     return (
                         <button
-                            class={focused((fw) => {
-                                if (fw?.get_id() === ws.get_id()) return "focused"
-                                if (onOtherMonitor) return "other-monitor"
-                                return ""
-                            })}
-                            css={onOtherMonitor ? undefined : `border-color: ${accentColor};`}
+                            class={createConnection(getClass(), [hyprland, "event", getClass])}
+                            css={createConnection(getCSS(), [hyprland, "event", getCSS])}
                             onClicked={() => ws.focus()}
                         >
                             <box>
