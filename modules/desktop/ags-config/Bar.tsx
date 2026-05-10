@@ -185,6 +185,9 @@ function getWalColors(): { bg: string, accent: string, fg: string } {
 }
 
 function BatteryLabel() {
+    if (!GLib.file_test("/sys/class/power_supply/BAT0/capacity", GLib.FileTest.EXISTS))
+        return <box visible={false} />
+
     const { bg: bgColor, accent: accentColor, fg: fgColor } = getWalColors()
     const bat = createPoll("--", 5000, () => {
         const cap = readFile("/sys/class/power_supply/BAT0/capacity").trim()
