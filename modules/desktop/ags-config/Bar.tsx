@@ -23,6 +23,7 @@ function getIconName(windowClass: string): string {
 
 function Workspaces({ monitor }: { monitor: string }) {
     const hyprland = Hyprland.get_default()
+    const { accent: accentColor } = getWalColors()
     const workspaces = createBinding(hyprland, "workspaces")
     const focused = createBinding(hyprland, "focusedWorkspace")
     // The "clients" property only notifies on add/remove, not on moves between
@@ -53,6 +54,7 @@ function Workspaces({ monitor }: { monitor: string }) {
                                 if (onOtherMonitor) return "other-monitor"
                                 return ""
                             })}
+                            css={onOtherMonitor ? undefined : `border-color: ${accentColor};`}
                             onClicked={() => ws.focus()}
                         >
                             <box>
