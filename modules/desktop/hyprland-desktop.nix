@@ -187,9 +187,11 @@ in
         Type = "oneshot";
         ExecStart = toString (pkgs.writeShellScript "wallust-restore" ''
           # swww stores per-output cache files in ~/.cache/swww/
+          # Use tr to strip null bytes — swww cache files may be binary and bash 5.3
+          # crashes with SEGV when command substitution receives a string with null bytes.
           for f in "$HOME"/.cache/swww/*; do
             [ -f "$f" ] || continue
-            wallpaper="$(cat "$f")"
+            wallpaper="$(tr -d '\0' < "$f")"
             if [ -f "$wallpaper" ]; then
               ${pkgs.wallust}/bin/wallust run -s "$wallpaper"
               exit 0
