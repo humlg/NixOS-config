@@ -28,6 +28,8 @@ in
       firefox
       thunderbird
       obsidian
+      whatsapp-electron
+      telegram-desktop
 
       # Common daily drivers (adjust to taste)
       mpv
