@@ -3,8 +3,11 @@
 {
   imports = [
     ./ssh.nix
+    ./network-tools.nix
     ../programs/fastfetch.nix
   ];
+  system.network-tools.enable = true;
+
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Bootloader
