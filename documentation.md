@@ -208,6 +208,105 @@ To add theming for a new app: add a template entry to `wallust.toml` and a templ
 
 ---
 
+## Secret management (agenix)
+
+Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https://github.com/ryantm/agenix). Encrypted `.age` files are committed to the repo and are safe to be public — decryption requires a private key that never leaves the machine. Decryption happens automatically at NixOS activation. Decrypted secrets live in `/run/agenix/` (tmpfs, never written to disk unencrypted).
+
+### Key files
+
+| File | Purpose |
+|------|---------|
+| `secrets/secrets.nix` | Maps each `.age` file to its recipient SSH public keys |
+| `secrets/*.age` | Encrypted secret files committed to the repo |
+| `modules/system/secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
+
+### How secrets reach you
+
+- **Shell env vars** — `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at every shell start. Put `export VAR="value"` lines in it.
+- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/system/secrets.nix`; the file appears at that path after activation.
+
+### Security model
+
+To decrypt any secret, an attacker needs one of the recipient private keys: either the host's SSH host key (`/etc/ssh/ssh_host_ed25519_key`, root-only) or your personal SSH private key (`~/.ssh/id_ed25519`). The encrypted `.age` files in the repo are worthless without one of those.
+
+---
+
+### How to: add a new secret
+
+```bash
+# 1. Add an entry in secrets/secrets.nix
+#    "my-token.age".publicKeys = desktops;
+
+# 2. Create the encrypted file (opens $EDITOR with plaintext, saves as ciphertext)
+agenix -e secrets/my-token.age
+
+# 3. Declare it in modules/system/secrets.nix:
+#    age.secrets.my-token = {
+#      file  = ../../secrets/my-token.age;
+#      owner = "david";
+#      mode  = "0400";
+#    };
+#    For SSH private keys, also add:
+#      path = "/home/david/.ssh/myserver";
+#      mode = "0600";
+
+# 4. Stage, commit, rebuild
+git add secrets/my-token.age
+git commit -m "secrets: add my-token"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+For shell env vars, add lines to `shell-env.age` instead of creating a new file:
+```bash
+agenix -e secrets/shell-env.age
+# Add: export GITHUB_TOKEN="ghp_..."
+git add secrets/shell-env.age && git commit -m "secrets: add GITHUB_TOKEN"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+### How to: edit an existing secret
+
+```bash
+agenix -e secrets/shell-env.age   # decrypts in $EDITOR, re-encrypts on save
+git add secrets/shell-env.age && git commit -m "secrets: update shell-env"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+### How to: remove a secret
+
+```bash
+# 1. Remove its age.secrets block from modules/system/secrets.nix
+# 2. Remove its entry from secrets/secrets.nix
+git rm secrets/my-token.age
+git commit -m "secrets: remove my-token"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+### How to: wire up a new host
+
+```bash
+# 1. Get the new host's SSH host public key
+ssh newhost 'cat /etc/ssh/ssh_host_ed25519_key.pub'
+
+# 2. Add it to secrets/secrets.nix and include in the relevant recipient lists
+#    newhost = "ssh-ed25519 AAAA... root@newhost";
+#    desktops = [ sauron saruman newhost david ];
+
+# 3. Re-encrypt every .age file to include the new host
+agenix -r secrets/shell-env.age
+# repeat for each .age file
+
+# 4. In flake.nix: add inputs.agenix.nixosModules.default to the new host's modules list
+
+# 5. In hosts/newhost/configuration.nix: add ../../modules/system/secrets.nix to imports
+
+# 6. Stage, commit, rebuild on the new host
+git add secrets/ && git commit -m "secrets: add newhost as recipient"
+sudo nixos-rebuild switch --flake .#newhost
+```
+
+---
+
 ## Flake inputs
 
 | Input | Purpose |
@@ -218,6 +317,7 @@ To add theming for a new app: add a template entry to `wallust.toml` and a templ
 | `ags` | AGS status bar framework |
 | `astal` | Astal widget library (dependency of AGS) |
 | `zen-browser` | Zen Browser (not in nixpkgs) |
+| `agenix` | Secret management (age encryption) |
 
 ---
 
@@ -242,6 +342,8 @@ To add theming for a new app: add a template entry to `wallust.toml` and a templ
 | Which GUI apps all desktops get | `modules/bundles/desktop-apps.nix` |
 | Something on one machine only | `hosts/<name>/configuration.nix` or `hosts/<name>/home.nix` |
 | A package version override | `overlays/` + register in `flake.nix` |
+| A secret / API token | `secrets/shell-env.age` (edit with `agenix -e`) |
+| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/system/secrets.nix` |
 | NVIDIA config | `modules/system/nvidia.nix` |
 | VPN | `modules/programs/mullvad.nix` |
 | VMs / KVM | `modules/services/kvm.nix` |
