@@ -28,6 +28,11 @@
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -46,8 +51,8 @@
         modules = [
           overlayModule
           ./hosts/sauron/configuration.nix
-
           inputs.home-manager.nixosModules.default
+          inputs.agenix.nixosModules.default
         ];
       };
 
@@ -56,7 +61,7 @@
         modules = [
           overlayModule
           ./hosts/nixosvm/configuration.nix
-   	      inputs.home-manager.nixosModules.default
+          inputs.home-manager.nixosModules.default
         ];
       };
 
@@ -66,6 +71,7 @@
           overlayModule
           ./hosts/saruman/configuration.nix
           inputs.home-manager.nixosModules.default
+          inputs.agenix.nixosModules.default
         ];
       };
     };

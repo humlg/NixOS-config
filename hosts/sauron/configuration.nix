@@ -15,6 +15,7 @@
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
     ../../modules/bundles/gaming.nix
+    ../../modules/system/secrets.nix
   ];
 
   networking.hostName = "sauron";

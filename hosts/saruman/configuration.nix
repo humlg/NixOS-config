@@ -18,6 +18,7 @@
     ../../modules/services/ollama.nix
     ../../modules/bundles/gaming.nix
     ../../modules/programs/zen-browser.nix
+    ../../modules/system/secrets.nix
   ];
 
   networking.hostName = "saruman";

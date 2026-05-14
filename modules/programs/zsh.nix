@@ -14,6 +14,7 @@
       if command -v fastfetch >/dev/null 2>&1; then
         fastfetch
       fi
+      [ -f /run/agenix/shell-env ] && source /run/agenix/shell-env
     '';
   };
 }

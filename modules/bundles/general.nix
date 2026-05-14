@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 let
   cfg = config.bundles.general;
@@ -25,6 +25,7 @@ in
     programs.claude-code.enable = true;
 
     home.packages = with pkgs; [
+      inputs.agenix.packages.${pkgs.system}.default
       firefox
       thunderbird
       obsidian
