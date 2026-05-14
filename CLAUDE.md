@@ -89,6 +89,104 @@ modules/
 - `nixpkgs` tracks `nixos-unstable`. `system.stateVersion` and `home.stateVersion` are both `"25.11"` and must not be changed.
 - **Module pattern**: Most modules use `mkEnableOption` / `mkIf` for explicit opt-in. Bundle and service modules are imported in the relevant host config and activated with `enable = true`.
 
+## Secret Management (agenix)
+
+Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https://github.com/ryantm/agenix). Encrypted `.age` files are committed to the repo — they are safe to be public. Decryption happens automatically at NixOS activation using the host's SSH host private key. Decrypted secrets live in `/run/agenix/` (tmpfs, never written to disk).
+
+### How it works
+
+- `secrets/secrets.nix` — maps each `.age` file to its recipient SSH public keys (host keys + david's user key)
+- `secrets/*.age` — encrypted secret files committed to the repo
+- `modules/system/secrets.nix` — NixOS module declaring where each secret is placed and with what permissions
+- **Shell env vars**: `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at shell start
+- **SSH private keys**: declared with a `path =` in `age.secrets` so they land directly at `~/.ssh/<name>`
+
+### Adding a new secret (env var or file)
+
+```bash
+# 1. Add an entry to secrets/secrets.nix (choose recipients)
+#    "my-token.age".publicKeys = desktops;
+
+# 2. Create (or edit) the encrypted file — opens $EDITOR with plaintext
+agenix -e secrets/my-token.age
+
+# 3. Declare it in modules/system/secrets.nix:
+#    age.secrets.my-token = {
+#      file  = ../../secrets/my-token.age;
+#      owner = "david";
+#      mode  = "0400";
+#      # path = "/home/david/.ssh/myserver";  # only needed for SSH keys / custom paths
+#    };
+
+# 4. Stage, commit, rebuild
+git add secrets/my-token.age
+git commit -m "secrets: add my-token"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+For **shell env vars**, put the content in `shell-env.age` (one `export VAR="value"` per line) — they are automatically available in every new shell. For **SSH private keys**, use a dedicated `.age` file with `path = "/home/david/.ssh/..."` and `mode = "0600"`.
+
+### Editing an existing secret
+
+```bash
+agenix -e secrets/shell-env.age   # opens decrypted content in $EDITOR, re-encrypts on save
+git add secrets/shell-env.age
+git commit -m "secrets: update shell-env"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+### Removing a secret
+
+```bash
+# 1. Remove the age.secrets block from modules/system/secrets.nix
+# 2. Delete the .age file
+git rm secrets/my-token.age
+# 3. Remove the entry from secrets/secrets.nix
+git commit -m "secrets: remove my-token"
+sudo nixos-rebuild switch --flake .#<host>
+```
+
+### Adding secrets to a new host
+
+```bash
+# 1. Get the new host's SSH host public key (run on the new host, or via ssh):
+cat /etc/ssh/ssh_host_ed25519_key.pub
+
+# 2. Add it to secrets/secrets.nix:
+#    newhost = "ssh-ed25519 AAAA... root@newhost";
+#    desktops = [ sauron saruman newhost david ];
+
+# 3. Re-encrypt all existing secrets to include the new host as a recipient:
+agenix -r secrets/shell-env.age
+agenix -r secrets/ssh_myserver.age   # repeat for each .age file
+
+# 4. Add agenix.nixosModules.default to the new host in flake.nix
+# 5. Import modules/system/secrets.nix in the new host's configuration.nix
+# 6. Stage, commit, rebuild on the new host
+git add secrets/
+git commit -m "secrets: add newhost as recipient, import secrets module"
+sudo nixos-rebuild switch --flake .#newhost
+```
+
+### Key locations
+
+| File | Purpose |
+|------|---------|
+| `secrets/secrets.nix` | Recipient key map — edit when adding/removing hosts |
+| `secrets/shell-env.age` | Shell environment variables (API tokens, etc.) |
+| `modules/system/secrets.nix` | NixOS declarations for all secrets |
+| `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
+
+### Sauron TODO
+
+Sauron's SSH host key is not yet in `secrets/secrets.nix` (machine was offline during setup). Once reachable:
+```bash
+ssh sauron 'cat /etc/ssh/ssh_host_ed25519_key.pub'
+# Add the key to secrets/secrets.nix, then:
+agenix -r secrets/shell-env.age   # re-encrypt to include sauron
+git add secrets/ && git commit -m "secrets: add sauron as recipient"
+```
+
 ## Workflow Rules
 
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
