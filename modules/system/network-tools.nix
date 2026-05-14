@@ -31,8 +31,6 @@ in
       bandwhich    # per-process/connection bandwidth (TUI)
 
       # Port / socket utilities
-      ncat         # netcat — port testing, simple TCP/UDP connections
-
       # Interface & link info
       ethtool      # NIC settings, link speed, wake-on-LAN
 
