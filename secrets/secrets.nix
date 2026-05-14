@@ -4,12 +4,9 @@ let
 
   # SSH host keys — used for automatic decryption at activation time
   saruman = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKD2w9ZltrW/1bjsq30vLt/hnuiFCa8WNwriOe6XHaki root@saruman";
-  # sauron = "ssh-ed25519 AAAA... root@sauron";  # TODO: fill in when sauron is reachable
+  sauron  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA870ubTokXb4ENXyp6zVALdaUnFyRqKeJOWD9/7xahN root@sauron";
 
-  # Secrets available on all desktops
-  # Update this list when sauron's host key is added
-  desktops = [ saruman david ];
-  # desktops = [ sauron saruman david ];  # use this once sauron's key is added
+  desktops = [ sauron saruman david ];
 in
 {
   "shell-env.age".publicKeys = desktops;
