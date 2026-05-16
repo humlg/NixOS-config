@@ -16,6 +16,7 @@
     ../../modules/bundles/wine.nix
     ../../modules/bundles/gaming.nix
     ../../modules/system/secrets.nix
+    ../../modules/programs/zen-browser.nix
   ];
 
   networking.hostName = "sauron";
@@ -38,6 +39,7 @@
 
   services.colord.enable = true;
 
+  programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;
   programs.coolercontrol.enable = true;
   custom.bluetooth.enable = true;
