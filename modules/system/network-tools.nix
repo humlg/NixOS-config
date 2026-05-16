@@ -34,6 +34,9 @@ in
       # Interface & link info
       ethtool      # NIC settings, link speed, wake-on-LAN
 
+      # Wake-on-LAN
+      wakeonlan
+
       # Domain info
       whois
     ];
