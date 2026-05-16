@@ -7,7 +7,7 @@ let
 
   cleanupScript = pkgs.writeShellApplication {
     name = "nixos-cleanup-generations";
-    runtimeInputs = [ pkgs.coreutils pkgs.nix ];
+    runtimeInputs = [ pkgs.coreutils pkgs.gawk pkgs.nix ];
     text = ''
       PROFILE=/nix/var/nix/profiles/system
       KEEP="${toString cfg.keepGenerations}"
