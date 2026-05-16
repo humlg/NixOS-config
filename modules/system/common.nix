@@ -5,7 +5,6 @@
     ./ssh.nix
     ./network-tools.nix
     ./generation-cleanup.nix
-    ../programs/fastfetch.nix
   ];
   system.network-tools.enable = true;
   system.generation-cleanup.enable = true;

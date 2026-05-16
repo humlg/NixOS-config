@@ -1,6 +1,10 @@
 { ... }:
 
 {
+  imports = [
+    ../programs/fastfetch.nix
+  ];
+
   home.username = "david";
   home.homeDirectory = "/home/david";
   home.stateVersion = "25.11";
