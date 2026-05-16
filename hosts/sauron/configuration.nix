@@ -20,6 +20,10 @@
 
   networking.hostName = "sauron";
 
+  # Wake-on-LAN: keep WoL enabled across reboots (kernel resets it otherwise).
+  # Requires BIOS "Wake on LAN" / "PCI-E Power On" enabled, and ErP/EuP disabled.
+  networking.interfaces.enp9s0.wakeOnLan.enable = true;
+
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
