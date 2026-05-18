@@ -471,13 +471,7 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
             keymode={Astal.Keymode.ON_DEMAND}
             application={app}
         >
-            <box class="wifi-menu" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
-                <box orientation={Gtk.Orientation.HORIZONTAL} spacing={8}>
-                    <label class="wifi-menu-header" label="Wi-Fi Networks" halign={Gtk.Align.START} hexpand />
-                    <button class="wifi-rescan-btn" onClicked={rescan} tooltipText="Rescan networks">
-                        <label label="󰑐" />
-                    </button>
-                </box>
+            <box class="wifi-menu" orientation={Gtk.Orientation.VERTICAL} spacing={2}>
                 <For each={networks}>
                     {(net) => (
                         <button
@@ -489,14 +483,20 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
                                 if (menuWindow.current) menuWindow.current.visible = false
                             }}
                         >
-                            <box spacing={8}>
+                            <box spacing={6}>
                                 <label label={signalIcon(net.signal)} />
                                 <label label={net.ssid} halign={Gtk.Align.START} hexpand />
-                                <label label={net.security || "Open"} css="font-size: 11px; color: #888;" />
+                                <label label={net.security || "Open"} css="color: #888;" />
                             </box>
                         </button>
                     )}
                 </For>
+                <button class="metric" onClicked={rescan} tooltipText="Rescan networks" halign={Gtk.Align.FILL}>
+                    <box spacing={6} halign={Gtk.Align.CENTER}>
+                        <label label="󰑐" />
+                        <label label="Rescan" />
+                    </box>
+                </button>
             </box>
         </window>
     )
@@ -518,7 +518,7 @@ function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) 
         <button class="metric" onClicked={toggleMenu} tooltipText="Click to manage Wi-Fi">
             <box spacing={4}>
                 <label label={signal((s) => signalIcon(Number(s)))} />
-                <label class="metric-value" label={ssid((s) => s || "--")} />
+                <label css="margin-left: 4px;" label={ssid((s) => s || "--")} />
             </box>
         </button>
     )
