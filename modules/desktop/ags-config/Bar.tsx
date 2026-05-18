@@ -460,6 +460,9 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
                     return false
                 })
                 self.add_controller(keyCtrl)
+                const focusCtrl = new Gtk.EventControllerFocus()
+                focusCtrl.connect("leave", () => { self.visible = false })
+                self.add_controller(focusCtrl)
             }}
             name="wifi-menu"
             visible={false}
@@ -487,7 +490,6 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
                             }}
                         >
                             <box spacing={8}>
-                                <label label={net.active ? "󰄮" : "󰄯"} />
                                 <label label={signalIcon(net.signal)} />
                                 <label label={net.ssid} halign={Gtk.Align.START} hexpand />
                                 <label label={net.security || "Open"} css="font-size: 11px; color: #888;" />
