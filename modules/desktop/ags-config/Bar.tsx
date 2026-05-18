@@ -1,6 +1,7 @@
 import { createBinding, createConnection, For, onCleanup } from "ags"
 import { createPoll } from "ags/time"
 import { readFile } from "ags/file"
+import { execAsync } from "ags/process"
 import app from "ags/gtk4/app"
 import Astal from "gi://Astal?version=4.0"
 import Gtk from "gi://Gtk?version=4.0"
@@ -383,10 +384,150 @@ function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }
     )
 }
 
+interface WifiNetwork {
+    active: boolean
+    ssid: string
+    signal: number
+    security: string
+}
+
+function parseWifiList(raw: string): WifiNetwork[] {
+    const seen = new Set<string>()
+    const networks: WifiNetwork[] = []
+    for (const line of raw.trim().split("\n")) {
+        if (!line.trim()) continue
+        // nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list
+        // fields separated by ":"
+        const parts = line.split(":")
+        if (parts.length < 4) continue
+        const active = parts[0].trim() === "*"
+        const ssid = parts[1].trim()
+        const signal = parseInt(parts[2].trim()) || 0
+        const security = parts.slice(3).join(":").trim()
+        if (!ssid || ssid === "--") continue
+        if (seen.has(ssid)) continue
+        seen.add(ssid)
+        networks.push({ active, ssid, signal, security })
+    }
+    // active network first, then by signal strength
+    return networks.sort((a, b) => {
+        if (a.active !== b.active) return a.active ? -1 : 1
+        return b.signal - a.signal
+    })
+}
+
+function signalIcon(signal: number): string {
+    if (signal >= 80) return "󰤨"
+    if (signal >= 60) return "󰤥"
+    if (signal >= 40) return "󰤢"
+    if (signal >= 20) return "󰤟"
+    return "󰤯"
+}
+
+function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
+    // Poll the network list every 10 s; we also trigger a manual refresh
+    let forceRefresh = 0
+    const networksRaw = createPoll("", 10000, () => {
+        void forceRefresh  // read so the closure captures the var (unused warning suppressed)
+        try {
+            return GLib.spawn_command_line_sync(
+                "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list"
+            )[1]?.toString() ?? ""
+        } catch { return "" }
+    })
+
+    const networks = networksRaw((raw) => parseWifiList(raw))
+
+    const rescan = () => {
+        execAsync(["nmcli", "device", "wifi", "rescan"]).catch(() => {})
+        // Give the scan ~2 s then force a list refresh
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
+            forceRefresh++
+            return false  // don't repeat
+        })
+    }
+
+    return (
+        <window
+            $={(self) => {
+                menuWindow.current = self
+                const keyCtrl = new Gtk.EventControllerKey()
+                keyCtrl.connect("key-pressed", (_ctrl: any, keyval: number) => {
+                    if (keyval === Gdk.KEY_Escape) {
+                        self.visible = false
+                        return true
+                    }
+                    return false
+                })
+                self.add_controller(keyCtrl)
+            }}
+            name="wifi-menu"
+            visible={false}
+            anchor={Astal.WindowAnchor.TOP | Astal.WindowAnchor.RIGHT}
+            exclusivity={Astal.Exclusivity.NORMAL}
+            keymode={Astal.Keymode.ON_DEMAND}
+            application={app}
+        >
+            <box class="wifi-menu" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
+                <box orientation={Gtk.Orientation.HORIZONTAL} spacing={8}>
+                    <label class="wifi-menu-header" label="Wi-Fi Networks" halign={Gtk.Align.START} hexpand />
+                    <button class="wifi-rescan-btn" onClicked={rescan} tooltipText="Rescan networks">
+                        <label label="󰑐" />
+                    </button>
+                </box>
+                <For each={networks}>
+                    {(net) => (
+                        <button
+                            class={net.active ? "wifi-network-item active" : "wifi-network-item"}
+                            onClicked={() => {
+                                if (!net.active) {
+                                    execAsync(["nmcli", "device", "wifi", "connect", net.ssid]).catch(() => {})
+                                }
+                                if (menuWindow.current) menuWindow.current.visible = false
+                            }}
+                        >
+                            <box spacing={8}>
+                                <label label={net.active ? "󰄮" : "󰄯"} />
+                                <label label={signalIcon(net.signal)} />
+                                <label label={net.ssid} halign={Gtk.Align.START} hexpand />
+                                <label label={net.security || "Open"} css="font-size: 11px; color: #888;" />
+                            </box>
+                        </button>
+                    )}
+                </For>
+            </box>
+        </window>
+    )
+}
+
+function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
+    const ssid = createPoll("--", 5000, ["bash", "-c",
+        "nmcli -t -f active,ssid dev wifi | awk -F: '/^yes:/{print $2; exit}'"
+    ])
+    const signal = createPoll(0, 5000, ["bash", "-c",
+        "nmcli -t -f active,signal dev wifi | awk -F: '/^yes:/{print $2; exit}'"
+    ])
+
+    const toggleMenu = () => {
+        if (menuWindow.current) menuWindow.current.visible = !menuWindow.current.visible
+    }
+
+    return (
+        <button class="metric" onClicked={toggleMenu} tooltipText="Click to manage Wi-Fi">
+            <box spacing={4}>
+                <label label={signal((s) => signalIcon(Number(s)))} />
+                <label class="metric-value" label={ssid((s) => s || "--")} />
+            </box>
+        </button>
+    )
+}
+
 // Shared reference for the audio device menu window
 export const audioMenuWindow = { current: null as Astal.Window | null }
 
-export { AudioDeviceMenu }
+export const wifiMenuWindow = { current: null as Astal.Window | null }
+
+export { AudioDeviceMenu, WifiMenu }
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
@@ -418,6 +559,7 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
                 </box>
                 <box $type="end" class="group" spacing={4}>
                     <SysTray />
+                    <Wifi menuWindow={wifiMenuWindow} />
                     <Volume menuWindow={audioMenuWindow} />
                     <Clock />
                 </box>
