@@ -44,7 +44,7 @@
 
   services.printing = {
     enable = true;
-    drivers = with pkgs; [ gutenprint hplip ];
+    drivers = with pkgs; [ gutenprint hplip canon-cups-ufr2 ];
   };
 
   services.avahi = {
