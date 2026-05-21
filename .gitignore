@@ -5,5 +5,9 @@ result-*
 # Home Manager backup files
 *.hm-bak
 
+# Vim swap files
+*.swp
+*.swo
+
 # Nix flake lock (optional: remove this line if you want to track it)
 # flake.lock
