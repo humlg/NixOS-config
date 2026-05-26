@@ -512,6 +512,7 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
 }
 
 function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
+    const { fg: fgColor } = getWalColors()
     const ssid = createPoll("--", 5000, ["bash", "-c",
         "nmcli -t -f active,ssid dev wifi | awk -F: '/^yes:/{print $2; exit}'"
     ])
@@ -524,7 +525,7 @@ function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) 
     }
 
     return (
-        <button class="metric" onClicked={toggleMenu} tooltipText="Click to manage Wi-Fi">
+        <button class="metric" css={`color: ${fgColor};`} onClicked={toggleMenu} tooltipText="Click to manage Wi-Fi">
             <box spacing={4}>
                 <label label={signal((s) => signalIcon(Number(s)))} />
                 <label css="margin-left: 4px;" label={ssid((s) => s || "--")} />
