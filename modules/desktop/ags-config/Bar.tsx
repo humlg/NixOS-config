@@ -59,9 +59,18 @@ function Workspaces({ monitor }: { monitor: string }) {
                         : ""
                     return (
                         <button
-                            class={createConnection(getClass(), [hyprland, "event", getClass])}
-                            css={createConnection(getCSS(), [hyprland, "event", getCSS])}
-                            onClicked={() => ws.focus()}
+                            class={createConnection(
+                                getClass(),
+                                [hyprland, "notify::focused-workspace", getClass],
+                                [hyprland, "notify::workspaces",        getClass],
+                                [hyprland, "notify::monitors",          getClass],
+                            )}
+                            css={createConnection(
+                                getCSS(),
+                                [hyprland, "notify::workspaces", getCSS],
+                                [hyprland, "notify::monitors",   getCSS],
+                            )}
+                            onClicked={() => execAsync(["hyprctl", "dispatch", "workspace", ws.get_id().toString()]).catch(() => {})}
                         >
                             <box>
                                 <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}` : ws.get_id().toString())} />
