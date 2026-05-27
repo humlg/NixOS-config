@@ -22,6 +22,7 @@ in
       libreoffice-qt-fresh
       todoist-electron
       mqttui
+      dm-sans
     ];
   };
 }
