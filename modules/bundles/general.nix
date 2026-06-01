@@ -42,6 +42,7 @@ in
 
       # Archives / utilities
       unzip
+      zip
       p7zip
       ripgrep
       fd
