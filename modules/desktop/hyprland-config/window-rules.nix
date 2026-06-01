@@ -13,4 +13,5 @@
   windowrule = match:title ^Extension:.*,             float on, center on
   windowrule = match:initial_class org.gnome.Calculator, float on, center on
   windowrule = match:initial_class Todoist, float on, center on
+  windowrule = match:initial_class mpv, float on, center on, size 1155 650
 ''
