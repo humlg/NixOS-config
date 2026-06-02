@@ -17,7 +17,7 @@
   bind = $mainMod,       I, fullscreen
   bind = $mainMod,       R, exec,          $menu
   bind = $mainMod,       P, pseudo
-  bind = $mainMod,       J, togglesplit
+  bind = $mainMod,       J, layoutmsg,    togglesplit
   bind = $mainMod,       F, exec,          $webBrowser
   bind = $mainMod SHIFT, F, exec,          $webBrowser --private-window
   bind = $mainMod,       L, exec,          $lockScreen
