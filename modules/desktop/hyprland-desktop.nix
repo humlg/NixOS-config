@@ -240,6 +240,8 @@ in
       backend = "kmeans"
       palette = "dark16"
       threshold = 11
+      check_constrast = true
+      saturation = 65
 
       [templates]
       colors-hyprland.template = "colors-hyprland.conf"

@@ -13,7 +13,7 @@ in
     environment.systemPackages = with pkgs; [
       prusa-slicer   # 3D print slicing
       freecad-wayland # Parametric CAD modeling (Wayland-native)
-      bambu-studio
+      #bambu-studio
     ];
   };
 }
