@@ -38,6 +38,7 @@
   #console.font = "ter-132b";
 
   services.colord.enable = true;
+  services.udev.packages = [ pkgs.openrgb ];
 
   programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;
