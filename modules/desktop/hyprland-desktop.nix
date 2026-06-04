@@ -10,6 +10,7 @@ let
     systemctl --user restart swaync.service
     kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
     pywalfox update
+    pkill -x albert 2>/dev/null; sleep 0.5; albert &
   '';
 
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
