@@ -30,7 +30,7 @@
     enable32Bit = true;
   };
 
-  boot.kernelModules = [ "nct6775" ];
+  boot.kernelModules = [ "nct6775" "i2c-dev" ];
 
   # HiDPI: larger font for TTY console and boot menu
   boot.loader.systemd-boot.consoleMode = "max";
