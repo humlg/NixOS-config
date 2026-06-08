@@ -29,7 +29,7 @@
 
     # Machine-specific monitor layout (sauron — desktop with external display)
     monitors = ''
-      monitor = DP-1, 2560x1440@165, 1920x0, 1
+      monitor = DP-2, 2560x1440@165.08, 1920x0, 1
       monitor = HDMI-A-1, 1920x1080@75, 0x0, 1
       monitor = , preferred, auto, 1
     '';
