@@ -6,7 +6,7 @@
     ./file-system.nix
     ../../modules/system/common.nix
     ../../modules/system/locale.nix
-    ../../modules/system/nvidia.nix
+    ../../modules/system/amd-gpu.nix
     ../../modules/system/sddm.nix
     ../../modules/desktop/hyprland-system.nix
     ../../modules/programs/zsh.nix
