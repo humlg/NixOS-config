@@ -14,7 +14,6 @@
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
     ../../modules/programs/mullvad.nix
-    ../../modules/programs/winboat.nix
     ../../modules/services/ollama.nix
     ../../modules/bundles/gaming.nix
     ../../modules/programs/zen-browser.nix
