@@ -49,5 +49,88 @@ in
         )
       '';
     };
+
+    # Wallust appends two lines to [templates] (last section, so TOML stays valid)
+    home.file.".config/wallust/wallust.toml".text = lib.mkAfter ''
+      colors-anyrun.template = "colors-anyrun.css"
+      colors-anyrun.target = "~/.config/anyrun/style.css"
+    '';
+
+    home.file.".config/wallust/templates/colors-anyrun.css".text = ''
+      @define-color bg      {{ background }};
+      @define-color fg      {{ foreground }};
+      @define-color accent  {{ color2 }};
+      @define-color muted   {{ color8 }};
+      @define-color surface {{ color0 }};
+
+      window {
+        background: transparent;
+      }
+
+      box.main {
+        padding: 6px;
+        margin: 12px;
+        border-radius: 12px;
+        border: 2px solid @accent;
+        background-color: @bg;
+        box-shadow: 0 2px 16px rgba(0,0,0,0.6);
+      }
+
+      text {
+        min-height: 32px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        color: @fg;
+        caret-color: @accent;
+      }
+
+      .matches {
+        background-color: transparent;
+        border-radius: 8px;
+      }
+
+      box.plugin:first-child {
+        margin-top: 5px;
+      }
+
+      box.plugin.info {
+        min-width: 200px;
+      }
+
+      list.plugin {
+        background-color: transparent;
+      }
+
+      label.match {
+        color: @fg;
+      }
+
+      label.match.description {
+        font-size: 10px;
+        color: @muted;
+      }
+
+      label.plugin.info {
+        font-size: 13px;
+        color: @muted;
+      }
+
+      .match {
+        background: transparent;
+        border-radius: 6px;
+        padding: 2px 4px;
+      }
+
+      .match:selected {
+        border-left: 3px solid @accent;
+        background-color: @surface;
+        animation: fade 0.1s linear;
+      }
+
+      @keyframes fade {
+        0%   { opacity: 0; }
+        100% { opacity: 1; }
+      }
+    '';
   };
 }

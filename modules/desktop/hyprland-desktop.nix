@@ -270,7 +270,6 @@ in
 
       colors-vim.template = "colors-wal.vim"
       colors-vim.target = "~/.cache/wallust/colors-wal.vim"
-
     '';
 
     home.file.".config/wallust/templates/colors-hyprland.conf".text = ''
