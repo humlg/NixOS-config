@@ -27,7 +27,7 @@ in
         ignoreExclusiveZones   = false;
         layer                  = "overlay";
         hidePluginInfo         = true;
-        closeOnClickOutside    = true;
+        closeOnClick           = true;
         showResultsImmediately = false;
         maxEntries             = null;
       };
