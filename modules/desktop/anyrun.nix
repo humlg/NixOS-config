@@ -17,7 +17,7 @@ in
         ];
 
         x           = { fraction = 0.5; };
-        y           = { fraction = 0.0; };
+        y           = { fraction = 0.5; };
         width       = { fraction = 0.35; };
         hideIcons              = false;
         ignoreExclusiveZones   = false;
