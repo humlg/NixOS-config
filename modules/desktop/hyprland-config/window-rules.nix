@@ -5,8 +5,6 @@
   # Electron 41 reports Wayland app_id as "electron" — match on title instead
   windowrule = workspace special:notes silent, match:class ^electron$, match:initial_title Obsidian
 
-  windowrule = match:initial_title ^(Albert)$, decorate off, no_shadow on, border_size 0, rounding 0, no_blur on
-
   windowrule = match:title File Operation Progress,   float on, center on
   windowrule = match:initial_title ^Write:.*,         float on, center on
   windowrule = match:initial_title Calendar Reminders, float on, center on
