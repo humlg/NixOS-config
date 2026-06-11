@@ -5,10 +5,6 @@ let
   system = pkgs.stdenv.hostPlatform.system;
 in
 {
-  imports = [
-    inputs.anyrun.homeManagerModules.anyrun
-  ];
-
   config = lib.mkIf cfg.enable {
     programs.anyrun = {
       enable = true;
