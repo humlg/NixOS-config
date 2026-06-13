@@ -43,6 +43,9 @@
     htop
   ];
 
+  # Prevent inotify watch exhaustion (VS Code, MEGAcmd, etc. consume many watches)
+  boot.kernel.sysctl."fs.inotify.max_user_watches" = 524288;
+
   services.udisks2.enable = true;
 
   users.users.david = {

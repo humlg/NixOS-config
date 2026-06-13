@@ -11,11 +11,11 @@ let
       exit 0
     fi
 
-    # Get currently configured syncs
-    existing=$(${pkgs.megacmd}/bin/mega-sync 2>/dev/null || true)
+    # Use pipe-separated output so paths are never truncated
+    existing=$(${pkgs.megacmd}/bin/mega-sync --col-separator="|" 2>/dev/null | awk -F'|' '{print $2}' || true)
 
     ${lib.concatStringsSep "\n" (lib.mapAttrsToList (local: remote: ''
-      if echo "$existing" | grep -q "${local}"; then
+      if echo "$existing" | grep -qF "${local}"; then
         echo "MEGAcmd: sync already exists for ${local} — skipping"
       else
         echo "MEGAcmd: adding sync ${local} -> ${remote}"
@@ -64,8 +64,9 @@ in
     systemd.user.services.mega-sync-setup = {
       Unit = {
         Description = "Configure MEGAcmd sync pairs";
+        # After-only (no Requires) so this doesn't restart when mega-cmd-server restarts;
+        # MEGAcmd persists sync state itself, so we only need to run this once at boot.
         After = [ "mega-cmd-server.service" ];
-        Requires = [ "mega-cmd-server.service" ];
       };
       Service = {
         Type = "oneshot";
