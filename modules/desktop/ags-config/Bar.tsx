@@ -145,7 +145,7 @@ function WorkspacesWithSpecialOverlay({ monitor }: { monitor: string }) {
     )
 }
 
-function CpuLabel() {
+function CpuLabel({ accentColor }: { accentColor: string }) {
     let prevCpuIdle = 0
     let prevCpuTotal = 0
     const cpu = createPoll("--", 2000, () => {
@@ -161,29 +161,32 @@ function CpuLabel() {
         return Math.round(((dTotal - dIdle) / dTotal) * 100).toString()
     })
     return (
-        <box class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+        <box class={cpu((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+             css={`border-color: ${accentColor};`}>
             <label label="󰍛" />
             <label class="metric-value" xalign={1} label={cpu((v) => `${v}%`)} />
         </box>
     )
 }
 
-function RamLabel() {
+function RamLabel({ accentColor }: { accentColor: string }) {
     const ram = createPoll("--", 2000, ["bash", "-c",
         "free -m | awk '/Mem:/ {printf \"%d\", $3*100/$2}'"])
     return (
-        <box class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+        <box class={ram((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+             css={`border-color: ${accentColor};`}>
             <label label="" />
             <label class="metric-value" xalign={1} label={ram((v) => `${v}%`)} />
         </box>
     )
 }
 
-function DiskLabel() {
+function DiskLabel({ accentColor }: { accentColor: string }) {
     const disk = createPoll("--", 10000, ["bash", "-c",
         "df -h / | awk 'NR==2 {print $5}'"])
     return (
-        <box class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}>
+        <box class={disk((v) => parseInt(v) >= 90 ? "metric critical" : "metric")}
+             css={`border-color: ${accentColor};`}>
             <label label="󰋊" />
             <label class="metric-value" xalign={1} label={disk((v) => `${v}`)} />
         </box>
@@ -219,7 +222,7 @@ function BatteryLabel() {
                 try {
                     const { percent } = JSON.parse(v)
                     const fill = percent <= 10 ? "#bf616a" : accentColor
-                    return `color: ${fgColor}; background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%);`
+                    return `color: ${fgColor}; background: linear-gradient(to right, ${fill} ${percent}%, alpha(${bgColor}, 0.55) ${percent}%); border-color: ${accentColor};`
                 } catch { return "" }
             })}
         >
@@ -544,6 +547,7 @@ export { AudioDeviceMenu, WifiMenu }
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
     let win: Astal.Window
     const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
+    const { accent: accentColor } = getWalColors()
 
     onCleanup(() => {
         win.destroy()
@@ -561,9 +565,9 @@ export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {
         >
             <centerbox>
                 <box $type="start" css="background: transparent; border-radius: 10px; padding: 2px;" spacing={4} halign={Gtk.Align.START}>
-                    <CpuLabel />
-                    <RamLabel />
-                    <DiskLabel />
+                    <CpuLabel accentColor={accentColor} />
+                    <RamLabel accentColor={accentColor} />
+                    <DiskLabel accentColor={accentColor} />
                     <BatteryLabel />
                 </box>
                 <box $type="center">
