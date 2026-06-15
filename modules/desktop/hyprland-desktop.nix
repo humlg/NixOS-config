@@ -40,7 +40,7 @@ let
     use_xdg_state = False
   '';
 
-  # Import Hyprland config fragments
+  # Import Hyprland config fragments (hyprlang)
   args = { inherit cfg home pkgs reloadDesktop; };
   hyprVars      = import ./hyprland-config/variables.nix args;
   hyprAutostart = import ./hyprland-config/autostart.nix args;
@@ -49,6 +49,16 @@ let
   hyprRules     = import ./hyprland-config/window-rules.nix args;
   hyprKeybinds  = import ./hyprland-config/keybinds.nix args;
   hyprLayouts   = import ./hyprland-config/layouts.nix args;
+
+  # Import Hyprland config fragments (Lua — Hyprland 0.55+)
+  luaArgs        = { inherit cfg home pkgs reloadDesktop; };
+  luaVars        = import ./hyprland-config-lua/variables.nix luaArgs;
+  luaAutostart   = import ./hyprland-config-lua/autostart.nix luaArgs;
+  luaInput       = import ./hyprland-config-lua/input.nix luaArgs;
+  luaAppear      = import ./hyprland-config-lua/appearance.nix luaArgs;
+  luaRules       = import ./hyprland-config-lua/window-rules.nix luaArgs;
+  luaKeybinds    = import ./hyprland-config-lua/keybinds.nix luaArgs;
+  luaLayouts     = import ./hyprland-config-lua/layouts.nix luaArgs;
 in
 {
   imports = [
@@ -95,7 +105,25 @@ in
     extraConfig = lib.mkOption {
       type    = lib.types.lines;
       default = "";
-      description = "Extra Hyprland config lines appended at the end (per-host overrides).";
+      description = "Extra Hyprland config lines appended at the end (per-host overrides, hyprlang format).";
+    };
+
+    useLuaConfig = lib.mkOption {
+      type    = lib.types.bool;
+      default = false;
+      description = "Switch to Lua config format (Hyprland 0.55+). When true, hyprland.lua is used instead of hyprland.conf.";
+    };
+
+    monitorsLua = lib.mkOption {
+      type    = lib.types.lines;
+      default = ''hl.monitor({ name = "", mode = "preferred", position = "auto", scale = 1 })'';
+      description = "Lua Hyprland monitor configuration lines. Used only when useLuaConfig = true.";
+    };
+
+    extraLuaConfig = lib.mkOption {
+      type    = lib.types.lines;
+      default = "";
+      description = "Extra Lua lines appended at the end (per-host overrides, Lua format). Used only when useLuaConfig = true.";
     };
   };
 
@@ -143,7 +171,26 @@ in
       xwayland.enable = true;
       systemd.enable  = false;
 
-      extraConfig = ''
+      configType = if cfg.useLuaConfig then "lua" else "hyprlang";
+
+      extraConfig = if cfg.useLuaConfig then ''
+        -- ── Per-machine: monitors & scaling ─────────────────────────────
+        ${cfg.monitorsLua}
+
+        -- ── Wallust colours (runtime-generated, loaded as Lua table) ────
+        local wc = dofile(os.getenv("HOME") .. "/.cache/wallust/colors-hyprland.lua")
+
+        ${luaVars}
+        ${luaAutostart}
+        ${luaInput}
+        ${luaAppear}
+        ${luaRules}
+        ${luaLayouts}
+        ${luaKeybinds}
+
+        -- ── Per-machine overrides ───────────────────────────────────────
+        ${cfg.extraLuaConfig}
+      '' else ''
         # ── Per-machine: monitors & scaling ─────────────────────────────
         ${cfg.monitors}
 
@@ -270,6 +317,9 @@ in
 
       colors-vim.template = "colors-wal.vim"
       colors-vim.target = "~/.cache/wallust/colors-wal.vim"
+
+      colors-hyprland-lua.template = "colors-hyprland.lua"
+      colors-hyprland-lua.target = "~/.cache/wallust/colors-hyprland.lua"
     '';
 
     home.file.".config/wallust/templates/colors-hyprland.conf".text = ''
@@ -292,6 +342,29 @@ in
       $color14 = rgb({{ color14 | replace("#", "") }})
       $color15 = rgb({{ color15 | replace("#", "") }})
       $wallpaper = {{ wallpaper }}
+    '';
+
+    home.file.".config/wallust/templates/colors-hyprland.lua".text = ''
+      return {
+        background = "{{ background | replace("#", "") }}",
+        foreground = "{{ foreground | replace("#", "") }}",
+        color0  = "{{ color0  | replace("#", "") }}",
+        color1  = "{{ color1  | replace("#", "") }}",
+        color2  = "{{ color2  | replace("#", "") }}",
+        color3  = "{{ color3  | replace("#", "") }}",
+        color4  = "{{ color4  | replace("#", "") }}",
+        color5  = "{{ color5  | replace("#", "") }}",
+        color6  = "{{ color6  | replace("#", "") }}",
+        color7  = "{{ color7  | replace("#", "") }}",
+        color8  = "{{ color8  | replace("#", "") }}",
+        color9  = "{{ color9  | replace("#", "") }}",
+        color10 = "{{ color10 | replace("#", "") }}",
+        color11 = "{{ color11 | replace("#", "") }}",
+        color12 = "{{ color12 | replace("#", "") }}",
+        color13 = "{{ color13 | replace("#", "") }}",
+        color14 = "{{ color14 | replace("#", "") }}",
+        color15 = "{{ color15 | replace("#", "") }}",
+      }
     '';
 
     home.file.".config/wallust/templates/colors-kitty.conf".text = ''
