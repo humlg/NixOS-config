@@ -516,22 +516,39 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
 
 function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
     const { fg: fgColor } = getWalColors()
-    const ssid = createPoll("--", 5000, ["bash", "-c",
-        "nmcli -t -f active,ssid dev wifi | awk -F: '/^yes:/{print $2; exit}'"
+
+    // Returns "wired:<ip>" when ethernet is active, "wifi:<signal>:<ssid>" otherwise
+    const netInfo = createPoll("wifi:0:--", 5000, ["bash", "-c",
+        "d=$(nmcli -t -f device,type,state dev 2>/dev/null | grep ':ethernet:connected' | cut -d: -f1 | head -1); if [ -n \"$d\" ]; then ip=$(ip -4 addr show \"$d\" 2>/dev/null | grep -oP '(?<=inet )[^/]+' | head -1); echo \"wired:$ip\"; else sig=$(nmcli -t -f active,signal dev wifi 2>/dev/null | grep '^yes:' | cut -d: -f2 | head -1); ssid=$(nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes:' | cut -d: -f2- | head -1); echo \"wifi:${sig:-0}:$ssid\"; fi"
     ])
-    const signal = createPoll(0, 5000, ["bash", "-c",
-        "nmcli -t -f active,signal dev wifi | awk -F: '/^yes:/{print $2; exit}'"
-    ])
+
+    const parseInfo = (raw: string) => {
+        if (raw.startsWith("wired:")) {
+            return { wired: true, ip: raw.slice(6) || "--", signal: 0, ssid: "" }
+        }
+        const first = raw.indexOf(":")
+        const second = raw.indexOf(":", first + 1)
+        const signal = parseInt(raw.slice(first + 1, second)) || 0
+        const ssid = raw.slice(second + 1) || "--"
+        return { wired: false, ip: "", signal, ssid }
+    }
 
     const toggleMenu = () => {
         if (menuWindow.current) menuWindow.current.visible = !menuWindow.current.visible
     }
 
     return (
-        <button class="metric" css={`color: ${fgColor};`} onClicked={toggleMenu} tooltipText="Click to manage Wi-Fi">
+        <button class="metric" css={`color: ${fgColor};`} onClicked={toggleMenu}
+            tooltipText={netInfo((raw) => parseInfo(raw).wired ? "Wired connection" : "Click to manage Wi-Fi")}>
             <box spacing={4}>
-                <label label={signal((s) => signalIcon(Number(s)))} />
-                <label css="margin-left: 4px;" label={ssid((s) => s || "--")} />
+                <label label={netInfo((raw) => {
+                    const { wired, signal } = parseInfo(raw)
+                    return wired ? "󰈀" : signalIcon(signal)
+                })} />
+                <label css="margin-left: 4px;" label={netInfo((raw) => {
+                    const { wired, ip, ssid } = parseInfo(raw)
+                    return wired ? ip : ssid
+                })} />
             </box>
         </button>
     )
