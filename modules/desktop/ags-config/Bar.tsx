@@ -559,6 +559,63 @@ export const audioMenuWindow = { current: null as Astal.Window | null }
 
 export const wifiMenuWindow = { current: null as Astal.Window | null }
 
+export function BatteryWarningPopup() {
+    if (!GLib.file_test("/sys/class/power_supply/BAT0/capacity", GLib.FileTest.EXISTS))
+        return <box visible={false} />
+
+    let win: Astal.Window
+    let dismissed = false
+    let prevPercent = 100
+    let prevCharging = false
+
+    const check = () => {
+        const cap = parseInt(readFile("/sys/class/power_supply/BAT0/capacity").trim())
+        const charging = readFile("/sys/class/power_supply/BAT0/status").trim() === "Charging"
+
+        if ((charging && !prevCharging) || (cap > 15 && prevPercent <= 15))
+            dismissed = false
+        prevPercent = cap
+        prevCharging = charging
+
+        if (!win) return
+        if (cap <= 10 && !charging && !dismissed)
+            win.visible = true
+        else if (charging || cap > 15)
+            win.visible = false
+    }
+
+    return (
+        <window
+            $={(self) => {
+                win = self
+                check()
+                GLib.timeout_add(GLib.PRIORITY_DEFAULT, 30000, () => { check(); return true })
+            }}
+            name="battery-warning"
+            visible={false}
+            anchor={Astal.WindowAnchor.TOP}
+            exclusivity={Astal.Exclusivity.NORMAL}
+            keymode={Astal.Keymode.NONE}
+            application={app}
+        >
+            <box class="battery-warning" orientation={Gtk.Orientation.VERTICAL} spacing={12}>
+                <box spacing={10} halign={Gtk.Align.CENTER}>
+                    <label class="battery-warning-icon" label="󰁺" />
+                    <label class="battery-warning-title" label="Battery Low" />
+                </box>
+                <label label="Please plug in your laptop" halign={Gtk.Align.CENTER} />
+                <button
+                    class="battery-warning-dismiss"
+                    onClicked={() => { dismissed = true; win.visible = false }}
+                    halign={Gtk.Align.FILL}
+                >
+                    <label label="Dismiss" halign={Gtk.Align.CENTER} />
+                </button>
+            </box>
+        </window>
+    )
+}
+
 export { AudioDeviceMenu, WifiMenu }
 
 export default function Bar({ gdkmonitor }: { gdkmonitor: Gdk.Monitor }) {

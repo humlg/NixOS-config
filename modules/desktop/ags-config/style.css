@@ -193,3 +193,33 @@ centerbox {
 .wifi-network-item label {
     color: #e6e6e6;
 }
+
+.battery-warning {
+    background: #2a2a2a;
+    border-radius: 12px;
+    padding: 16px;
+    border: 2px solid #bf616a;
+    min-width: 260px;
+}
+
+.battery-warning-icon {
+    font-size: 24px;
+    color: #bf616a;
+}
+
+.battery-warning-title {
+    font-size: 16px;
+    color: #bf616a;
+}
+
+.battery-warning-dismiss {
+    background: rgba(191, 97, 106, 0.2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    border: 1px solid #bf616a;
+    color: #bf616a;
+}
+
+.battery-warning-dismiss:hover {
+    background: rgba(191, 97, 106, 0.4);
+}
