@@ -10,7 +10,17 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.steam.enable = true;
-    programs.gamemode.enable = true;
+    programs.gamemode = {
+      enable = true;
+      settings = {
+        general.renice = 10;
+        gpu = {
+          apply_gpu_optimisations = "accept-responsibility";
+          gpu_device = 0;
+          amd_performance_level = "high";
+        };
+      };
+    };
 
     # Fix for Steam Linux Runtime (pressure-vessel) on NixOS:
     # Inside the container, /sbin/ldconfig is a symlink chain that ultimately
