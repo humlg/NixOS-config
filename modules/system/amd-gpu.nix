@@ -12,12 +12,6 @@
   # Unlocks all AMDGPU power management features (voltage/clock curves in corectrl)
   boot.kernelParams = [ "amdgpu.ppfeaturemask=0xffffffff" ];
 
-  # AMDVLK alongside RADV — switch per-game via VK_ICD_FILENAMES if needed
-  hardware.amdgpu.amdvlk = {
-    enable = true;
-    support32Bit.enable = true;
-  };
-
   # ROCm OpenCL (for GPU-accelerated apps like DaVinci Resolve)
   hardware.graphics.extraPackages = with pkgs; [
     rocmPackages.clr.icd
