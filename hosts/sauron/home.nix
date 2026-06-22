@@ -36,6 +36,14 @@
     lockScreen    = "hyprlock";
     terminal      = "kitty";
     fileManager   = "thunar";
+
+    # FreeSync/VRR — enabled only on this AMD host; fullscreen-only avoids
+    # compositor tearing in normal use while still benefiting games.
+    extraConfig = ''
+      misc {
+        vrr = 2
+      }
+    '';
   };
 
   home.sessionVariables = {
