@@ -35,5 +35,6 @@
 
   environment.systemPackages = with pkgs; [
     sddm-astronaut
+    volantes-cursors
   ];
 }
