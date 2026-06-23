@@ -10,6 +10,8 @@
       kdePackages.qtmultimedia
       kdePackages.qtdeclarative
       kdePackages.qtsvg
+
+      volantes-cursors
     ];
     enable = true;
     wayland.enable = true;
@@ -20,6 +22,10 @@
     settings = {
       General = {
         DisplayServer = "wayland";
+      };
+      Theme = {
+        CursorTheme = "volantes_cursors";
+        CursorSize = 24;
       };
     };
   };
