@@ -70,7 +70,7 @@ function Workspaces({ monitor }: { monitor: string }) {
                                 [hyprland, "notify::workspaces", getCSS],
                                 [hyprland, "notify::monitors",   getCSS],
                             )}
-                            onClicked={() => ws.focus()}
+                            onClicked={() => hyprland.message(`dispatch hl.dsp.focus({ workspace = ${ws.get_id()} })`)}
                         >
                             <box>
                                 <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}` : ws.get_id().toString())} />
