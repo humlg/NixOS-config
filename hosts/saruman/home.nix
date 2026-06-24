@@ -32,10 +32,17 @@
   desktop.hyprland-desktop = {
     enable = true;
 
+    useLuaConfig = true;
+
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
       monitor = desc:Iiyama North America PL2797H 12497503A1590,1920x1080@100,1440x0,1
       monitor = ,preferred,auto,1,mirror,eDP-1
+    '';
+    monitorsLua = ''
+      hl.monitor({ name = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "wide" })
+      hl.monitor({ desc = "Iiyama North America PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x0", scale = 1 })
+      hl.monitor({ name = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
     '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";
@@ -47,6 +54,9 @@
       xwayland {
           force_zero_scaling = false
       }
+    '';
+    extraLuaConfig = ''
+      hl.config({ xwayland = { force_zero_scaling = false } })
     '';
   };
 

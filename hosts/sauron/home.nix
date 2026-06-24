@@ -25,11 +25,18 @@
   desktop.hyprland-desktop = {
     enable = true;
 
+    useLuaConfig = true;
+
     # Machine-specific monitor layout (sauron — desktop with external display)
     monitors = ''
       monitor = DP-2, 2560x1440@165.08, 1920x0, 1
       monitor = HDMI-A-1, 1920x1080@75, 0x0, 1
       monitor = , preferred, auto, 1
+    '';
+    monitorsLua = ''
+      hl.monitor({ name = "DP-2",     mode = "2560x1440@165.08", position = "1920x0", scale = 1 })
+      hl.monitor({ name = "HDMI-A-1", mode = "1920x1080@75",     position = "0x0",    scale = 1 })
+      hl.monitor({ name = "",         mode = "preferred",          position = "auto",   scale = 1 })
     '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";
@@ -43,6 +50,9 @@
       misc {
         vrr = 2
       }
+    '';
+    extraLuaConfig = ''
+      hl.config({ misc = { vrr = 2 } })
     '';
   };
 
