@@ -6,6 +6,7 @@
     ../../modules/desktop/dark-theme.nix
     ../../modules/bundles/general.nix
     ../../modules/desktop/hyprland-desktop.nix
+    ../../modules/programs/ssh-keys.nix
     ../../modules/programs/cava.nix
     ../../modules/services/megacmd.nix
     ../../modules/bundles/desktop-apps.nix

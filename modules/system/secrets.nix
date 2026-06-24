@@ -7,13 +7,12 @@
       owner = "david";
       mode  = "0400";
     };
-
-    # SSH private key example — uncomment and adapt per key:
-    # ssh_myserver = {
-    #   file = ../../secrets/ssh_myserver.age;
-    #   path = "/home/david/.ssh/myserver";
-    #   owner = "david";
-    #   mode  = "0600";
-    # };
+    
+    github-huml-yg = {
+      file  = ../../secrets/github-huml-yg.age;
+      path  = "/home/david/.ssh/github_huml_yg";
+      owner = "david";
+      mode  = "0600";
+    };
   };
 }

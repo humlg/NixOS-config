@@ -10,7 +10,5 @@ let
 in
 {
   "shell-env.age".publicKeys = desktops;
-
-  # Add one entry per SSH private key you want to manage:
-  # "ssh_myserver.age".publicKeys = desktops;
+  "github-huml-yg.age".publicKeys = desktops;
 }
