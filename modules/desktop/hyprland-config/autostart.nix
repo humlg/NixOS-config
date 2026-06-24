@@ -7,7 +7,7 @@
   exec-once = sleep 1 && waypaper --restore
   exec-once = nm-applet --indicator & blueman-applet &
   exec-once = sleep 3 && hyprctl dispatch exec "[workspace special:mail silent]" thunderbird
-  exec-once = sleep 3 && obsidian
+  exec-once = sleep 3 && hyprctl dispatch exec "[workspace special:notes silent]" obsidian
   exec-once = wl-paste --type text  --watch cliphist store
   exec-once = wl-paste --type image --watch cliphist store
 ''
