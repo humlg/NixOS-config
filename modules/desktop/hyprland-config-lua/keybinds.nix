@@ -9,7 +9,7 @@
 
   -- Core
   hl.bind(mainMod .. " + Q",           hl.dsp.exec_cmd(terminal))
-  hl.bind(mainMod .. " + SHIFT + 201", hl.dsp.exec_cmd(menu))
+  hl.bind(mainMod .. " + SHIFT + code:201", hl.dsp.exec_cmd(menu))
   hl.bind(mainMod .. " + C",           hl.dsp.window.close())
   hl.bind(mainMod .. " + SHIFT + M",   hl.dsp.exec_cmd("uwsm stop"))
   hl.bind(mainMod .. " + SHIFT + R",   hl.dsp.exec_cmd("${reloadDesktop}/bin/reload-desktop"))

@@ -2,8 +2,7 @@
 ''
   # ── Window rules ────────────────────────────────────────────────
   windowrule = workspace special:mail silent,  match:initial_class ^(thunderbird)$
-  # Electron 41 reports Wayland app_id as "electron" — match on title instead
-  windowrule = workspace special:notes silent, match:class ^electron$, match:initial_title Obsidian
+  windowrule = workspace special:notes silent, match:class ^obsidian$
 
   windowrule = match:title File Operation Progress,   float on, center on
   windowrule = match:initial_title ^Write:.*,         float on, center on

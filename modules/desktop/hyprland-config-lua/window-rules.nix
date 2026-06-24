@@ -5,9 +5,8 @@
     match     = { initial_class = "^(thunderbird)$" },
     workspace = "special:mail silent",
   })
-  -- Electron 41 reports Wayland app_id as "electron" — match on title instead
   hl.window_rule({
-    match     = { class = "^electron$", initial_title = "Obsidian" },
+    match     = { class = "^obsidian$" },
     workspace = "special:notes silent",
   })
 
