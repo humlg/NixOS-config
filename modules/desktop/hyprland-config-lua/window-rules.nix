@@ -46,4 +46,8 @@
     center = true,
     size   = "1155 650",
   })
+  hl.window_rule({
+    match  = { initial_title = "^Steam$", floating = true },
+    center = true,
+  })
 ''
