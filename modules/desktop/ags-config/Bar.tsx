@@ -70,7 +70,7 @@ function Workspaces({ monitor }: { monitor: string }) {
                                 [hyprland, "notify::workspaces", getCSS],
                                 [hyprland, "notify::monitors",   getCSS],
                             )}
-                            onClicked={() => execAsync(["hyprctl", "dispatch", "workspace", ws.get_id().toString()]).catch(() => {})}
+                            onClicked={() => ws.focus()}
                         >
                             <box>
                                 <label label={wsClasses((c) => c.length > 0 ? `${ws.get_id()}` : ws.get_id().toString())} />

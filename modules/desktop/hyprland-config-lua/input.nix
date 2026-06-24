@@ -18,13 +18,12 @@
       workspace_swipe_distance = 200,
       workspace_swipe_forever  = false,
       workspace_swipe_use_r    = true,
-      -- TODO: verify list syntax for repeated gesture directives
-      gesture = {
-        "3, horizontal, workspace",
-        "3, vertical,   fullscreen",
-      },
     },
   })
+
+  -- hl.gesture() is the Lua equivalent of "gesture = ..." repeated keyword
+  hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace"  })
+  hl.gesture({ fingers = 3, direction = "vertical",   action = "fullscreen" })
 
   -- Per-device overrides
   hl.device({ name = "aet-ms480bbt1-mouse",            sensitivity = -0.5 })
