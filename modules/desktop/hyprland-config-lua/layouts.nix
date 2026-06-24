@@ -17,10 +17,10 @@
 
   -- Tiled workspace: no borders or gaps
   hl.workspace_rule({
-    workspace = "w[t1]",
-    gapsout   = 0,
-    gapsin    = 0,
-    border    = 0,
+    workspace   = "w[t1]",
+    gaps_out    = 0,
+    gaps_in     = 0,
+    border_size = 0,
   })
   hl.window_rule({
     match       = { float = false, workspace = "w[t1]" },
