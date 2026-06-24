@@ -34,9 +34,9 @@
       monitor = , preferred, auto, 1
     '';
     monitorsLua = ''
-      hl.monitor({ name = "DP-2",     mode = "2560x1440@165.08", position = "1920x0", scale = 1 })
-      hl.monitor({ name = "HDMI-A-1", mode = "1920x1080@75",     position = "0x0",    scale = 1 })
-      hl.monitor({ name = "",         mode = "preferred",          position = "auto",   scale = 1 })
+      hl.monitor({ output = "DP-2",     mode = "2560x1440@165.08", position = "1920x0", scale = 1 })
+      hl.monitor({ output = "HDMI-A-1", mode = "1920x1080@75",     position = "0x0",    scale = 1 })
+      hl.monitor({ output = "",         mode = "preferred",          position = "auto",   scale = 1 })
     '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";

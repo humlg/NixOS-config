@@ -16,12 +16,11 @@
   })
 
   -- Tiled workspace: no borders or gaps
-  -- TODO: verify hl.workspace_rule key names
   hl.workspace_rule({
-    id      = "w[t1]",
-    gapsout = 0,
-    gapsin  = 0,
-    border  = 0,
+    workspace = "w[t1]",
+    gapsout   = 0,
+    gapsin    = 0,
+    border    = 0,
   })
   hl.window_rule({
     match       = { float = false, workspace = "w[t1]" },

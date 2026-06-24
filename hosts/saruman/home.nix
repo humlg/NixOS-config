@@ -40,9 +40,9 @@
       monitor = ,preferred,auto,1,mirror,eDP-1
     '';
     monitorsLua = ''
-      hl.monitor({ name = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "wide" })
-      hl.monitor({ desc = "Iiyama North America PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x0", scale = 1 })
-      hl.monitor({ name = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
+      hl.monitor({ output = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "wide" })
+      hl.monitor({ output = "desc:Iiyama North America PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x0", scale = 1 })
+      hl.monitor({ output = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
     '';
 
     screenshotDir = "/home/david/Pictures/Screenshots";

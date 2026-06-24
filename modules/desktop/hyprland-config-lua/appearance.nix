@@ -7,7 +7,7 @@
       gaps_in              = 1,
       gaps_out             = 0,
       border_size          = 3,
-      ["col.active_border"]   = "rgb(" .. wc.color2 .. ") rgb(" .. wc.color5 .. ") 45deg",
+      ["col.active_border"]   = "rgba(" .. wc.color2 .. "ff) rgba(" .. wc.color5 .. "ff) 45deg",
       ["col.inactive_border"] = "rgba(595959aa)",
       resize_on_border     = true,
       hover_icon_on_border = true,

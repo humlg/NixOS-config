@@ -18,7 +18,7 @@
   hl.bind(mainMod .. " + I",           hl.dsp.window.fullscreen())
   hl.bind(mainMod .. " + R",           hl.dsp.exec_cmd(menu))
   hl.bind(mainMod .. " + P",           hl.dsp.window.pseudo())
-  hl.bind(mainMod .. " + J",           hl.dsp.window.layoutmsg("togglesplit"))
+  hl.bind(mainMod .. " + J",           hl.dsp.layoutmsg("togglesplit"))
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
   hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(lockScreen))

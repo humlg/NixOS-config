@@ -16,7 +16,7 @@
     useLuaConfig = true;
 
     monitors    = "monitor = ,2880x1800@60,auto,2";
-    monitorsLua = ''hl.monitor({ name = "", mode = "2880x1800@60", position = "auto", scale = 2 })'';
+    monitorsLua = ''hl.monitor({ output = "", mode = "2880x1800@60", position = "auto", scale = 2 })'';
 
 
     screenshotDir = "/home/david/Pictures/Screenshots";
