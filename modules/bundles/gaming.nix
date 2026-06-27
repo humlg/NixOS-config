@@ -9,7 +9,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.steam.enable = true;
+    programs.steam = {
+      enable = true;
+      gamescopeSession.enable = true;
+    };
     programs.gamemode = {
       enable = true;
       settings = {
