@@ -17,6 +17,7 @@
     ../../modules/bundles/gaming.nix
     ../../modules/system/secrets.nix
     ../../modules/programs/zen-browser.nix
+    ../../modules/services/ollama.nix
   ];
 
   networking.hostName = "sauron";
