@@ -22,8 +22,7 @@
     syncs = {
       "/home/david/Documents" = "/documents";
       "/home/david/Pictures/Screenshots" = "/Pictures/Screenshots";
-      "/home/david/Pictures/Film_Archive" = "/Pictures/Film_Archive";
-      "/home/david/Pictures/Digital_archive" = "/Pictures/Digital_Archive";
+      "/home/david/Pictures/Photography" = "Pictures/Photography";
       "/home/david/YellowGrid" = "/YellowGrid";
 
       "/home/david/Pictures/Wallpapers" = "/Pictures/Wallpapers";
