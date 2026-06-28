@@ -22,7 +22,7 @@
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
   hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(lockScreen))
-  hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd([[hyprctl dispatch exec "[float;size 800 600;center] waypaper"]]))
+  hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd("waypaper"))
   hl.bind(mainMod .. " + N",           hl.dsp.exec_cmd("swaync-client -R && swaync-client -t"))
   hl.bind("ALT + TAB",                 hl.dsp.focus({ workspace = "previous" }))
 

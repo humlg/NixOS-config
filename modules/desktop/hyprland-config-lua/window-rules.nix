@@ -47,6 +47,12 @@
     size   = "1155 650",
   })
   hl.window_rule({
+    match  = { class = "^waypaper$" },
+    float  = true,
+    center = true,
+    size   = "800 600",
+  })
+  hl.window_rule({
     match  = { initial_title = "^Steam$" },
     center = true,
   })
