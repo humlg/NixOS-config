@@ -18,6 +18,7 @@
     ../../modules/system/secrets.nix
     ../../modules/programs/zen-browser.nix
     ../../modules/services/ollama.nix
+    ../../modules/services/sunshine-moonlight.nix
   ];
 
   networking.hostName = "sauron";
@@ -40,6 +41,8 @@
 
   services.colord.enable = true;
   services.udev.packages = [ pkgs.openrgb ];
+
+  custom.sunshine-moonlight.enable = true;
 
   programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;

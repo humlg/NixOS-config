@@ -18,6 +18,7 @@
     ../../modules/bundles/gaming.nix
     ../../modules/programs/zen-browser.nix
     ../../modules/system/secrets.nix
+    ../../modules/services/sunshine-moonlight.nix
   ];
 
   networking.hostName = "saruman";
@@ -57,6 +58,8 @@
       ExecStop = "${pkgs.bash}/bin/bash -c 'echo 0 > /sys/bus/platform/devices/VPC*/conservation_mode'";
     };
   };
+
+  custom.sunshine-moonlight.enable = true;
 
   programs.kdeconnect.enable = true;
   custom.bluetooth.enable = true;
