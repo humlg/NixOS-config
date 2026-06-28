@@ -21,7 +21,7 @@
   bind = $mainMod,       F, exec,          $webBrowser
   bind = $mainMod SHIFT, F, exec,          $webBrowser --private-window
   bind = $mainMod,       L, exec,          $lockScreen
-  bind = $mainMod,       W, exec,          hyprctl dispatch exec "[float;size 800 600;center] waypaper"
+  bind = $mainMod,       W, exec,          [float;size 800 600;center] waypaper
   bind = $mainMod,       N, exec,          swaync-client -R && swaync-client -t
   bind = ALT, TAB,	workspace,	previous
 
