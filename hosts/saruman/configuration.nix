@@ -28,7 +28,7 @@
 
   # Plymouth boot splash (shows * for LUKS password entry)
   boot.initrd.systemd.enable = true;
-  boot.kernelParams = [ "quiet" "amd_pstate=active" ];
+  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=acpi" ];
   boot.plymouth = {
     enable = true;
     theme = "motion";
