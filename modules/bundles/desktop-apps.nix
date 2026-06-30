@@ -15,6 +15,7 @@ in
       kdePackages.kate
       chromium
       spotify
+      megasync
     ];
   };
 }
