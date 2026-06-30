@@ -8,20 +8,11 @@
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/programs/ssh-keys.nix
     ../../modules/programs/cava.nix
-    ../../modules/services/megacmd.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
-
-  services.megacmd = {
-    enable = true;
-    syncs = {
-      "/home/david/Documents" = "/Documents";
-      "/home/david/Pictures" = "/Pictures";
-    };
-  };
 
   desktop.hyprland-desktop = {
     enable = true;

@@ -9,25 +9,12 @@
     ../../modules/programs/ssh-keys.nix
     ../../modules/bundles/yg-work.nix
     ../../modules/programs/webapps.nix
-    ../../modules/services/megacmd.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
   bundles.yg-work.enable = true;
-
-  services.megacmd = {
-    enable = true;
-    syncs = {
-      "/home/david/Documents" = "/documents";
-      "/home/david/Pictures/Screenshots" = "/Pictures/Screenshots";
-      "/home/david/Pictures/Photography" = "Pictures/Photography";
-      "/home/david/YellowGrid" = "/YellowGrid";
-
-      "/home/david/Pictures/Wallpapers" = "/Pictures/Wallpapers";
-    };
-  };
 
   desktop.hyprland-desktop = {
     enable = true;
