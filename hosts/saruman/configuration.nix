@@ -43,7 +43,13 @@
   services.colord.enable = true;
 
   # Power management
-  services.tlp.enable = true;
+  services.tlp = {
+    enable = true;
+    settings = {
+      PLATFORM_PROFILE_ON_AC = "balanced";
+      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+    };
+  };
 
   # Power button suspends instead of powering off
   services.logind.settings.Login.HandlePowerKey = "suspend";
