@@ -29,6 +29,9 @@
   # Plymouth boot splash (shows * for LUKS password entry)
   boot.initrd.systemd.enable = true;
   boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=acpi" ];
+  # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
+  # causing the second s2idle cycle to hang indefinitely.
+  boot.blacklistedKernelModules = [ "ucsi_acpi" ];
   boot.plymouth = {
     enable = true;
     theme = "motion";
