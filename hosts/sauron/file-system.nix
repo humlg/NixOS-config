@@ -11,31 +11,31 @@
     "/home/david/Documents" = {
       device = "/mnt/data1/Documents";
       fsType = "none";
-      options = [ "bind" ];
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
     };
 
     "/home/david/Downloads" = {
       device = "/mnt/data1/Downloads";
       fsType = "none";
-      options = [ "bind" ];
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
     };
 
     "/home/david/Pictures" = {
       device = "/mnt/data1/Pictures";
       fsType = "none";
-      options = [ "bind" ];
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
     };
 
     "/home/david/Music" = {
       device = "/mnt/data1/Music";
       fsType = "none";
-      options = [ "bind" ];
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
     };
 
     "/home/david/Videos" = {
       device = "/mnt/data1/Videos";
       fsType = "none";
-      options = [ "bind" ];
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
     };
 
     "/mnt/data2" = {
