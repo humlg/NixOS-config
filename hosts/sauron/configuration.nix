@@ -33,6 +33,9 @@
   };
 
   boot.kernelModules = [ "nct6775" "i2c-dev" ];
+  boot.kernelParams = [ "amd_pstate=passive" ];
+
+  powerManagement.cpuFreqGovernor = "performance";
 
   # HiDPI: larger font for TTY console and boot menu
   boot.loader.systemd-boot.consoleMode = "max";
