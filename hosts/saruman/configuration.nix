@@ -28,10 +28,18 @@
 
   # Plymouth boot splash (shows * for LUKS password entry)
   boot.initrd.systemd.enable = true;
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=acpi" ];
+  # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
+  # the recurring s2idle wake hang (logging only, no behavior change).
+  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=acpi" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
   # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
   # causing the second s2idle cycle to hang indefinitely.
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];
+  # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
+  # ASPM states: hangs on s2idle resume after long sleeps and at the final
+  # step of reboot. Keeping the link out of ASPM avoids both.
+  boot.extraModprobeConfig = ''
+    options mt7921e disable_aspm=1
+  '';
   boot.plymouth = {
     enable = true;
     theme = "motion";
