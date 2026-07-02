@@ -30,9 +30,13 @@
   boot.initrd.systemd.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
   # the recurring s2idle wake hang (logging only, no behavior change).
-  # reboot=efi: the ACPI reset path (reboot=acpi, added for the old BIOS)
-  # hangs after the PSCN23WW BIOS update; reboot via EFI runtime services.
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=efi" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
+  # DIAGNOSTIC generation for the post-PSCN23WW reboot hang: both reboot=acpi
+  # and reboot=efi wedge after a clean shutdown, so the hang is likely in a
+  # driver .shutdown hook, not the reset vector. initcall_debug + loglevel=7
+  # print each device shutdown call to the console — the last line on screen
+  # when it hangs names the culprit. Plymouth/quiet disabled to see it.
+  # Revert to: quiet + splash + plymouth once diagnosed.
+  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "initcall_debug" "loglevel=7" ];
   # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
   # causing the second s2idle cycle to hang indefinitely.
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];
@@ -43,7 +47,7 @@
     options mt7921e disable_aspm=1
   '';
   boot.plymouth = {
-    enable = true;
+    enable = false;  # temporarily off for reboot-hang console diagnostics
     theme = "motion";
     themePackages = [
       (pkgs.adi1090x-plymouth-themes.override { selected_themes = [ "motion" ]; })
