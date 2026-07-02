@@ -30,7 +30,9 @@
   boot.initrd.systemd.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
   # the recurring s2idle wake hang (logging only, no behavior change).
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=acpi" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
+  # reboot=efi: the ACPI reset path (reboot=acpi, added for the old BIOS)
+  # hangs after the PSCN23WW BIOS update; reboot via EFI runtime services.
+  boot.kernelParams = [ "quiet" "amd_pstate=active" "reboot=efi" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
   # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
   # causing the second s2idle cycle to hang indefinitely.
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];
