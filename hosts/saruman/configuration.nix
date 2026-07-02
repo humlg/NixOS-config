@@ -42,6 +42,9 @@
 
   services.colord.enable = true;
 
+  # Firmware updates via LVFS (fwupdmgr refresh && fwupdmgr update)
+  services.fwupd.enable = true;
+
   # Power management
   services.tlp = {
     enable = true;
