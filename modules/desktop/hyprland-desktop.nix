@@ -12,17 +12,20 @@ let
     pywalfox update
   '';
 
-  # Toggle the CRT screen shader on/off at runtime (no rebuild needed).
+  # Cycle the screen shader at runtime (no rebuild needed):
+  #   off → CRT → green phosphor → Game Boy → off
   # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
-  crtShaderToggle = pkgs.writeShellScriptBin "crt-shader-toggle" ''
-    shader="$HOME/.config/hypr/shaders/crt.frag"
-    if hyprctl getoption decoration:screen_shader | grep -q "crt.frag"; then
-      hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
-      ${pkgs.libnotify}/bin/notify-send -t 1500 "CRT shader" "off" || true
-    else
-      hyprctl eval "hl.config({ decoration = { screen_shader = \"$shader\" } })"
-      ${pkgs.libnotify}/bin/notify-send -t 1500 "CRT shader" "on" || true
-    fi
+  screenShaderCycle = pkgs.writeShellScriptBin "screen-shader-cycle" ''
+    dir="$HOME/.config/hypr/shaders"
+    current=$(hyprctl getoption decoration:screen_shader | sed -n 's/^str: //p')
+    case "$current" in
+      *crt.frag)            next="$dir/green-phosphor.frag"; name="Green phosphor" ;;
+      *green-phosphor.frag) next="$dir/gameboy.frag";        name="Game Boy" ;;
+      *gameboy.frag)        next="";                         name="off" ;;
+      *)                    next="$dir/crt.frag";            name="CRT" ;;
+    esac
+    hyprctl eval "hl.config({ decoration = { screen_shader = \"$next\" } })"
+    ${pkgs.libnotify}/bin/notify-send -t 1500 "Screen shader" "$name" || true
   '';
 
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
@@ -145,7 +148,7 @@ in
     # ── Packages ────────────────────────────────────────────────────
     home.packages = [
       reloadDesktop
-      crtShaderToggle
+      screenShaderCycle
     ] ++ (with pkgs; [
       hyprshot
       hyprpicker
@@ -223,10 +226,11 @@ in
       '';
     };
 
-    # ── CRT screen shader ───────────────────────────────────────────
-    # Applied via `decoration:screen_shader`. Off by default; toggle with
-    # SUPER+G (crt-shader-toggle). Static GLES2 shader — no `time` uniform,
-    # so it re-applies on every screen damage without forcing re-renders.
+    # ── Screen shaders ──────────────────────────────────────────────
+    # Applied via `decoration:screen_shader`. Off by default; SUPER+G cycles
+    # off → CRT → green phosphor → Game Boy → off (screen-shader-cycle).
+    # All are static GLES3 shaders (no `time` uniform), so they re-apply on
+    # every screen damage without forcing extra re-renders.
     home.file.".config/hypr/shaders/crt.frag".text = ''
       // CRT monitor emulation — Hyprland screen shader.
       // Must be GLES3 (#version 300 es) to match Hyprland's internal shaders,
@@ -283,6 +287,84 @@ in
           col *= pow(v.x * v.y * 16.0, vignetteStrength);
 
           col *= brightness;
+          fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # Green-phosphor monochrome terminal (P1-phosphor look): luminance tinted
+    # green, with curvature, scanlines, vignette and a faint ambient glow.
+    home.file.".config/hypr/shaders/green-phosphor.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      const vec2 curvature = vec2(6.0, 6.0);
+      const vec3 phosphor  = vec3(0.10, 1.0, 0.25);
+
+      vec2 curveUV(vec2 uv) {
+          uv = uv * 2.0 - 1.0;
+          vec2 offset = abs(uv.yx) / curvature;
+          uv += uv * offset * offset;
+          return uv * 0.5 + 0.5;
+      }
+
+      void main() {
+          vec2 uv = curveUV(v_texcoord);
+          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+              return;
+          }
+
+          // Desaturate to luminance, then tint with the phosphor colour.
+          vec3  c   = texture(tex, uv).rgb;
+          float lum = pow(dot(c, vec3(0.299, 0.587, 0.114)), 0.8);
+          vec3  col = phosphor * lum;
+
+          // Scanlines.
+          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
+          col *= 1.0 - 0.25 * scan;
+
+          // Vignette + faint always-on glow so black isn't pure black.
+          vec2 v = uv * (1.0 - uv.yx);
+          col *= pow(v.x * v.y * 16.0, 0.35);
+          col += phosphor * 0.03;
+
+          fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # Game Boy DMG: quantise luminance to the 4-shade olive-green palette,
+    # with a faint LCD pixel grid. Flat (no curvature) like the real screen.
+    home.file.".config/hypr/shaders/gameboy.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      // DMG palette, darkest → lightest.
+      const vec3 p0 = vec3(0.059, 0.219, 0.059);
+      const vec3 p1 = vec3(0.188, 0.384, 0.188);
+      const vec3 p2 = vec3(0.545, 0.675, 0.059);
+      const vec3 p3 = vec3(0.608, 0.737, 0.059);
+
+      void main() {
+          vec3  c   = texture(tex, v_texcoord).rgb;
+          float lum = pow(dot(c, vec3(0.299, 0.587, 0.114)), 0.9);
+
+          vec3 col = (lum < 0.25) ? p0
+                   : (lum < 0.50) ? p1
+                   : (lum < 0.75) ? p2
+                                  : p3;
+
+          // Faint LCD grid every 3 physical pixels.
+          vec2 g = fract(gl_FragCoord.xy / 3.0);
+          col *= (g.x < 0.1 || g.y < 0.1) ? 0.9 : 1.0;
+
           fragColor = vec4(col, 1.0);
       }
     '';
