@@ -228,10 +228,14 @@ in
     # SUPER+G (crt-shader-toggle). Static GLES2 shader — no `time` uniform,
     # so it re-applies on every screen damage without forcing re-renders.
     home.file.".config/hypr/shaders/crt.frag".text = ''
-      // CRT monitor emulation — Hyprland screen shader (GLES2)
-      precision mediump float;
+      // CRT monitor emulation — Hyprland screen shader.
+      // Must be GLES3 (#version 300 es) to match Hyprland's internal shaders,
+      // otherwise linking fails with "all shaders must use same shading language version".
+      #version 300 es
+      precision highp float;
 
-      varying vec2      v_texcoord;
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
       uniform sampler2D tex;
 
       const vec2  curvature         = vec2(5.0, 5.0);  // higher = flatter glass
@@ -253,15 +257,15 @@ in
 
           // Bezel: anything off the curved screen is black.
           if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
               return;
           }
 
           // Chromatic aberration: split colour channels horizontally.
           vec3 col;
-          col.r = texture2D(tex, vec2(uv.x + aberration, uv.y)).r;
-          col.g = texture2D(tex, uv).g;
-          col.b = texture2D(tex, vec2(uv.x - aberration, uv.y)).b;
+          col.r = texture(tex, vec2(uv.x + aberration, uv.y)).r;
+          col.g = texture(tex, uv).g;
+          col.b = texture(tex, vec2(uv.x - aberration, uv.y)).b;
 
           // Scanlines: darken every other physical pixel row.
           float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
@@ -279,7 +283,7 @@ in
           col *= pow(v.x * v.y * 16.0, vignetteStrength);
 
           col *= brightness;
-          gl_FragColor = vec4(col, 1.0);
+          fragColor = vec4(col, 1.0);
       }
     '';
 
