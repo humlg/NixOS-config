@@ -31,6 +31,20 @@ let
     ${pkgs.libnotify}/bin/notify-send -t 1500 "Screen shader" "$name" || true
   '';
 
+  # Dedicated on/off toggle for the dark-room red night mode.
+  nightRedToggle = pkgs.writeShellScriptBin "night-red-toggle" ''
+    shader="$HOME/.config/hypr/shaders/night-red.frag"
+    current=$(hyprctl getoption decoration:screen_shader | sed -n 's/^str: //p')
+    case "$current" in
+      *night-red.frag)
+        hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
+        ${pkgs.libnotify}/bin/notify-send -t 1500 "Night red" "off" || true ;;
+      *)
+        hyprctl eval "hl.config({ decoration = { screen_shader = \"$shader\" } })"
+        ${pkgs.libnotify}/bin/notify-send -t 1500 "Night red" "on" || true ;;
+    esac
+  '';
+
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
     [Settings]
     language = en
@@ -152,6 +166,7 @@ in
     home.packages = [
       reloadDesktop
       screenShaderCycle
+      nightRedToggle
     ] ++ (with pkgs; [
       hyprshot
       hyprpicker
@@ -472,6 +487,27 @@ in
           if (hash(vec2(floor(v_texcoord.x * 220.0), 0.0)) > 0.985) col += 0.15;
 
           fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # Night-red: grayscale mapped to the red channel only. Red light barely
+    # stimulates rod cells, so this preserves dark adaptation in a dark room.
+    # Not part of the aesthetic cycle — it has its own toggle (SUPER+SHIFT+G).
+    home.file.".config/hypr/shaders/night-red.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      const float brightness = 1.0;  // lower this (e.g. 0.7) to dim further
+
+      void main() {
+          vec3  c   = texture(tex, v_texcoord).rgb;
+          float lum = dot(c, vec3(0.299, 0.587, 0.114));
+          float r   = pow(lum, 0.9) * brightness;  // luminance → red only
+          fragColor = vec4(r, 0.0, 0.0, 1.0);
       }
     '';
 
