@@ -12,6 +12,19 @@ let
     pywalfox update
   '';
 
+  # Toggle the CRT screen shader on/off at runtime (no rebuild needed).
+  # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
+  crtShaderToggle = pkgs.writeShellScriptBin "crt-shader-toggle" ''
+    shader="$HOME/.config/hypr/shaders/crt.frag"
+    if hyprctl getoption decoration:screen_shader | grep -q "crt.frag"; then
+      hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "CRT shader" "off" || true
+    else
+      hyprctl eval "hl.config({ decoration = { screen_shader = \"$shader\" } })"
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "CRT shader" "on" || true
+    fi
+  '';
+
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
     [Settings]
     language = en
@@ -132,6 +145,7 @@ in
     # ── Packages ────────────────────────────────────────────────────
     home.packages = [
       reloadDesktop
+      crtShaderToggle
     ] ++ (with pkgs; [
       hyprshot
       hyprpicker
@@ -208,6 +222,66 @@ in
         ${cfg.extraConfig}
       '';
     };
+
+    # ── CRT screen shader ───────────────────────────────────────────
+    # Applied via `decoration:screen_shader`. Off by default; toggle with
+    # SUPER+G (crt-shader-toggle). Static GLES2 shader — no `time` uniform,
+    # so it re-applies on every screen damage without forcing re-renders.
+    home.file.".config/hypr/shaders/crt.frag".text = ''
+      // CRT monitor emulation — Hyprland screen shader (GLES2)
+      precision mediump float;
+
+      varying vec2      v_texcoord;
+      uniform sampler2D tex;
+
+      const vec2  curvature         = vec2(5.0, 5.0);  // higher = flatter glass
+      const float scanlineIntensity = 0.18;
+      const float vignetteStrength  = 0.35;
+      const float aberration        = 0.0012;          // chromatic aberration (uv units)
+      const float brightness        = 1.18;            // compensate for darkening
+
+      // Bend the flat image around a virtual curved glass.
+      vec2 curveUV(vec2 uv) {
+          uv = uv * 2.0 - 1.0;
+          vec2 offset = abs(uv.yx) / curvature;
+          uv += uv * offset * offset;
+          return uv * 0.5 + 0.5;
+      }
+
+      void main() {
+          vec2 uv = curveUV(v_texcoord);
+
+          // Bezel: anything off the curved screen is black.
+          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+              gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+              return;
+          }
+
+          // Chromatic aberration: split colour channels horizontally.
+          vec3 col;
+          col.r = texture2D(tex, vec2(uv.x + aberration, uv.y)).r;
+          col.g = texture2D(tex, uv).g;
+          col.b = texture2D(tex, vec2(uv.x - aberration, uv.y)).b;
+
+          // Scanlines: darken every other physical pixel row.
+          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
+          col *= 1.0 - scanlineIntensity * scan;
+
+          // Aperture mask: faint vertical RGB stripes.
+          float m = mod(gl_FragCoord.x, 3.0);
+          vec3 mask = (m < 1.0) ? vec3(1.05, 0.95, 0.95)
+                    : (m < 2.0) ? vec3(0.95, 1.05, 0.95)
+                                : vec3(0.95, 0.95, 1.05);
+          col *= mask;
+
+          // Vignette around the edges.
+          vec2 v = uv * (1.0 - uv.yx);
+          col *= pow(v.x * v.y * 16.0, vignetteStrength);
+
+          col *= brightness;
+          gl_FragColor = vec4(col, 1.0);
+      }
+    '';
 
     # ── Rofi ────────────────────────────────────────────────────────
     programs.rofi = {
