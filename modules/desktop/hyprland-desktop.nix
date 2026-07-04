@@ -12,18 +12,18 @@ let
     pywalfox update
   '';
 
-  # On/off toggle for the dark-room red night mode (no rebuild needed).
+  # On/off toggle for Darkroom mode (no rebuild needed).
   # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
-  nightRedToggle = pkgs.writeShellScriptBin "night-red-toggle" ''
-    shader="$HOME/.config/hypr/shaders/night-red.frag"
+  darkroomToggle = pkgs.writeShellScriptBin "darkroom-toggle" ''
+    shader="$HOME/.config/hypr/shaders/darkroom.frag"
     current=$(hyprctl getoption decoration:screen_shader | sed -n 's/^str: //p')
     case "$current" in
-      *night-red.frag)
+      *darkroom.frag)
         hyprctl eval 'hl.config({ decoration = { screen_shader = "" } })'
-        ${pkgs.libnotify}/bin/notify-send -t 1500 "Night red" "off" || true ;;
+        ${pkgs.libnotify}/bin/notify-send -t 1500 "Darkroom mode" "off" || true ;;
       *)
         hyprctl eval "hl.config({ decoration = { screen_shader = \"$shader\" } })"
-        ${pkgs.libnotify}/bin/notify-send -t 1500 "Night red" "on" || true ;;
+        ${pkgs.libnotify}/bin/notify-send -t 1500 "Darkroom mode" "on" || true ;;
     esac
   '';
 
@@ -147,7 +147,7 @@ in
     # ── Packages ────────────────────────────────────────────────────
     home.packages = [
       reloadDesktop
-      nightRedToggle
+      darkroomToggle
     ] ++ (with pkgs; [
       hyprshot
       hyprpicker
@@ -230,10 +230,10 @@ in
     # runtime with `hyprctl eval` (the Lua parser rejects `hyprctl keyword`).
     # Static GLES3 shader (no `time` uniform), so it re-applies on every
     # screen damage without forcing extra re-renders.
-    # Night-red: grayscale mapped to the red channel only. Red light barely
+    # Darkroom mode: grayscale mapped to the red channel only. Red light barely
     # stimulates rod cells, so this preserves dark adaptation in a dark room.
-    # Toggled with SUPER+G (night-red-toggle).
-    home.file.".config/hypr/shaders/night-red.frag".text = ''
+    # Toggled with SUPER+G (darkroom-toggle).
+    home.file.".config/hypr/shaders/darkroom.frag".text = ''
       #version 300 es
       precision highp float;
 
