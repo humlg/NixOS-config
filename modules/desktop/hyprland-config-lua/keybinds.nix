@@ -25,8 +25,7 @@
   hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd("waypaper"))
   hl.bind(mainMod .. " + N",           hl.dsp.exec_cmd("swaync-client -R && swaync-client -t"))
   hl.bind("ALT + TAB",                 hl.dsp.focus({ workspace = "previous" }))
-  hl.bind(mainMod .. " + G",           hl.dsp.exec_cmd("screen-shader-cycle"))  -- cycle retro shaders
-  hl.bind(mainMod .. " + SHIFT + G",   hl.dsp.exec_cmd("night-red-toggle"))     -- dark-room red night mode
+  hl.bind(mainMod .. " + G",           hl.dsp.exec_cmd("night-red-toggle"))     -- dark-room red night mode
 
   -- Clipboard (cliphist + rofi)
   hl.bind(mainMod .. " + V",         hl.dsp.exec_cmd("cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"))

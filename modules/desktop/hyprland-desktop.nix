@@ -12,26 +12,8 @@ let
     pywalfox update
   '';
 
-  # Cycle the screen shader at runtime (no rebuild needed):
-  #   off → CRT → green phosphor → Game Boy → amber → VHS → sepia → off
+  # On/off toggle for the dark-room red night mode (no rebuild needed).
   # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
-  screenShaderCycle = pkgs.writeShellScriptBin "screen-shader-cycle" ''
-    dir="$HOME/.config/hypr/shaders"
-    current=$(hyprctl getoption decoration:screen_shader | sed -n 's/^str: //p')
-    case "$current" in
-      *crt.frag)            next="$dir/green-phosphor.frag"; name="Green phosphor" ;;
-      *green-phosphor.frag) next="$dir/gameboy.frag";        name="Game Boy" ;;
-      *gameboy.frag)        next="$dir/amber.frag";          name="Amber" ;;
-      *amber.frag)          next="$dir/vhs.frag";            name="VHS" ;;
-      *vhs.frag)            next="$dir/sepia.frag";          name="Sepia film" ;;
-      *sepia.frag)          next="";                         name="off" ;;
-      *)                    next="$dir/crt.frag";            name="CRT" ;;
-    esac
-    hyprctl eval "hl.config({ decoration = { screen_shader = \"$next\" } })"
-    ${pkgs.libnotify}/bin/notify-send -t 1500 "Screen shader" "$name" || true
-  '';
-
-  # Dedicated on/off toggle for the dark-room red night mode.
   nightRedToggle = pkgs.writeShellScriptBin "night-red-toggle" ''
     shader="$HOME/.config/hypr/shaders/night-red.frag"
     current=$(hyprctl getoption decoration:screen_shader | sed -n 's/^str: //p')
@@ -165,7 +147,6 @@ in
     # ── Packages ────────────────────────────────────────────────────
     home.packages = [
       reloadDesktop
-      screenShaderCycle
       nightRedToggle
     ] ++ (with pkgs; [
       hyprshot
@@ -245,254 +226,13 @@ in
     };
 
     # ── Screen shaders ──────────────────────────────────────────────
-    # Applied via `decoration:screen_shader`. Off by default; SUPER+G cycles
-    # off → CRT → green phosphor → Game Boy → amber → VHS → sepia → off
-    # (screen-shader-cycle). All are static GLES3 shaders (no `time` uniform),
-    # so they re-apply on every screen damage without forcing extra re-renders.
-    home.file.".config/hypr/shaders/crt.frag".text = ''
-      // CRT monitor emulation — Hyprland screen shader.
-      // Must be GLES3 (#version 300 es) to match Hyprland's internal shaders,
-      // otherwise linking fails with "all shaders must use same shading language version".
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      const vec2  curvature         = vec2(5.0, 5.0);  // higher = flatter glass
-      const float scanlineIntensity = 0.18;
-      const float vignetteStrength  = 0.35;
-      const float aberration        = 0.0012;          // chromatic aberration (uv units)
-      const float brightness        = 1.18;            // compensate for darkening
-
-      // Bend the flat image around a virtual curved glass.
-      vec2 curveUV(vec2 uv) {
-          uv = uv * 2.0 - 1.0;
-          vec2 offset = abs(uv.yx) / curvature;
-          uv += uv * offset * offset;
-          return uv * 0.5 + 0.5;
-      }
-
-      void main() {
-          vec2 uv = curveUV(v_texcoord);
-
-          // Bezel: anything off the curved screen is black.
-          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-              return;
-          }
-
-          // Chromatic aberration: split colour channels horizontally.
-          vec3 col;
-          col.r = texture(tex, vec2(uv.x + aberration, uv.y)).r;
-          col.g = texture(tex, uv).g;
-          col.b = texture(tex, vec2(uv.x - aberration, uv.y)).b;
-
-          // Scanlines: darken every other physical pixel row.
-          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
-          col *= 1.0 - scanlineIntensity * scan;
-
-          // Aperture mask: faint vertical RGB stripes.
-          float m = mod(gl_FragCoord.x, 3.0);
-          vec3 mask = (m < 1.0) ? vec3(1.05, 0.95, 0.95)
-                    : (m < 2.0) ? vec3(0.95, 1.05, 0.95)
-                                : vec3(0.95, 0.95, 1.05);
-          col *= mask;
-
-          // Vignette around the edges.
-          vec2 v = uv * (1.0 - uv.yx);
-          col *= pow(v.x * v.y * 16.0, vignetteStrength);
-
-          col *= brightness;
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
-    # Green-phosphor monochrome terminal (P1-phosphor look): luminance tinted
-    # green, with curvature, scanlines, vignette and a faint ambient glow.
-    home.file.".config/hypr/shaders/green-phosphor.frag".text = ''
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      const vec2 curvature = vec2(6.0, 6.0);
-      const vec3 phosphor  = vec3(0.10, 1.0, 0.25);
-
-      vec2 curveUV(vec2 uv) {
-          uv = uv * 2.0 - 1.0;
-          vec2 offset = abs(uv.yx) / curvature;
-          uv += uv * offset * offset;
-          return uv * 0.5 + 0.5;
-      }
-
-      void main() {
-          vec2 uv = curveUV(v_texcoord);
-          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-              return;
-          }
-
-          // Desaturate to luminance, then tint with the phosphor colour.
-          vec3  c   = texture(tex, uv).rgb;
-          float lum = pow(dot(c, vec3(0.299, 0.587, 0.114)), 0.8);
-          vec3  col = phosphor * lum;
-
-          // Scanlines.
-          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
-          col *= 1.0 - 0.25 * scan;
-
-          // Vignette + faint always-on glow so black isn't pure black.
-          vec2 v = uv * (1.0 - uv.yx);
-          col *= pow(v.x * v.y * 16.0, 0.35);
-          col += phosphor * 0.03;
-
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
-    # Game Boy DMG: quantise luminance to the 4-shade olive-green palette,
-    # with a faint LCD pixel grid. Flat (no curvature) like the real screen.
-    home.file.".config/hypr/shaders/gameboy.frag".text = ''
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      // DMG palette, darkest → lightest.
-      const vec3 p0 = vec3(0.059, 0.219, 0.059);
-      const vec3 p1 = vec3(0.188, 0.384, 0.188);
-      const vec3 p2 = vec3(0.545, 0.675, 0.059);
-      const vec3 p3 = vec3(0.608, 0.737, 0.059);
-
-      void main() {
-          vec3  c   = texture(tex, v_texcoord).rgb;
-          float lum = pow(dot(c, vec3(0.299, 0.587, 0.114)), 0.9);
-
-          vec3 col = (lum < 0.25) ? p0
-                   : (lum < 0.50) ? p1
-                   : (lum < 0.75) ? p2
-                                  : p3;
-
-          // Faint LCD grid every 3 physical pixels.
-          vec2 g = fract(gl_FragCoord.xy / 3.0);
-          col *= (g.x < 0.1 || g.y < 0.1) ? 0.9 : 1.0;
-
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
-    # Amber monochrome monitor: identical to green-phosphor but with the
-    # classic amber (P3-phosphor) tint.
-    home.file.".config/hypr/shaders/amber.frag".text = ''
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      const vec2 curvature = vec2(6.0, 6.0);
-      const vec3 phosphor  = vec3(1.0, 0.62, 0.10);
-
-      vec2 curveUV(vec2 uv) {
-          uv = uv * 2.0 - 1.0;
-          vec2 offset = abs(uv.yx) / curvature;
-          uv += uv * offset * offset;
-          return uv * 0.5 + 0.5;
-      }
-
-      void main() {
-          vec2 uv = curveUV(v_texcoord);
-          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
-              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
-              return;
-          }
-
-          float lum = pow(dot(texture(tex, uv).rgb, vec3(0.299, 0.587, 0.114)), 0.8);
-          vec3  col = phosphor * lum;
-
-          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
-          col *= 1.0 - 0.25 * scan;
-
-          vec2 v = uv * (1.0 - uv.yx);
-          col *= pow(v.x * v.y * 16.0, 0.35);
-          col += phosphor * 0.03;
-
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
-    # VHS tape: horizontal wobble, chroma bleed (R/B split), scanlines and a
-    # static grain. Distortion is a fixed function of Y so it needs no `time`.
-    home.file.".config/hypr/shaders/vhs.frag".text = ''
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-
-      void main() {
-          vec2 uv = v_texcoord;
-
-          // Tape wobble: two summed sines of the scanline position.
-          uv.x += sin(uv.y * 90.0) * 0.0015 + sin(uv.y * 12.0) * 0.0020;
-
-          // Chroma bleed: shift red and blue apart horizontally.
-          float s = 0.004;
-          vec3 col;
-          col.r = texture(tex, vec2(uv.x - s, uv.y)).r;
-          col.g = texture(tex, uv).g;
-          col.b = texture(tex, vec2(uv.x + s, uv.y)).b;
-
-          // Scanlines + static grain.
-          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
-          col *= 1.0 - 0.12 * scan;
-          col += (hash(gl_FragCoord.xy) - 0.5) * 0.12;
-
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
-    # Sepia film: desaturate, sepia-tone, vignette, film grain and occasional
-    # vertical scratch lines.
-    home.file.".config/hypr/shaders/sepia.frag".text = ''
-      #version 300 es
-      precision highp float;
-
-      in  vec2      v_texcoord;
-      out vec4      fragColor;
-      uniform sampler2D tex;
-
-      float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
-
-      void main() {
-          float lum = dot(texture(tex, v_texcoord).rgb, vec3(0.299, 0.587, 0.114));
-          vec3  col = vec3(lum) * vec3(1.15, 0.95, 0.70);
-
-          // Vignette.
-          vec2 v = v_texcoord * (1.0 - v_texcoord.yx);
-          col *= pow(v.x * v.y * 16.0, 0.40);
-
-          // Film grain + sparse vertical scratches.
-          col += (hash(gl_FragCoord.xy) - 0.5) * 0.08;
-          if (hash(vec2(floor(v_texcoord.x * 220.0), 0.0)) > 0.985) col += 0.15;
-
-          fragColor = vec4(col, 1.0);
-      }
-    '';
-
+    # Applied via `decoration:screen_shader`. Off by default; toggled at
+    # runtime with `hyprctl eval` (the Lua parser rejects `hyprctl keyword`).
+    # Static GLES3 shader (no `time` uniform), so it re-applies on every
+    # screen damage without forcing extra re-renders.
     # Night-red: grayscale mapped to the red channel only. Red light barely
     # stimulates rod cells, so this preserves dark adaptation in a dark room.
-    # Not part of the aesthetic cycle — it has its own toggle (SUPER+SHIFT+G).
+    # Toggled with SUPER+G (night-red-toggle).
     home.file.".config/hypr/shaders/night-red.frag".text = ''
       #version 300 es
       precision highp float;
