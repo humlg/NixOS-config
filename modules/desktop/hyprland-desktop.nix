@@ -13,7 +13,7 @@ let
   '';
 
   # Cycle the screen shader at runtime (no rebuild needed):
-  #   off → CRT → green phosphor → Game Boy → off
+  #   off → CRT → green phosphor → Game Boy → amber → VHS → sepia → off
   # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
   screenShaderCycle = pkgs.writeShellScriptBin "screen-shader-cycle" ''
     dir="$HOME/.config/hypr/shaders"
@@ -21,7 +21,10 @@ let
     case "$current" in
       *crt.frag)            next="$dir/green-phosphor.frag"; name="Green phosphor" ;;
       *green-phosphor.frag) next="$dir/gameboy.frag";        name="Game Boy" ;;
-      *gameboy.frag)        next="";                         name="off" ;;
+      *gameboy.frag)        next="$dir/amber.frag";          name="Amber" ;;
+      *amber.frag)          next="$dir/vhs.frag";            name="VHS" ;;
+      *vhs.frag)            next="$dir/sepia.frag";          name="Sepia film" ;;
+      *sepia.frag)          next="";                         name="off" ;;
       *)                    next="$dir/crt.frag";            name="CRT" ;;
     esac
     hyprctl eval "hl.config({ decoration = { screen_shader = \"$next\" } })"
@@ -228,9 +231,9 @@ in
 
     # ── Screen shaders ──────────────────────────────────────────────
     # Applied via `decoration:screen_shader`. Off by default; SUPER+G cycles
-    # off → CRT → green phosphor → Game Boy → off (screen-shader-cycle).
-    # All are static GLES3 shaders (no `time` uniform), so they re-apply on
-    # every screen damage without forcing extra re-renders.
+    # off → CRT → green phosphor → Game Boy → amber → VHS → sepia → off
+    # (screen-shader-cycle). All are static GLES3 shaders (no `time` uniform),
+    # so they re-apply on every screen damage without forcing extra re-renders.
     home.file.".config/hypr/shaders/crt.frag".text = ''
       // CRT monitor emulation — Hyprland screen shader.
       // Must be GLES3 (#version 300 es) to match Hyprland's internal shaders,
@@ -364,6 +367,109 @@ in
           // Faint LCD grid every 3 physical pixels.
           vec2 g = fract(gl_FragCoord.xy / 3.0);
           col *= (g.x < 0.1 || g.y < 0.1) ? 0.9 : 1.0;
+
+          fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # Amber monochrome monitor: identical to green-phosphor but with the
+    # classic amber (P3-phosphor) tint.
+    home.file.".config/hypr/shaders/amber.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      const vec2 curvature = vec2(6.0, 6.0);
+      const vec3 phosphor  = vec3(1.0, 0.62, 0.10);
+
+      vec2 curveUV(vec2 uv) {
+          uv = uv * 2.0 - 1.0;
+          vec2 offset = abs(uv.yx) / curvature;
+          uv += uv * offset * offset;
+          return uv * 0.5 + 0.5;
+      }
+
+      void main() {
+          vec2 uv = curveUV(v_texcoord);
+          if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
+              fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+              return;
+          }
+
+          float lum = pow(dot(texture(tex, uv).rgb, vec3(0.299, 0.587, 0.114)), 0.8);
+          vec3  col = phosphor * lum;
+
+          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
+          col *= 1.0 - 0.25 * scan;
+
+          vec2 v = uv * (1.0 - uv.yx);
+          col *= pow(v.x * v.y * 16.0, 0.35);
+          col += phosphor * 0.03;
+
+          fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # VHS tape: horizontal wobble, chroma bleed (R/B split), scanlines and a
+    # static grain. Distortion is a fixed function of Y so it needs no `time`.
+    home.file.".config/hypr/shaders/vhs.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
+      void main() {
+          vec2 uv = v_texcoord;
+
+          // Tape wobble: two summed sines of the scanline position.
+          uv.x += sin(uv.y * 90.0) * 0.0015 + sin(uv.y * 12.0) * 0.0020;
+
+          // Chroma bleed: shift red and blue apart horizontally.
+          float s = 0.004;
+          vec3 col;
+          col.r = texture(tex, vec2(uv.x - s, uv.y)).r;
+          col.g = texture(tex, uv).g;
+          col.b = texture(tex, vec2(uv.x + s, uv.y)).b;
+
+          // Scanlines + static grain.
+          float scan = sin(gl_FragCoord.y * 3.14159265) * 0.5 + 0.5;
+          col *= 1.0 - 0.12 * scan;
+          col += (hash(gl_FragCoord.xy) - 0.5) * 0.12;
+
+          fragColor = vec4(col, 1.0);
+      }
+    '';
+
+    # Sepia film: desaturate, sepia-tone, vignette, film grain and occasional
+    # vertical scratch lines.
+    home.file.".config/hypr/shaders/sepia.frag".text = ''
+      #version 300 es
+      precision highp float;
+
+      in  vec2      v_texcoord;
+      out vec4      fragColor;
+      uniform sampler2D tex;
+
+      float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+
+      void main() {
+          float lum = dot(texture(tex, v_texcoord).rgb, vec3(0.299, 0.587, 0.114));
+          vec3  col = vec3(lum) * vec3(1.15, 0.95, 0.70);
+
+          // Vignette.
+          vec2 v = v_texcoord * (1.0 - v_texcoord.yx);
+          col *= pow(v.x * v.y * 16.0, 0.40);
+
+          // Film grain + sparse vertical scratches.
+          col += (hash(gl_FragCoord.xy) - 0.5) * 0.08;
+          if (hash(vec2(floor(v_texcoord.x * 220.0), 0.0)) > 0.985) col += 0.15;
 
           fragColor = vec4(col, 1.0);
       }
