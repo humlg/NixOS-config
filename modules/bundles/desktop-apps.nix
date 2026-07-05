@@ -16,7 +16,7 @@ in
       chromium
       spotify
       megasync
-      transmission_4-gtk
+      transmission_4-qt6
     ];
   };
 }
