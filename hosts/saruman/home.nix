@@ -13,7 +13,11 @@ let
       pkill wl-mirror
       ${pkgs.libnotify}/bin/notify-send -t 1500 "Display" "Extend mode"
     else
-      hyprctl dispatch exec "[monitor $ext fullscreen]" "wl-mirror eDP-1"
+      hyprctl dispatch focusmonitor "$ext"
+      wl-mirror eDP-1 &
+      sleep 0.5
+      hyprctl dispatch fullscreen
+      hyprctl dispatch focusmonitor eDP-1
       ${pkgs.libnotify}/bin/notify-send -t 1500 "Display" "Mirror mode"
     fi
   '';
