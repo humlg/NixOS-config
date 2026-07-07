@@ -2,7 +2,7 @@
 
 let
   # Toggle external display between mirror (wl-mirror, 16:10→16:9 with black bars)
-  # and extend (normal Hyprland workspace) modes.  Fn+F7 (XF86Display) to toggle.
+  # and extend (normal Hyprland workspace) modes.  SUPER+M to toggle.
   toggleDisplayMode = pkgs.writeShellScriptBin "toggle-display-mode" ''
     ext=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.name != "eDP-1") | .name' | head -1)
     if [ -z "$ext" ]; then
@@ -66,10 +66,10 @@ in
       -- wl-mirror window: strip decorations so it looks like a true mirror
       hl.window_rule({ match = { class = "^wl-mirror$" }, decorate = false })
 
-      -- Fn+F7 (XF86Display): toggle external display between mirror and extend.
+      -- SUPER+M: toggle external display between mirror and extend.
       -- Mirror uses wl-mirror which preserves 16:10 aspect ratio on 16:9 screens
       -- (black bars on both sides). Extend is the normal Hyprland behaviour.
-      hl.bind("XF86Display", hl.dsp.exec_cmd("toggle-display-mode"))
+      hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("toggle-display-mode"))
     '';
   };
 
