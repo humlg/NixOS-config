@@ -44,6 +44,16 @@
     '';
     extraLuaConfig = ''
       hl.config({ xwayland = { force_zero_scaling = false } })
+
+      -- Workaround for upstream Hyprland bug: mirroring outputs with different
+      -- aspect ratios leaves stale scene data flickering in the pillarbox
+      -- margin instead of clearing it to black. A reload fixes it.
+      -- https://github.com/hyprwm/Hyprland/discussions/11708
+      hl.on("monitor.added", function(monitor)
+        if monitor.name ~= "eDP-1" then
+          hl.exec_cmd("sleep 1 && hyprctl reload")
+        end
+      end)
     '';
   };
 
