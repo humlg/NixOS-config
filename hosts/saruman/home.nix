@@ -1,5 +1,23 @@
 { config, pkgs, ... }:
 
+let
+  # Toggle external display between mirror (wl-mirror, 16:10→16:9 with black bars)
+  # and extend (normal Hyprland workspace) modes.  Fn+F7 (XF86Display) to toggle.
+  toggleDisplayMode = pkgs.writeShellScriptBin "toggle-display-mode" ''
+    ext=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.name != "eDP-1") | .name' | head -1)
+    if [ -z "$ext" ]; then
+      ${pkgs.libnotify}/bin/notify-send -t 2000 "Display toggle" "No external monitor connected"
+      exit 1
+    fi
+    if pgrep -x wl-mirror > /dev/null; then
+      pkill wl-mirror
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "Display" "Extend mode"
+    else
+      hyprctl dispatch exec "[monitor $ext fullscreen]" "wl-mirror eDP-1"
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "Display" "Mirror mode"
+    fi
+  '';
+in
 {
   imports = [
     ../../modules/home/common.nix
@@ -45,22 +63,13 @@
     extraLuaConfig = ''
       hl.config({ xwayland = { force_zero_scaling = false } })
 
-      -- wl-mirror properly centers 16:10 content on 16:9 screens with black bars.
-      -- Hyprland 0.55+ built-in mirror left-aligns the scaled content instead.
+      -- wl-mirror window: strip decorations so it looks like a true mirror
       hl.window_rule({ match = { class = "^wl-mirror$" }, decorate = false })
 
-      hl.on("monitor.added", function(m)
-        local is_iiyama = m.description ~= nil and string.find(m.description, "Iiyama", 1, true) ~= nil
-        if m.output ~= "eDP-1" and not is_iiyama then
-          hl.exec_cmd("sleep 1 && hyprctl dispatch exec '[monitor " .. m.output .. " fullscreen silent]' 'wl-mirror eDP-1'")
-        end
-      end)
-      hl.on("monitor.removed", function(m)
-        local is_iiyama = m.description ~= nil and string.find(m.description, "Iiyama", 1, true) ~= nil
-        if m.output ~= "eDP-1" and not is_iiyama then
-          hl.exec_cmd("pkill wl-mirror")
-        end
-      end)
+      -- Fn+F7 (XF86Display): toggle external display between mirror and extend.
+      -- Mirror uses wl-mirror which preserves 16:10 aspect ratio on 16:9 screens
+      -- (black bars on both sides). Extend is the normal Hyprland behaviour.
+      hl.bind("XF86Display", hl.dsp.exec_cmd("toggle-display-mode"))
     '';
   };
 
@@ -70,6 +79,7 @@
     pkgs.cameractrls-gtk4
     pkgs.remmina
     pkgs.wl-mirror
+    toggleDisplayMode
   ];
 
   home.sessionVariables = {
