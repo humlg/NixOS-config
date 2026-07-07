@@ -47,7 +47,7 @@
 
       -- wl-mirror properly centers 16:10 content on 16:9 screens with black bars.
       -- Hyprland 0.55+ built-in mirror left-aligns the scaled content instead.
-      hl.window_rule({ match = { app_id = "^wl-mirror$" }, decorate = false })
+      hl.window_rule({ match = { class = "^wl-mirror$" }, decorate = false })
 
       hl.on("monitor.added", function(m)
         local is_iiyama = m.description ~= nil and string.find(m.description, "Iiyama", 1, true) ~= nil
