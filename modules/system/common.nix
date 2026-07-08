@@ -20,6 +20,8 @@
 
   networking.networkmanager.enable = true;
 
+  networking.firewall.allowedTCPPorts = [ 46687 ];
+
   console = {
     font = "Lat2-Terminus16";
     keyMap = "cz";
