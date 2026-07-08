@@ -49,6 +49,7 @@
 
   programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;
+  programs.coolercontrol.enable = true;
   custom.bluetooth.enable = true;
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
