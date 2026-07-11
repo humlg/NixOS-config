@@ -3,6 +3,7 @@
 {
   imports = [
     ./hardware-configuration.nix
+    ./file-system.nix
     ../../modules/system/common.nix
     ../../modules/system/locale.nix
     ../../modules/system/sddm.nix
