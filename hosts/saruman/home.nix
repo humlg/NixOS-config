@@ -23,12 +23,12 @@
 
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
-      monitor = desc:Iiyama North America PL2797H 12497503A1590,1920x1080@100,1440x0,1
+      monitor = desc:Iiyama North America PL2797H 12497503A1590,1920x1080@100,1440x-258,1
       monitor = ,preferred,auto,1,mirror,eDP-1
     '';
     monitorsLua = ''
       hl.monitor({ output = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "wide" })
-      hl.monitor({ output = "desc:Iiyama North America PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x0", scale = 1 })
+      hl.monitor({ output = "desc:Iiyama North America PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x-258", scale = 1 })
       hl.monitor({ output = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
     '';
 

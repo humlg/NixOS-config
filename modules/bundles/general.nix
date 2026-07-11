@@ -51,6 +51,7 @@ in
       fzf
       qdirstat
       kdePackages.ark
+      gnome-disk-utility
 
       # AppImage management
       gearlever
