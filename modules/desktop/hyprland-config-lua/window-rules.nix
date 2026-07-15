@@ -2,12 +2,14 @@
 ''
   -- ── Window rules ────────────────────────────────────────────────
   hl.window_rule({
-    match     = { initial_class = "^(thunderbird)$" },
-    workspace = "special:mail silent",
+    match            = { initial_class = "^(thunderbird)$" },
+    workspace        = "special:mail silent",
+    no_initial_focus = true,
   })
   hl.window_rule({
-    match     = { class = "^obsidian$" },
-    workspace = "special:notes silent",
+    match            = { class = "^obsidian$" },
+    workspace        = "special:notes silent",
+    no_initial_focus = true,
   })
 
   hl.window_rule({
