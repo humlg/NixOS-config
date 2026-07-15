@@ -46,23 +46,6 @@
 
   boot.supportedFilesystems = [ "nfs" ];
 
-  # NAS share, mounted on-demand so boot/login never blocks on the NAS being
-  # reachable (laptop roams networks). soft+timeo avoids indefinite hangs if
-  # the server drops off mid-use.
-  fileSystems."/home/david/nas" = {
-    device = "192.168.4.180:/nfs/Public";
-    fsType = "nfs";
-    options = [
-      "x-systemd.automount"
-      "noauto"
-      "nofail"
-      "x-systemd.idle-timeout=600"
-      "x-systemd.mount-timeout=10"
-      "soft"
-      "timeo=100"
-    ];
-  };
-
   # LUKS encryption (swap partition)
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
