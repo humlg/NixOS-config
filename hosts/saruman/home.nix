@@ -1,5 +1,20 @@
 { config, pkgs, ... }:
 
+let
+  # Toggle eDP-1 between native (2880x1800) and Full HD (1920x1080, 16:9)
+  # for TV mirroring/casting. The Lua config parser rejects `hyprctl
+  # keyword`, so use `hyprctl eval`. Bound to SUPER+A.
+  resolutionToggle = pkgs.writeShellScriptBin "resolution-toggle" ''
+    width=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.name=="eDP-1") | .width')
+    if [ "$width" = "1920" ]; then
+      hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "2880x1800@120", position = "0x0", scale = 2, bitdepth = 10, cm = "wide" })'
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "Resolution" "Native (2880x1800)" || true
+    else
+      hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "1920x1080@120", position = "0x0", scale = 1 })'
+      ${pkgs.libnotify}/bin/notify-send -t 1500 "Resolution" "Full HD (1920x1080)" || true
+    fi
+  '';
+in
 {
   imports = [
     ../../modules/home/common.nix
@@ -54,6 +69,9 @@
           hl.exec_cmd("sleep 1 && hyprctl reload")
         end
       end)
+
+      -- Toggle eDP-1 native/Full HD resolution (for TV mirroring)
+      hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("resolution-toggle"))
     '';
   };
 
@@ -62,6 +80,8 @@
     pkgs.qemu
     pkgs.cameractrls-gtk4
     pkgs.remmina
+    pkgs.kdePackages.k3b
+    resolutionToggle
   ];
 
   home.sessionVariables = {

@@ -44,6 +44,7 @@
   let
     overlays = [
       (import ./overlays/rawtherapee-dev.nix)
+      (import ./overlays/patool-no-check.nix)
     ];
     overlayModule = { nixpkgs.overlays = overlays; };
   in

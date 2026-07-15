@@ -23,6 +23,45 @@
 
   networking.hostName = "saruman";
 
+  # K3B needs direct (non-ACL/session) access to the optical writer
+  users.users.david.extraGroups = [ "cdrom" ];
+
+  # K3B is a home-manager (user) package, so its system D-Bus service file
+  # (org.kde.k3b, the root-privileged burn helper) isn't picked up by the
+  # system dbus daemon unless registered here explicitly.
+  services.dbus.packages = [ pkgs.kdePackages.k3b ];
+
+  # cdrecord issues raw SCSI commands (e.g. REZERO_UNIT) via /dev/sr0. The
+  # kernel blocks "unsafe" SG_IO commands on block devices without
+  # CAP_SYS_RAWIO, even with cdrom-group rw access — only /dev/sg* char
+  # devices are exempt. Grant the capability directly rather than routing
+  # through /dev/sg (K3B/cdrecord choose the device node themselves).
+  security.wrappers.cdrecord = {
+    owner = "root";
+    group = "root";
+    capabilities = "cap_sys_rawio+ep";
+    source = "${pkgs.cdrtools}/bin/cdrecord";
+  };
+
+  boot.supportedFilesystems = [ "nfs" ];
+
+  # NAS share, mounted on-demand so boot/login never blocks on the NAS being
+  # reachable (laptop roams networks). soft+timeo avoids indefinite hangs if
+  # the server drops off mid-use.
+  fileSystems."/home/david/nas" = {
+    device = "192.168.4.180:/nfs/Public";
+    fsType = "nfs";
+    options = [
+      "x-systemd.automount"
+      "noauto"
+      "nofail"
+      "x-systemd.idle-timeout=600"
+      "x-systemd.mount-timeout=10"
+      "soft"
+      "timeo=100"
+    ];
+  };
+
   # LUKS encryption (swap partition)
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
@@ -74,7 +113,9 @@
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module
-  boot.kernelModules = [ "ideapad_laptop" ];
+  # sg (SCSI generic) isn't autoloaded for the USB CD/DVD burner, but
+  # Brasero/libburn need it to send burn commands (not just read via /dev/sr0)
+  boot.kernelModules = [ "ideapad_laptop" "sg" ];
   systemd.services.ideapad-conservation-mode = {
     description = "Enable Lenovo IdeaPad conservation mode";
     wantedBy = [ "multi-user.target" ];
