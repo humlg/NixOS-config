@@ -439,13 +439,11 @@ function signalIcon(signal: number): string {
 function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
     // Poll the network list every 10 s; we also trigger a manual refresh
     let forceRefresh = 0
+    // GLib.spawn_command_line_sync blocks the GTK main loop until nmcli returns
+    // (can take seconds), freezing the whole bar. execAsync runs it off-thread.
     const networksRaw = createPoll("", 10000, () => {
         void forceRefresh  // read so the closure captures the var (unused warning suppressed)
-        try {
-            return GLib.spawn_command_line_sync(
-                "nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list"
-            )[1]?.toString() ?? ""
-        } catch { return "" }
+        return execAsync("nmcli -t -f IN-USE,SSID,SIGNAL,SECURITY dev wifi list").catch(() => "")
     })
 
     const networks = networksRaw((raw) => parseWifiList(raw))
