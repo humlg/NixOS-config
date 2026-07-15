@@ -160,11 +160,14 @@ in
     style = ''
       @import url("${home}/.cache/wallust/colors-waybar.css");
 
+      /* color12 is the accent color used by the AGS bar — keep in sync */
+      @define-color accent @color12;
+
       /* ── Notification color aliases ─────────────────────────────────────── */
       @define-color text            @foreground;
-      @define-color background-alt  @color1;
-      @define-color selected        @color3;
-      @define-color hover           @color5;
+      @define-color background-alt  alpha(@accent, .18);
+      @define-color selected        @accent;
+      @define-color hover           alpha(@accent, .35);
       @define-color urgent          @color2;
 
       * {
@@ -265,8 +268,8 @@ in
 
       /* ── Control center color aliases ───────────────────────────────────── */
 
-      @define-color background-alt  alpha(@color1, .4);
-      @define-color selected        @color2;
+      @define-color background-alt  alpha(@accent, .18);
+      @define-color selected        @accent;
       @define-color hover           alpha(@selected, .4);
       @define-color urgent          @color6;
 
@@ -279,7 +282,7 @@ in
       .control-center {
         background: alpha(@background, .55);
         border-radius: 10px;
-        border: 1px solid @color1;
+        border: 1px solid @accent;
         box-shadow: 0 0 10px 0 rgba(0,0,0,.6);
         margin: 18px;
         padding: 12px;
@@ -507,8 +510,8 @@ in
 
       /* Volume */
       .widget-volume {
-        background: @background-sec;
-        color: @background;
+        background: @background-alt;
+        color: @text;
         padding: 4px;
         margin: 6px;
         border-radius: 6px;

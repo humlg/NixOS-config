@@ -59,7 +59,7 @@ in
     home.file.".config/wallust/templates/colors-anyrun.css".text = ''
       @define-color bg      {{ background }};
       @define-color fg      {{ foreground }};
-      @define-color accent  {{ color2 }};
+      @define-color accent  {{ color12 }};
       @define-color muted   {{ color8 }};
       @define-color surface {{ color0 }};
 

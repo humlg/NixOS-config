@@ -245,10 +245,11 @@ function BatteryLabel() {
 }
 
 function Clock() {
+    const { accent: accentColor } = getWalColors()
     const time = createPoll("--:--", 1000, () =>
         GLib.DateTime.new_now_local()!.format("%Y-%m-%d %H:%M:%S")!
     )
-    return <label class="metric" label={time} />
+    return <label class="metric" css={`border-color: ${accentColor};`} label={time} />
 }
 
 function SysTrayItem({ item }: { item: Tray.TrayItem }) {
@@ -273,7 +274,7 @@ function SysTray() {
     const items = createBinding(tray, "items")
 
     return (
-        <box class="tray" css={`color: ${accentColor};`}>
+        <box class="tray" css={`color: ${accentColor}; border-color: ${accentColor};`}>
             <For each={items}>
                 {(item) => <SysTrayItem item={item} />}
             </For>
@@ -354,7 +355,7 @@ function AudioDeviceMenu({ menuWindow }: { menuWindow: { current: Astal.Window |
 }
 
 function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
-    const { fg: fgColor } = getWalColors()
+    const { fg: fgColor, accent: accentColor } = getWalColors()
     const wp = Wp.get_default()
     const speaker = wp.audio.get_default_speaker()!
     const volume = createBinding(speaker, "volume")
@@ -382,7 +383,7 @@ function Volume({ menuWindow }: { menuWindow: { current: Astal.Window | null } }
                 self.add_controller(scroll)
             }}
             class={mute((m) => m ? "metric muted" : "metric")}
-            css={`color: ${fgColor};`}
+            css={`color: ${fgColor}; border-color: ${accentColor};`}
             onClicked={() => { speaker.mute = !speaker.mute }}
         >
             <box>
@@ -513,7 +514,7 @@ function WifiMenu({ menuWindow }: { menuWindow: { current: Astal.Window | null }
 }
 
 function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) {
-    const { fg: fgColor } = getWalColors()
+    const { fg: fgColor, accent: accentColor } = getWalColors()
 
     // Returns "wired:<ip>" when ethernet is active, "wifi:<signal>:<ssid>" otherwise
     const netInfo = createPoll("wifi:0:--", 5000, ["bash", "-c",
@@ -536,7 +537,7 @@ function Wifi({ menuWindow }: { menuWindow: { current: Astal.Window | null } }) 
     }
 
     return (
-        <button class="metric" css={`color: ${fgColor};`} onClicked={toggleMenu}
+        <button class="metric" css={`color: ${fgColor}; border-color: ${accentColor};`} onClicked={toggleMenu}
             tooltipText={netInfo((raw) => parseInfo(raw).wired ? "Wired connection" : "Click to manage Wi-Fi")}>
             <box spacing={4}>
                 <label label={netInfo((raw) => {

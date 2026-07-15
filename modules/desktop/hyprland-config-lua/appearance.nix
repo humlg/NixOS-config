@@ -6,9 +6,9 @@
     general = {
       gaps_in          = 1,
       gaps_out         = 0,
-      border_size      = 3,
+      border_size      = 2,
       col = {
-        active_border   = { colors = { "rgba(" .. wc.color2:lower() .. "ff)", "rgba(" .. wc.color5:lower() .. "ff)" }, angle = 45 },
+        active_border   = "rgba(" .. wc.color12:lower() .. "ff)",
         inactive_border = "rgba(595959aa)",
       },
       resize_on_border     = true,
@@ -46,7 +46,7 @@
 
   hl.animation({ leaf = "global",        enabled = true, speed = 10,   bezier = "default" })
   hl.animation({ leaf = "border",        enabled = true, speed = 5.39, bezier = "easeOutQuint" })
-  hl.animation({ leaf = "borderangle",   enabled = true, speed = 100,  bezier = "linear",       style = "loop" })
+  hl.animation({ leaf = "borderangle",   enabled = false })
   hl.animation({ leaf = "windows",       enabled = true, speed = 4.79, bezier = "easeOutQuint" })
   hl.animation({ leaf = "windowsIn",     enabled = true, speed = 4.1,  bezier = "easeOutQuint", style = "popin 87%" })
   hl.animation({ leaf = "windowsOut",    enabled = true, speed = 1.49, bezier = "linear",       style = "popin 87%" })
@@ -63,9 +63,13 @@
   hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "fade" })
 
   -- swaync blur
+  -- swaync's actual gtk-layer-shell namespaces are "swaync-notification-window"
+  -- and "swaync-control-center" (not "swaync" — that never matched, so blur
+  -- was never applied).
   hl.layer_rule({
-    match        = { namespace = "swaync" },
+    match        = { namespace = "^swaync-" },
     blur         = true,
     ignore_alpha = 0.2,
+    dim_around   = false,
   })
 ''
