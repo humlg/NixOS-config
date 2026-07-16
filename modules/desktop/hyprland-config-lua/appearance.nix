@@ -72,4 +72,12 @@
     ignore_alpha = 0.2,
     dim_around   = false,
   })
+
+  -- anyrun blur (box.main background is semi-transparent, see anyrun.nix)
+  hl.layer_rule({
+    match        = { namespace = "^anyrun$" },
+    blur         = true,
+    ignore_alpha = 0.2,
+    dim_around   = false,
+  })
 ''

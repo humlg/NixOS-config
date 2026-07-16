@@ -63,4 +63,7 @@
 
   # swaync blur
   layerrule = blur on, ignore_alpha 0.2, dim_around off, match:class swaync
+
+  # anyrun blur (box.main background is semi-transparent, see anyrun.nix)
+  layerrule = blur on, ignore_alpha 0.2, dim_around off, match:namespace ^anyrun$
 ''

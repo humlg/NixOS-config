@@ -72,7 +72,7 @@ in
         margin: 12px;
         border-radius: 12px;
         border: 2px solid @accent;
-        background-color: @bg;
+        background-color: alpha(@bg, 0.75);
         box-shadow: 0 2px 16px rgba(0,0,0,0.6);
       }
 
