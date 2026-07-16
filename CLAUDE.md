@@ -236,6 +236,14 @@ sudo nixos-rebuild switch --flake .#newhost
 - **Never use `hyprctl` (or similar) to move, close, or otherwise manipulate windows on the user's live desktop session** for testing purposes. It's their actual running session, not a disposable test environment.
 - **Test before `switch`, not after.** Before recommending or describing a `nixos-rebuild switch`, prefer walking through `nixos-rebuild dry-activate` (or `test`, if the user runs it themselves) first, and mention what it would change. Don't jump straight to `switch` as the first suggested step.
 - **Flag orphaned modules, don't silently delete them.** If you find a module under `modules/` that no host imports, say so and ask whether to wire it up, keep it as intentional (e.g. `waybar.nix` — kept on purpose as an AGS fallback, see `maintenance.md`), or delete it. Don't assume unused means safe to remove.
+- **Keep this file in sync with the changes you make, in the same commit.** CLAUDE.md is documentation, not a snapshot — it must never fall behind the repo it describes. Concretely, whenever you:
+  - **add, remove, rename, or move a `.nix` file (or move a module between imported/orphaned status)** — update the Repository Structure tree.
+  - **discover or change a hardware fact for a host** (a chip model, a quirk, a workaround tied to specific silicon) — update its row in the Hardware Quick Reference table.
+  - **add, resolve, or remove a temporary fix, overlay, pin, or workaround** — update `maintenance.md` (see the rule below).
+  - **change how secrets are managed, added, or structured** — update the Secret Management section.
+  - **learn a new durable workflow rule or preference from the user** — add it under Workflow Rules (see below).
+
+  If you're not sure whether a change is "structural" enough to warrant a doc update, err on the side of updating it — a stale tree (like the NVIDIA/AMD drift that prompted this rule) is worse than a slightly over-eager edit. Do this proactively, without waiting to be asked.
 - **Document new bodges in `maintenance.md`.** Whenever you add a temporary fix, overlay, version pin, upstream-bug workaround, or anything else that should eventually be removed once some external condition changes (a nixpkgs update, an upstream fix landing, hardware support maturing, etc.), add an entry to `maintenance.md` in the same commit: what it does, why it's needed, and the condition under which it can be removed. If a change you make resolves or removes an existing bodge, update or delete its entry there too — don't let it go stale like the old "Sauron TODO" did.
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
 - **Always commit changes** after making them. Do **not** push unless explicitly told to.
