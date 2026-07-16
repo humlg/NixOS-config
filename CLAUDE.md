@@ -76,9 +76,20 @@ modules/
   system/
     common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)
     locale.nix                     # Timezone, locale (en_US/cs_CZ), keymap (cz)
-    nvidia.nix                     # Proprietary NVIDIA driver config
+    nvidia.nix                     # Proprietary NVIDIA driver config — orphaned, no host imports it (see maintenance.md)
+    amd-gpu.nix                    # AMD GPU config (amdgpu, ROCm) — used by sauron
     sddm.nix                      # SDDM (Qt6, astronaut theme, Wayland)
 ```
+
+## Hardware Quick Reference
+
+| Host | CPU | GPU | WiFi | Notable quirks |
+|------|-----|-----|------|-----------------|
+| sauron | AMD Ryzen 7 5800X3D | AMD RX 9070 XT (RDNA4, `amdgpu`) | — (wired, `enp9s0`, WoL enabled) | RDNA4 not yet officially supported by ROCm — `HSA_OVERRIDE_GFX_VERSION=12.0.0` in `amd-gpu.nix`. NVMe has slow init — root device timeout raised to 300s, `nvme` forced in initrd. Previously NVIDIA; swapped to AMD (see `maintenance.md` item 4). |
+| saruman | AMD Ryzen (mobile), Lenovo IdeaPad 14ASP9 | AMD Radeon 880M/890M iGPU (RDNA 3.5) | MediaTek MT7922 (`mt7921e`) | RDNA 3.5 not yet officially supported by ROCm — `HSA_OVERRIDE_GFX_VERSION=11.0.0`. `mt7921e disable_aspm=1` + `ucsi_acpi` blacklisted to mitigate an s2idle sleep/resume hang (see `maintenance.md` item 7, status not fully confirmed). LUKS-encrypted swap. BIOS PSCN23WW. |
+| nixosvm | virtualized (SPICE guest) | virtualized | — | Minimal package set, SPICE agent only — not a physical host. |
+
+Keep this table current: whenever you discover or change a hardware fact (a chip model, a quirk, a workaround tied to specific silicon) while working on a host, update its row here in the same commit — don't let it drift the way the sauron NVIDIA→AMD description did.
 
 ## Architecture
 
@@ -179,6 +190,10 @@ sudo nixos-rebuild switch --flake .#newhost
 
 ## Workflow Rules
 
+- **Never run `sudo` commands directly** (including `nixos-rebuild switch/test`). Ask the user what to run and whether you need the output — this is their real system, not a sandbox.
+- **Never use `hyprctl` (or similar) to move, close, or otherwise manipulate windows on the user's live desktop session** for testing purposes. It's their actual running session, not a disposable test environment.
+- **Test before `switch`, not after.** Before recommending or describing a `nixos-rebuild switch`, prefer walking through `nixos-rebuild dry-activate` (or `test`, if the user runs it themselves) first, and mention what it would change. Don't jump straight to `switch` as the first suggested step.
+- **Flag orphaned modules, don't silently delete them.** If you find a module under `modules/` that no host imports, say so and ask whether to wire it up, keep it as intentional (e.g. `waybar.nix` — kept on purpose as an AGS fallback, see `maintenance.md`), or delete it. Don't assume unused means safe to remove.
 - **Document new bodges in `maintenance.md`.** Whenever you add a temporary fix, overlay, version pin, upstream-bug workaround, or anything else that should eventually be removed once some external condition changes (a nixpkgs update, an upstream fix landing, hardware support maturing, etc.), add an entry to `maintenance.md` in the same commit: what it does, why it's needed, and the condition under which it can be removed. If a change you make resolves or removes an existing bodge, update or delete its entry there too — don't let it go stale like the old "Sauron TODO" did.
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
 - **Always commit changes** after making them. Do **not** push unless explicitly told to.
