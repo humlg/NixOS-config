@@ -30,7 +30,7 @@ nix search nixpkgs <package-name>
 ```
 flake.nix                          # Flake entrypoint — defines all three nixosConfigurations
 hosts/
-  sauron/                          # Physical desktop (NVIDIA, Hyprland, full package set)
+  sauron/                          # Physical desktop (AMD Ryzen 7 5800X3D + RX 9070 XT, Hyprland, full package set)
     configuration.nix
     home.nix
     hardware-configuration.nix
@@ -177,18 +177,9 @@ sudo nixos-rebuild switch --flake .#newhost
 | `modules/system/secrets.nix` | NixOS declarations for all secrets |
 | `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
 
-### Sauron TODO
-
-Sauron's SSH host key is not yet in `secrets/secrets.nix` (machine was offline during setup). Once reachable:
-```bash
-ssh sauron 'cat /etc/ssh/ssh_host_ed25519_key.pub'
-# Add the key to secrets/secrets.nix, then:
-agenix -r secrets/shell-env.age   # re-encrypt to include sauron
-git add secrets/ && git commit -m "secrets: add sauron as recipient"
-```
-
 ## Workflow Rules
 
+- **Document new bodges in `maintenance.md`.** Whenever you add a temporary fix, overlay, version pin, upstream-bug workaround, or anything else that should eventually be removed once some external condition changes (a nixpkgs update, an upstream fix landing, hardware support maturing, etc.), add an entry to `maintenance.md` in the same commit: what it does, why it's needed, and the condition under which it can be removed. If a change you make resolves or removes an existing bodge, update or delete its entry there too — don't let it go stale like the old "Sauron TODO" did.
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
 - **Always commit changes** after making them. Do **not** push unless explicitly told to.
 - **Save learned lessons to this file.** When the user teaches you a workflow rule or preference, add it to this `CLAUDE.md` so it persists across all hosts and sessions.
