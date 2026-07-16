@@ -111,7 +111,9 @@
     };
   };
 
-  custom.sunshine-moonlight.enable = true;
+  # Saruman mainly connects out to other machines — no need to run the
+  # Sunshine server here, just the Moonlight client.
+  custom.sunshine-moonlight.enableMoonlight = true;
 
   programs.kdeconnect.enable = true;
   custom.bluetooth.enable = true;

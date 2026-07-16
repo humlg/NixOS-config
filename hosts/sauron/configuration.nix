@@ -46,6 +46,7 @@
   services.udev.packages = [ pkgs.openrgb ];
 
   custom.sunshine-moonlight.enable = true;
+  custom.sunshine-moonlight.enableMoonlight = true;
 
   programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;
