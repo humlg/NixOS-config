@@ -83,6 +83,10 @@
 
   services.colord.enable = true;
 
+  # OpenRGB: udev rules grant the user group direct USB access to RGB
+  # peripherals without needing sudo.
+  services.udev.packages = [ pkgs.openrgb ];
+
   # Firmware updates via LVFS (fwupdmgr refresh && fwupdmgr update)
   services.fwupd.enable = true;
 
@@ -151,6 +155,7 @@
     gtk3
     codex
     clinfo
+    openrgb
   ];
 
   programs.zen-browser-custom.enable = true;
