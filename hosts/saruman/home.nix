@@ -90,6 +90,7 @@ in
   };
 
   home.pointerCursor = {
+    enable = true;
     name = "volantes_cursors";
     size = 24;
     package = pkgs.volantes-cursors;
