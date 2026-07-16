@@ -2,6 +2,10 @@
 ''
   -- ── Autostart ───────────────────────────────────────────────────
   hl.on("hyprland.start", function()
+    -- Greet on workspace 1 immediately so it's already the focused window
+    -- once thunderbird/obsidian map -- gives no_initial_focus something to
+    -- fall back to instead of stealing focus themselves.
+    hl.exec_cmd("kitty --class kitty-startup")
     hl.exec_cmd("thunar --daemon")
     hl.exec_cmd("ags run")
     hl.exec_cmd("awww-daemon")
