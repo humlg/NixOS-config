@@ -11,6 +11,7 @@
     ../../modules/programs/zsh.nix
     ../../modules/services/bluetooth.nix
     ../../modules/services/kvm.nix
+    ../../modules/services/darkproject-keyboard.nix
     ../../modules/bundles/photography.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
@@ -122,6 +123,7 @@
 
   programs.kdeconnect.enable = true;
   custom.bluetooth.enable = true;
+  custom.darkproject-keyboard.enable = true;
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
   bundles.wine.enable = true;

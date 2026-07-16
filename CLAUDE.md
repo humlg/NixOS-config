@@ -100,6 +100,7 @@ modules/
   services/
     bluetooth.nix                  # Bluetooth + blueman
     kvm.nix                        # libvirtd/QEMU + virt-manager (KVM virtualization)
+    darkproject-keyboard.nix       # udev rules for Dark Project keyboards (WebHID/WebUSB access for their web configurator) — used by saruman
     megacmd.nix                    # MEGA sync daemon — orphaned, not imported by any host (see maintenance.md #14)
     ollama.nix                     # Ollama (ROCm build) + oterm TUI
     sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
