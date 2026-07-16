@@ -89,11 +89,37 @@ Last full scan: 2026-07-16.
   3. `mt7921e disable_aspm=1` — the WiFi chip wedges the platform in deep ASPM states.
 - **Also:** the reboot-hang half of this was independently fixed and documented
   as solved (commit `505cd04`, no `reboot=` override needed on BIOS PSCN23WW) —
-  see project memory `saruman-sleep-hang.md`.
-- **Status:** Reboot hang = solved. Sleep hang = mitigated, **not confirmed
-  solved** — memory notes it "needs >10 min sleeps to test."
+  see project memory `saruman-sleep-hang.md`. That testing was done **undocked**
+  — see item #7b below for a related hang that only shows up docked.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = mitigated, **not
+  confirmed solved** — memory notes it "needs >10 min sleeps to test."
 - **Action:** Run an actual >10 min sleep test and update `saruman-sleep-hang.md`
   memory + this entry once confirmed either way.
+
+### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
+- **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.
+- **What:** Adds `pcie_ports=compat`, forcing ACPI-based PCIe hotplug instead
+  of native PCIe hotplug/AER handling.
+- **Why:** User's monitor has a built-in USB-C dock (single-cable, DP-altmode +
+  hub), which connects through saruman's AMD USB4/Thunderbolt controller
+  (`64:00.5`, PCI id `1022:151c`). Shutdown/reboot reliably hangs (black
+  screen, no recovery, requires a hard power-off) **only** when that cable is
+  plugged in — confirmed by testing docked vs. unplugged before shutting down.
+  Likely the same class of USB-C/EC fragility as item #7 (this laptop already
+  has `ucsi_acpi` blacklisted for a related but distinct sleep-resume bug),
+  surfacing here as a hang tearing down the PCIe/USB4 tunnel to the dock
+  during shutdown. No kernel log capture was possible — `systemd-journald` is
+  already dead by the point the kernel hangs, so this is a documented,
+  reasoned-out candidate fix, **not yet confirmed** to work.
+- **Action:** Test docked shutdown *and* docked reboot with `pcie_ports=compat`
+  in place (via `nixos-rebuild test`, then confirm across a real `switch` +
+  a few real-world docked shutdowns before trusting it). If it doesn't fix
+  the hang, next step is `netconsole` to another LAN machine to capture the
+  actual hang point before trying further blind fixes.
+- **Removal condition:** Confirmed fixed and stable for a while → keep
+  permanently (update status to solved, drop "EXPERIMENTAL" language in the
+  code comment). Confirmed *not* fixed → revert the kernel param and pursue
+  netconsole-based diagnosis instead.
 
 ### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
 - **Where:** `hosts/saruman/home.nix:60-71`

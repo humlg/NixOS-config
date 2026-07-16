@@ -58,7 +58,12 @@
   # hangs at the firmware reset step.
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
   # the s2idle wake hang (logging only, no behavior change).
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
+  # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
+  # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
+  # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
+  # Thunderbolt controller) is plugged in — confirmed by testing docked vs.
+  # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
+  boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "pcie_ports=compat" ];
   # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
   # causing the second s2idle cycle to hang indefinitely.
   boot.blacklistedKernelModules = [ "ucsi_acpi" ];
