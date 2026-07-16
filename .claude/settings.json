@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(journalctl *)",
+      "Bash(nix eval *)",
+      "Bash(nix build *)",
+      "Bash(nix flake check *)",
+      "Bash(hyprctl clients *)",
+      "Bash(nix-store -q *)",
+      "Bash(lsmod *)",
+      "Bash(nixos-rebuild build *)",
+      "Bash(hyprctl configerrors *)",
+      "Bash(hyprctl activeworkspace *)"
+    ]
+  }
+}
