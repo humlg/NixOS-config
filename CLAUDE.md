@@ -34,11 +34,12 @@ hosts/
     configuration.nix
     home.nix
     hardware-configuration.nix
-    file-system.nix                # Extra data drives + bind mounts for user dirs
-  saruman/                         # Laptop (Lenovo IdeaPad, Hyprland, battery mgmt)
+    file-system.nix                # Extra data drives (/mnt/data1, /mnt/data2) + bind mounts for user dirs
+  saruman/                         # Laptop (Lenovo IdeaPad 14ASP9, Hyprland, battery mgmt)
     configuration.nix
     home.nix
     hardware-configuration.nix
+    file-system.nix                # On-demand NAS NFS mount at ~/nas (automount, soft, idle-timeout)
   nixosvm/                         # NixOS VM (SPICE agent, SSH, minimal packages)
     configuration.nix
     home.nix
@@ -48,7 +49,7 @@ modules/
     common.nix                     # Shared home-manager boilerplate (username, stateVersion, etc.)
   desktop/
     hyprland-desktop.nix           # Main Hyprland HM module (options, packages, services)
-    hyprland-config/               # Hyprland config fragments (imported by hyprland-desktop.nix)
+    hyprland-config/               # Legacy hyprlang config fragments — kept in sync by hand with hyprland-config-lua/ below (see maintenance.md #16)
       variables.nix                #   $terminal, $fileManager, $menu, etc.
       autostart.nix                #   exec-once entries
       input.nix                    #   Input, gestures, per-device overrides
@@ -56,29 +57,70 @@ modules/
       window-rules.nix             #   Window rules
       keybinds.nix                 #   All keybinds (core, workspaces, media, etc.)
       layouts.nix                  #   Dwindle, master, misc, workspace rules
-    waybar.nix                     # Waybar config (settings + CSS style)
+    hyprland-config-lua/           # Active Lua config fragments — all three hosts set useLuaConfig = true
+      variables.nix
+      autostart.nix
+      input.nix
+      appearance.nix
+      window-rules.nix
+      keybinds.nix
+      layouts.nix
+    hyprland-system.nix            # NixOS-level Hyprland (programs.hyprland, portals, pipewire)
+    waybar.nix                     # Waybar config — orphaned, kept intentionally as an AGS fallback (see maintenance.md)
+    ags.nix                        # AGS v2 (Astal/TypeScript) status bar HM module — the active bar; config in ags-config/*.tsx
+    anyrun.nix                     # Anyrun launcher (applications/websearch/rink plugins)
     hyprlock.nix                   # Hyprlock config (lock screen)
     hypridle.nix                   # Hypridle config (idle timers)
     swaync.nix                     # SwayNC notification center
-    hyprland-system.nix            # NixOS-level Hyprland (programs.hyprland, portals, pipewire)
     dark-theme.nix                 # GTK/Qt dark theming (Home Manager module)
+    default-apps.nix               # xdg-mime default application associations
   bundles/
     general.nix                    # Always-installed user packages (firefox, kitty, git, etc.)
     desktop-apps.nix               # Common desktop apps (discord, vscode, kate, chromium, etc.)
-    photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2)
-    3d-printing.nix                # 3D printing/CAD (prusa-slicer, freecad)
-    gaming.nix                     # Gaming (Steam, etc.)
+    photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2, DaVinci Resolve)
+    3d-printing.nix                # 3D printing/CAD (prusa-slicer)
+    gaming.nix                     # Gaming (Steam, gamemode, mangohud, lsfg-vk)
     wine.nix                       # Wine support
+    yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — saruman only
   programs/
     zsh.nix                        # Zsh shell config (oh-my-zsh, autosuggestions)
+    git.nix                        # Git identity + defaults (rebase pulls, zdiff3, rerere)
+    vim.nix                        # Vim settings + wallust color sourcing
+    kitty.nix                      # Kitty terminal settings + wallust colors
+    thunar.nix                     # Thunar file manager + thumbnailer backends
+    btop.nix                       # btop with wallust-generated theme
+    cava.nix                       # cava audio visualizer with wallust-generated theme
+    fastfetch.nix                  # fastfetch system-info banner
+    claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
+    ssh-keys.nix                   # SSH client config (github-huml-yg host alias)
+    mullvad.nix                    # Mullvad VPN
+    webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
+    zen-browser.nix                # Zen Browser + DuckDuckGo default search policy
+    winboat.nix                    # Windows-in-a-box via winboat — orphaned, Docker wiring incomplete (see maintenance.md #13)
   services/
     bluetooth.nix                  # Bluetooth + blueman
+    kvm.nix                        # libvirtd/QEMU + virt-manager (KVM virtualization)
+    megacmd.nix                    # MEGA sync daemon — orphaned, not imported by any host (see maintenance.md #14)
+    ollama.nix                     # Ollama (ROCm build) + oterm TUI
+    sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
   system/
     common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)
     locale.nix                     # Timezone, locale (en_US/cs_CZ), keymap (cz)
-    nvidia.nix                     # Proprietary NVIDIA driver config — orphaned, no host imports it (see maintenance.md)
+    nvidia.nix                     # Proprietary NVIDIA driver config — orphaned, no host imports it (see maintenance.md #4)
     amd-gpu.nix                    # AMD GPU config (amdgpu, ROCm) — used by sauron
-    sddm.nix                      # SDDM (Qt6, astronaut theme, Wayland)
+    sddm.nix                       # SDDM (Qt6, astronaut theme, Wayland)
+    secrets.nix                    # agenix age.secrets declarations
+    ssh.nix                        # sshd + MOTD banner + /etc/hosts entries for sauron/saruman
+    network-tools.nix              # Network troubleshooting tools bundle (nmap, wireshark, mtr, etc.)
+    generation-cleanup.nix         # Scheduled NixOS generation pruning + bootloader entry limit
+overlays/
+  davinci-resolve.nix               # Overrides pkgs.davinci-resolve to the v21.0b1 beta (see maintenance.md #1)
+  davinci-resolve-package.nix       # Local davinci-resolve package.nix backing the overlay above
+  patool-no-check.nix               # Disables patool's sandboxed test suite (see maintenance.md #3)
+  rawtherapee-dev.nix               # Rebuilds rawtherapee from a dev commit to fix a startup crash (see maintenance.md #2)
+secrets/
+  secrets.nix                       # agenix recipient key map
+maintenance.md                      # Log of temporary fixes/overlays/pins and their removal conditions — keep current (see Workflow Rules)
 ```
 
 ## Hardware Quick Reference
