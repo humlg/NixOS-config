@@ -8,7 +8,6 @@ let
     hyprctl reload
     (ags quit -i bar 2>/dev/null; ags run) &
     systemctl --user restart swaync.service
-    kitty @ set-colors --all ~/.cache/wallust/colors-kitty.conf 2>/dev/null || true
     pywalfox update
   '';
 
@@ -336,9 +335,6 @@ in
       colors-hyprland.template = "colors-hyprland.conf"
       colors-hyprland.target = "~/.cache/wallust/colors-hyprland.conf"
 
-      colors-kitty.template = "colors-kitty.conf"
-      colors-kitty.target = "~/.cache/wallust/colors-kitty.conf"
-
       colors-waybar.template = "colors-waybar.css"
       colors-waybar.target = "~/.cache/wallust/colors-waybar.css"
 
@@ -407,28 +403,6 @@ in
         color14 = "{{ color14 | replace("#", "") }}",
         color15 = "{{ color15 | replace("#", "") }}",
       }
-    '';
-
-    home.file.".config/wallust/templates/colors-kitty.conf".text = ''
-      foreground {{ foreground }}
-      background {{ background }}
-      cursor     {{ foreground }}
-      color0  {{ color0 }}
-      color1  {{ color1 }}
-      color2  {{ color2 }}
-      color3  {{ color3 }}
-      color4  {{ color4 }}
-      color5  {{ color5 }}
-      color6  {{ color6 }}
-      color7  {{ color7 }}
-      color8  {{ color8 }}
-      color9  {{ color9 }}
-      color10 {{ color10 }}
-      color11 {{ color11 }}
-      color12 {{ color12 }}
-      color13 {{ color13 }}
-      color14 {{ color14 }}
-      color15 {{ color15 }}
     '';
 
     home.file.".config/wallust/templates/colors-waybar.css".text = ''
