@@ -16,5 +16,10 @@
       fi
       [ -f /run/agenix/shell-env ] && source /run/agenix/shell-env
     '';
+
+    shellAliases = {
+      rebuild      = "sudo nixos-rebuild switch --flake /home/david/repos/nixos-config#$(hostname)";
+      rebuild-test = "sudo nixos-rebuild test --flake /home/david/repos/nixos-config#$(hostname)";
+    };
   };
 }
