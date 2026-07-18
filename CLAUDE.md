@@ -86,7 +86,7 @@ modules/
     zsh.nix                        # Zsh shell config (oh-my-zsh, autosuggestions)
     git.nix                        # Git identity + defaults (rebase pulls, zdiff3, rerere)
     vim.nix                        # Vim settings + wallust color sourcing
-    kitty.nix                      # Kitty terminal settings + static "Constant Perceptual Luminosity (dark)" theme (deliberately not wallust-driven — wallpaper colors were inconsistently readable)
+    kitty.nix                      # Kitty terminal settings + static "Darkside" theme (deliberately not wallust-driven — wallpaper colors were inconsistently readable)
     thunar.nix                     # Thunar file manager + thumbnailer backends
     btop.nix                       # btop with wallust-generated theme
     cava.nix                       # cava audio visualizer with wallust-generated theme
