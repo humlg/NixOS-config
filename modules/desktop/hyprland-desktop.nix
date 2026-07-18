@@ -26,6 +26,10 @@ let
     esac
   '';
 
+  # `wallust run -s` (skip-sequences): without -s, wallust also pushes OSC color
+  # escape sequences straight to every already-open terminal pty on each wallpaper
+  # change, live-repainting kitty's static theme in running windows (newly spawned
+  # windows were unaffected, since they read kitty.conf, not a live sequence).
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
     [Settings]
     language = en
@@ -42,7 +46,7 @@ let
     show_hidden = False
     show_gifs_only = False
     zen_mode = False
-    post_command = wallust run "$wallpaper" && reload-desktop
+    post_command = wallust run -s "$wallpaper" && reload-desktop
     number_of_columns = 3
     awww_transition_type = center
     awww_transition_step = 63
