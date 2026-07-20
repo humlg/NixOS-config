@@ -65,9 +65,6 @@
   # Thunderbolt controller) is plugged in — confirmed by testing docked vs.
   # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
   boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "pcie_ports=compat" ];
-  # ucsi_acpi times out on resume (ETIMEDOUT) and corrupts EC state,
-  # causing the second s2idle cycle to hang indefinitely.
-  boot.blacklistedKernelModules = [ "ucsi_acpi" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.

@@ -81,20 +81,28 @@ Last full scan: 2026-07-16.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
 ### 7. Saruman: s2idle sleep/resume hang — mitigations in place, not fully solved
-- **Where:** `hosts/saruman/configuration.nix:54-70`
-- **What three separate workarounds are stacked here:**
+- **Where:** `hosts/saruman/configuration.nix:54-73`
+- **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
-  2. `ucsi_acpi` blacklisted — it times out on resume and corrupts EC state,
-     causing the *second* s2idle cycle to hang.
-  3. `mt7921e disable_aspm=1` — the WiFi chip wedges the platform in deep ASPM states.
+  2. `mt7921e disable_aspm=1` — the WiFi chip wedges the platform in deep ASPM states.
 - **Also:** the reboot-hang half of this was independently fixed and documented
   as solved (commit `505cd04`, no `reboot=` override needed on BIOS PSCN23WW) —
   see project memory `saruman-sleep-hang.md`. That testing was done **undocked**
   — see item #7b below for a related hang that only shows up docked.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = mitigated, **not
-  confirmed solved** — memory notes it "needs >10 min sleeps to test."
-- **Action:** Run an actual >10 min sleep test and update `saruman-sleep-hang.md`
-  memory + this entry once confirmed either way.
+- **Removed:** `ucsi_acpi` blacklist (was theorized to fix a resume ETIMEDOUT/EC
+  corruption causing the *second* s2idle cycle to hang) — confirmed by the user
+  that the sleep hang persisted with it blacklisted, so it wasn't the cause.
+  Re-enabled since it was pure downside: with it blacklisted, saruman had no
+  `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
+  power bank) couldn't happen — charging fell back to basic detection only.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = still unresolved;
+  `ucsi_acpi` ruled out as the cause. `mt7921e disable_aspm=1` remains the
+  active theory/mitigation, not yet confirmed either way.
+- **Action:** Run an actual >10 min sleep test with `ucsi_acpi` loaded and
+  `mt7921e disable_aspm=1` in place; if the hang recurs, capture `dmesg`/EC
+  state around resume to find the real cause instead of blacklisting drivers
+  speculatively. Update `saruman-sleep-hang.md` memory + this entry once
+  confirmed either way.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.
