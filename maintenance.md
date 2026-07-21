@@ -84,7 +84,20 @@ Last full scan: 2026-07-16.
 - **Where:** `hosts/saruman/configuration.nix:54-73`
 - **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
-  2. `mt7921e disable_aspm=1` — the WiFi chip wedges the platform in deep ASPM states.
+  2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — **primary theory/mitigation as of 2026-07-21**, see below.
+  3. `mt7921e disable_aspm=1` — secondary/unconfirmed theory, kept since it's harmless (the WiFi chip *may* also wedge the platform in deep ASPM states).
+- **Primary lead (2026-07-21):** Upstream kernel bugzilla
+  [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is filed
+  against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the
+  identical symptom (EC/keyboard-backlight alive, system otherwise wedged,
+  unresponsive to keyboard/power button, hard power-off required). A reporter
+  on that bug bisected it to commit `f6098641d3e1e4` ("drm/amd/display: fix
+  s2idle entry for DCN3.5+", merged ~6.10→6.11, backported to stable): kernel
+  6.10 resumes fine, 6.11+ hangs. That commit forces DCN3.5+ display hardware
+  (saruman's Radeon 880M/890M iGPU, RDNA 3.5 = DCN 3.5) into IPS (Idle Power
+  States) before D3cold on s2idle entry — plausibly what wedges this platform.
+  `amdgpu.dcdebugmask=0x800` sets the `DC_DISABLE_IPS` debug bit, disabling
+  all IPS and bypassing that code path entirely.
 - **Also:** the reboot-hang half of this was independently fixed and documented
   as solved (commit `505cd04`, no `reboot=` override needed on BIOS PSCN23WW) —
   see project memory `saruman-sleep-hang.md`. That testing was done **undocked**
@@ -96,13 +109,22 @@ Last full scan: 2026-07-16.
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
 - **Status:** Reboot hang (undocked) = solved. Sleep hang = still unresolved;
-  `ucsi_acpi` ruled out as the cause. `mt7921e disable_aspm=1` remains the
-  active theory/mitigation, not yet confirmed either way.
-- **Action:** Run an actual >10 min sleep test with `ucsi_acpi` loaded and
-  `mt7921e disable_aspm=1` in place; if the hang recurs, capture `dmesg`/EC
-  state around resume to find the real cause instead of blacklisting drivers
-  speculatively. Update `saruman-sleep-hang.md` memory + this entry once
+  `ucsi_acpi` ruled out as the cause. `amdgpu.dcdebugmask=0x800` is the new
+  active mitigation under test (added 2026-07-21, not yet confirmed — the hang
+  needs >10 min sleep residency to reproduce, so real-world lid-close use over
+  several days is the actual test, not short `rtcwake` cycles).
+- **Action:** Use saruman normally (lid-close sleeps, overnight sleeps) for a
+  few days/weeks. If no hangs recur, mark this solved and consider dropping
+  `mt7921e disable_aspm=1` (secondary theory) and the `pm_debug_messages`/
+  `amd_pmc.enable_stb=1` diagnostics. If it still hangs, capture `dmesg`/EC
+  state around resume, and revisit the hibernate-based workaround (suspend-
+  then-hibernate on lid-close, converting long sleeps to full hibernate before
+  the buggy deep-idle window is reached) discussed but not chosen in the
+  2026-07-21 session. Update `saruman-sleep-hang.md` memory + this entry once
   confirmed either way.
+- **Removal condition:** Upstream fixes the DCN3.5+ IPS regression (watch bug
+  #219445) in a shipped kernel — once fixed, drop `amdgpu.dcdebugmask=0x800`
+  and re-test without it.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.

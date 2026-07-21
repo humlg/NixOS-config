@@ -57,14 +57,18 @@
   # No reboot= override: the kernel's default reset chain works on BIOS
   # PSCN23WW, while forcing reboot=acpi (old-BIOS workaround) or reboot=efi
   # hangs at the firmware reset step.
-  # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
-  # the s2idle wake hang (logging only, no behavior change).
+  # amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS): disables Idle Power States on
+  # the iGPU. Targets kernel bugzilla #219445 (this exact laptop model),
+  # bisected to commit f6098641d3e1e4 ("drm/amd/display: fix s2idle entry for
+  # DCN3.5+"), which forces DCN3.5+ display hw (this iGPU) into IPS before
+  # D3cold on s2idle entry — the likely cause of the sleep hang. Primary
+  # theory/mitigation as of 2026-07-21; see maintenance.md item 7.
   # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
   # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
   # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
   # Thunderbolt controller) is plugged in — confirmed by testing docked vs.
   # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "pcie_ports=compat" ];
+  boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x800" "pcie_ports=compat" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.
