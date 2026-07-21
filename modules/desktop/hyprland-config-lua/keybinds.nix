@@ -95,9 +95,10 @@
   hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.window.move({ direction = "up" }))
   hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.window.move({ direction = "down" }))
 
-  -- Move workspace to monitor (no Lua API wrapper — use hyprctl)
-  hl.bind(mainMod .. " + CTRL + SHIFT + left",  hl.dsp.exec_cmd("hyprctl dispatch movecurrentworkspacetomonitor l"))
-  hl.bind(mainMod .. " + CTRL + SHIFT + right", hl.dsp.exec_cmd("hyprctl dispatch movecurrentworkspacetomonitor r"))
+  -- Move workspace to monitor (native dispatcher only accepts single-letter
+  -- directions here — "left"/"right" are silently ignored, see hyprwm/Hyprland#14713)
+  hl.bind(mainMod .. " + CTRL + SHIFT + left",  hl.dsp.workspace.move({ monitor = "l" }))
+  hl.bind(mainMod .. " + CTRL + SHIFT + right", hl.dsp.workspace.move({ monitor = "r" }))
 
   -- Special workspaces
   hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("notes"))
