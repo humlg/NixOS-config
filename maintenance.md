@@ -81,27 +81,51 @@ Last full scan: 2026-07-16.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
 ### 7. Saruman: s2idle sleep/resume hang — worked around by hibernating on lid close
-- **Where:** `hosts/saruman/configuration.nix:50-82`, `hosts/saruman/home.nix`
-  (`lidSwitchCmd`), `modules/desktop/hyprland-desktop.nix` (`lidSwitchCmd`
-  option), both `keybinds.nix` files (lid-switch bind).
+- **Where:** `hosts/saruman/configuration.nix` (`boot.resumeDevice`,
+  `services.logind.settings.Login.HandleLidSwitch`/
+  `HandleLidSwitchExternalPower`).
 - **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
   2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — kernel-level mitigation,
      **confirmed 2026-07-22 to NOT fix the hang on its own** (rebooted onto
      it, hang recurred). Kept as a harmless secondary mitigation.
   3. `mt7921e disable_aspm=1` — secondary/unconfirmed theory, kept since it's harmless (the WiFi chip *may* also wedge the platform in deep ASPM states).
-  4. **Hibernate on lid close (2026-07-22, active fix)** — `lidSwitchCmd =
-     "systemctl hibernate"` in `home.nix` overrides the shared
-     `desktop.hyprland-desktop.lidSwitchCmd` option (default `"systemctl
-     suspend"`, still used by sauron/nixosvm, neither of which has a lid
-     switch). This sidesteps s2idle entirely for the lid-close path instead
-     of trying to fix the buggy deep-idle code path. Needs
-     `boot.resumeDevice` pointing at the LUKS swap partition
-     (`luks-01b4b8c5-...`, 29.9GB, already unlocked in initrd) — 27GiB RAM
-     fits comfortably. **Not yet extended to hypridle's 30-min idle-timeout
-     suspend listener** (`modules/desktop/hypridle.nix`) — that's a second,
-     still-live path into s2idle if the laptop sits open and idle long
-     enough; revisit if it turns out to reproduce the hang too.
+  4. **Hibernate on lid close (2026-07-22, active fix)** —
+     `services.logind.settings.Login.HandleLidSwitch = "hibernate"` (also
+     `HandleLidSwitchExternalPower`) in `configuration.nix`. This sidesteps
+     s2idle entirely for the lid-close path instead of trying to fix the
+     buggy deep-idle code path. Needs `boot.resumeDevice` pointing at the
+     LUKS swap partition (`luks-01b4b8c5-...`, 29.9GB, already unlocked in
+     initrd) — 27GiB RAM fits comfortably.
+     **First attempt was wrong and is worth recording**: initially added a
+     `desktop.hyprland-desktop.lidSwitchCmd` option and set the Hyprland
+     `switch:on:Lid Switch` compositor keybind to `systemctl hibernate`,
+     leaving `services.logind`'s own native lid-switch handler at its
+     default (`HandleLidSwitch = "suspend"`, never explicitly set before).
+     logind listens to the lid-switch evdev event independently of the
+     compositor, so **both fired on every lid close** — this had always been
+     true, just invisible before because both sides called `systemctl
+     suspend`. Once only the compositor side changed, the two raced and
+     logind's suspend consistently won, so the laptop suspended (s2idle)
+     instead of hibernating — confirmed via
+     `journalctl -b -2`: `systemd-logind: Lid closed. Suspending...` fired
+     immediately after Hyprland's own `hibernate requested from client PID
+     ... ('systemctl')`, and the kernel log showed `PM: suspend entry
+     (s2idle)`, not hibernate. On the next boot,
+     `systemd-hibernate-resume.service` correctly found the swap device but
+     no valid hibernation image (`Unable to resume from device ... offset 0,
+     continuing boot process`), so it booted fresh with no error — which is
+     why it looked like nothing had happened at all. Fixed by reverting the
+     compositor-level bind and `lidSwitchCmd` option entirely and setting
+     `HandleLidSwitch` at the systemd-logind level instead, where the actual
+     race was happening. Lesson: on this repo's Hyprland setup, lid-switch
+     handling must live in `services.logind`, not a compositor keybind —
+     logind reacts to lid events on its own regardless of what the
+     compositor does.
+     **Not yet extended to hypridle's 30-min idle-timeout suspend listener**
+     (`modules/desktop/hypridle.nix`) — that's a second, still-live path
+     into s2idle if the laptop sits open and idle long enough; revisit if it
+     turns out to reproduce the hang too.
 - **Root-cause lead (2026-07-21, unconfirmed as sole cause):** Upstream kernel
   bugzilla [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is
   filed against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the

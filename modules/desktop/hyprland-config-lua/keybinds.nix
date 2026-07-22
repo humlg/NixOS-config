@@ -1,11 +1,13 @@
-{ cfg, reloadDesktop, ... }:
+{ reloadDesktop, ... }:
 ''
   -- ── Keybinds ────────────────────────────────────────────────────
   -- Flag reference: { locked=true } = bindl, { repeating=true } = binde,
   --                 { locked=true, repeating=true } = bindel, { mouse=true } = bindm
 
-  -- Lid switch → lock + sleep (cfg.lidSwitchCmd, per-host; default suspend)
-  hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd(lockScreen .. " & ${cfg.lidSwitchCmd}"), { locked = true })
+  -- Lid switch is handled by systemd-logind (services.logind.settings.Login.
+  -- HandleLidSwitch), not here. A compositor-level bind alongside logind's own
+  -- native handler double-triggered sleep on every lid close, racing each
+  -- other — see maintenance.md item 7.
 
   -- Core
   hl.bind(mainMod .. " + Q",           hl.dsp.exec_cmd(terminal))

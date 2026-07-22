@@ -109,6 +109,15 @@
   # Power button suspends instead of powering off
   services.logind.settings.Login.HandlePowerKey = "suspend";
 
+  # Lid close hibernates instead of suspending, since s2idle wedges the
+  # platform (see maintenance.md item 7). This must be set here, not via a
+  # Hyprland compositor keybind — logind has its own native lid-switch
+  # handler (default action "suspend") that fires independently of any
+  # compositor bind, and the two raced each other when only the compositor
+  # side was changed to hibernate (logind's suspend won the race every time).
+  services.logind.settings.Login.HandleLidSwitch = "hibernate";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
+
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module
   # sg (SCSI generic) isn't autoloaded for the USB CD/DVD burner, but
