@@ -1,10 +1,10 @@
-{ reloadDesktop, ... }:
+{ cfg, reloadDesktop, ... }:
 ''
   # ── Keybinds ────────────────────────────────────────────────────
   $mainMod = SUPER
 
-  # Lid switch → lock + suspend
-  bindl = , switch:on:Lid Switch, exec, $lockScreen & systemctl suspend
+  # Lid switch → lock + sleep (cfg.lidSwitchCmd, per-host; default suspend)
+  bindl = , switch:on:Lid Switch, exec, $lockScreen & ${cfg.lidSwitchCmd}
 
   # Core
   bind = $mainMod,       Q, exec,          $terminal

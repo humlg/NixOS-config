@@ -143,6 +143,12 @@ in
       default = "";
       description = "Extra Lua lines appended at the end (per-host overrides, Lua format). Used only when useLuaConfig = true.";
     };
+
+    lidSwitchCmd = lib.mkOption {
+      type    = lib.types.str;
+      default = "systemctl suspend";
+      description = "Command run (after locking) when the lid switch closes. Override per-host (e.g. \"systemctl hibernate\") on machines where plain suspend is unreliable.";
+    };
   };
 
   config = lib.mkIf cfg.enable {

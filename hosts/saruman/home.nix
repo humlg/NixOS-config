@@ -52,6 +52,10 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
+    # s2idle wedges the platform on this laptop (see maintenance.md item 7) —
+    # hibernate on lid close instead, sidestepping s2idle entirely.
+    lidSwitchCmd  = "systemctl hibernate";
+
     extraConfig = ''
       xwayland {
           force_zero_scaling = false

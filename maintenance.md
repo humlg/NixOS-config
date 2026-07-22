@@ -80,24 +80,40 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — mitigations in place, not fully solved
-- **Where:** `hosts/saruman/configuration.nix:54-73`
+### 7. Saruman: s2idle sleep/resume hang — worked around by hibernating on lid close
+- **Where:** `hosts/saruman/configuration.nix:50-82`, `hosts/saruman/home.nix`
+  (`lidSwitchCmd`), `modules/desktop/hyprland-desktop.nix` (`lidSwitchCmd`
+  option), both `keybinds.nix` files (lid-switch bind).
 - **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
-  2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — **primary theory/mitigation as of 2026-07-21**, see below.
+  2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — kernel-level mitigation,
+     **confirmed 2026-07-22 to NOT fix the hang on its own** (rebooted onto
+     it, hang recurred). Kept as a harmless secondary mitigation.
   3. `mt7921e disable_aspm=1` — secondary/unconfirmed theory, kept since it's harmless (the WiFi chip *may* also wedge the platform in deep ASPM states).
-- **Primary lead (2026-07-21):** Upstream kernel bugzilla
-  [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is filed
-  against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the
+  4. **Hibernate on lid close (2026-07-22, active fix)** — `lidSwitchCmd =
+     "systemctl hibernate"` in `home.nix` overrides the shared
+     `desktop.hyprland-desktop.lidSwitchCmd` option (default `"systemctl
+     suspend"`, still used by sauron/nixosvm, neither of which has a lid
+     switch). This sidesteps s2idle entirely for the lid-close path instead
+     of trying to fix the buggy deep-idle code path. Needs
+     `boot.resumeDevice` pointing at the LUKS swap partition
+     (`luks-01b4b8c5-...`, 29.9GB, already unlocked in initrd) — 27GiB RAM
+     fits comfortably. **Not yet extended to hypridle's 30-min idle-timeout
+     suspend listener** (`modules/desktop/hypridle.nix`) — that's a second,
+     still-live path into s2idle if the laptop sits open and idle long
+     enough; revisit if it turns out to reproduce the hang too.
+- **Root-cause lead (2026-07-21, unconfirmed as sole cause):** Upstream kernel
+  bugzilla [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is
+  filed against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the
   identical symptom (EC/keyboard-backlight alive, system otherwise wedged,
   unresponsive to keyboard/power button, hard power-off required). A reporter
   on that bug bisected it to commit `f6098641d3e1e4` ("drm/amd/display: fix
   s2idle entry for DCN3.5+", merged ~6.10→6.11, backported to stable): kernel
   6.10 resumes fine, 6.11+ hangs. That commit forces DCN3.5+ display hardware
   (saruman's Radeon 880M/890M iGPU, RDNA 3.5 = DCN 3.5) into IPS (Idle Power
-  States) before D3cold on s2idle entry — plausibly what wedges this platform.
-  `amdgpu.dcdebugmask=0x800` sets the `DC_DISABLE_IPS` debug bit, disabling
-  all IPS and bypassing that code path entirely.
+  States) before D3cold on s2idle entry. `amdgpu.dcdebugmask=0x800` disables
+  that path but did **not** stop the hang on its own — either the bisected
+  commit isn't the (whole) cause, or there's a second contributing bug.
 - **Also:** the reboot-hang half of this was independently fixed and documented
   as solved (commit `505cd04`, no `reboot=` override needed on BIOS PSCN23WW) —
   see project memory `saruman-sleep-hang.md`. That testing was done **undocked**
@@ -108,23 +124,20 @@ Last full scan: 2026-07-16.
   Re-enabled since it was pure downside: with it blacklisted, saruman had no
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = still unresolved;
-  `ucsi_acpi` ruled out as the cause. `amdgpu.dcdebugmask=0x800` is the new
-  active mitigation under test (added 2026-07-21, not yet confirmed — the hang
-  needs >10 min sleep residency to reproduce, so real-world lid-close use over
-  several days is the actual test, not short `rtcwake` cycles).
-- **Action:** Use saruman normally (lid-close sleeps, overnight sleeps) for a
-  few days/weeks. If no hangs recur, mark this solved and consider dropping
-  `mt7921e disable_aspm=1` (secondary theory) and the `pm_debug_messages`/
-  `amd_pmc.enable_stb=1` diagnostics. If it still hangs, capture `dmesg`/EC
-  state around resume, and revisit the hibernate-based workaround (suspend-
-  then-hibernate on lid-close, converting long sleeps to full hibernate before
-  the buggy deep-idle window is reached) discussed but not chosen in the
-  2026-07-21 session. Update `saruman-sleep-hang.md` memory + this entry once
-  confirmed either way.
-- **Removal condition:** Upstream fixes the DCN3.5+ IPS regression (watch bug
-  #219445) in a shipped kernel — once fixed, drop `amdgpu.dcdebugmask=0x800`
-  and re-test without it.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = worked around via
+  hibernate-on-lid-close (2026-07-22); the underlying s2idle bug itself is
+  still unresolved upstream. Watch for hangs via the hypridle idle-timeout
+  suspend path, which is not yet covered by this workaround.
+- **Action:** Use saruman normally for a few days/weeks. If lid-close hangs
+  stop but idle-timeout suspend (30 min, no lid activity) still hangs, either
+  convert that listener to hibernate too or drop the idle-timeout-suspend
+  listener in favor of relying on lid close. If hibernate itself proves
+  unreliable (slower resume, disk wear, etc.), fall back to investigating
+  further kernel-level fixes.
+- **Removal condition:** Upstream fixes the s2idle wedge for this hardware
+  (watch bug #219445) in a shipped kernel and it's confirmed stable over
+  real-world use — then `lidSwitchCmd` can revert to `"systemctl suspend"`
+  and `amdgpu.dcdebugmask=0x800` can be dropped and re-tested without it.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.

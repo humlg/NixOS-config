@@ -1,11 +1,11 @@
-{ reloadDesktop, ... }:
+{ cfg, reloadDesktop, ... }:
 ''
   -- ── Keybinds ────────────────────────────────────────────────────
   -- Flag reference: { locked=true } = bindl, { repeating=true } = binde,
   --                 { locked=true, repeating=true } = bindel, { mouse=true } = bindm
 
-  -- Lid switch → lock + suspend
-  hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd(lockScreen .. " & systemctl suspend"), { locked = true })
+  -- Lid switch → lock + sleep (cfg.lidSwitchCmd, per-host; default suspend)
+  hl.bind("switch:on:Lid Switch", hl.dsp.exec_cmd(lockScreen .. " & ${cfg.lidSwitchCmd}"), { locked = true })
 
   -- Core
   hl.bind(mainMod .. " + Q",           hl.dsp.exec_cmd(terminal))

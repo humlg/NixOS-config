@@ -50,6 +50,11 @@
   # LUKS encryption (swap partition)
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
+  # Hibernate support: resume from the LUKS swap partition above (unlocked in
+  # initrd, same as root). Needed because lid-close now hibernates instead of
+  # suspending — see the s2idle sleep-hang note below and maintenance.md item 7.
+  boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
+
   # Plymouth boot splash (shows * for LUKS password entry)
   boot.initrd.systemd.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
@@ -58,11 +63,13 @@
   # PSCN23WW, while forcing reboot=acpi (old-BIOS workaround) or reboot=efi
   # hangs at the firmware reset step.
   # amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS): disables Idle Power States on
-  # the iGPU. Targets kernel bugzilla #219445 (this exact laptop model),
+  # the iGPU. Targeted kernel bugzilla #219445 (this exact laptop model),
   # bisected to commit f6098641d3e1e4 ("drm/amd/display: fix s2idle entry for
-  # DCN3.5+"), which forces DCN3.5+ display hw (this iGPU) into IPS before
-  # D3cold on s2idle entry — the likely cause of the sleep hang. Primary
-  # theory/mitigation as of 2026-07-21; see maintenance.md item 7.
+  # DCN3.5+"). Confirmed 2026-07-22 NOT to fix the sleep hang on its own
+  # (hang recurred after a real reboot with this param active) — kept as a
+  # harmless secondary mitigation. Lid-close now hibernates instead of
+  # suspending (see boot.resumeDevice above), sidestepping s2idle entirely;
+  # see maintenance.md item 7.
   # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
   # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
   # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
