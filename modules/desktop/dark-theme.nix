@@ -1,7 +1,16 @@
 { config, lib, pkgs, ... }:
 
 let
-  gtkThemeName = "Orchis-Purple-Dark-Compact";
+  gtkThemeName = "WhiteSur-Dark-solid-purple";
+
+  # Orchis-Purple-Dark-Compact was removed from nixpkgs 2026-07-22 along with
+  # gtk-engine-murrine (unmaintained, GTK2-only). WhiteSur is a pure-CSS
+  # GTK3/4 theme with no murrine dependency, so it won't rot the same way.
+  gtkTheme = pkgs.whitesur-gtk-theme.override {
+    colorVariants = [ "dark" ];
+    themeVariants = [ "purple" ];
+    opacityVariants = [ "solid" ];
+  };
 
   papirus-purple = pkgs.runCommand "papirus-icon-theme-purple" {
     nativeBuildInputs = [ pkgs.gtk3 ];
@@ -15,7 +24,7 @@ let
 in
 {
   home.packages = with pkgs; [
-    orchis-theme
+    gtkTheme
     papirus-purple
 
     qt6Packages.qt6ct
@@ -29,7 +38,7 @@ in
 
     theme = {
       name = gtkThemeName;
-      package = pkgs.orchis-theme;
+      package = gtkTheme;
     };
 
     iconTheme = {
