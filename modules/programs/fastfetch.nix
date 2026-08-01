@@ -10,16 +10,13 @@ in
       "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
 
       logo = {
-        type = "auto";
-        source = "auto";
-        width = 1;
-        height = 1;
+        type = "builtin";
+        source = "NixOS_small";
         padding = {
           top = 0;
           left = 0;
           right = 3;
         };
-        color = {};
       };
 
       display = {
