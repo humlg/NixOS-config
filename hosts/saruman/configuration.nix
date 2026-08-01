@@ -170,6 +170,7 @@
     gtk3
     codex
     clinfo
+    openttd
   ];
 
   programs.zen-browser-custom.enable = true;
