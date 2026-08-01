@@ -53,8 +53,8 @@ in
         "break"
         {
           type = "command";
-          key = "Generations";
-          text = "ls -d /nix/var/nix/profiles/system-*-link 2>/dev/null | wc -l";
+          key = "Generation";
+          text = "ls /nix/var/nix/profiles/system-*-link 2>/dev/null | grep -oP 'system-\\K[0-9]+' | sort -n | tail -1";
         }
         {
           type = "command";
