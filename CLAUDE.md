@@ -93,7 +93,8 @@ modules/
     fastfetch.nix                  # fastfetch system-info banner
     claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
     ssh-keys.nix                   # SSH client config (github-huml-yg host alias)
-    mullvad.nix                    # Mullvad VPN
+    mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
+    transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
     webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
     zen-browser.nix                # Zen Browser + DuckDuckGo default search policy
     winboat.nix                    # Windows-in-a-box via winboat — orphaned, Docker wiring incomplete (see maintenance.md #13)

@@ -24,12 +24,14 @@ in
     ../../modules/programs/ssh-keys.nix
     ../../modules/bundles/yg-work.nix
     ../../modules/programs/webapps.nix
+    ../../modules/programs/transmission.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
   bundles.yg-work.enable = true;
+  custom.transmission-vpn.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;

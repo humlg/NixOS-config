@@ -16,7 +16,6 @@ in
       chromium
       spotify
       megasync
-      transmission_4-qt
     ];
   };
 }

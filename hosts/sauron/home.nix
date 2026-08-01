@@ -8,11 +8,13 @@
     ../../modules/desktop/hyprland-desktop.nix
     ../../modules/programs/ssh-keys.nix
     ../../modules/programs/cava.nix
+    ../../modules/programs/transmission.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
+  custom.transmission-vpn.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;

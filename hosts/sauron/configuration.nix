@@ -17,6 +17,7 @@
     ../../modules/bundles/gaming.nix
     ../../modules/system/secrets.nix
     ../../modules/programs/zen-browser.nix
+    ../../modules/programs/mullvad.nix
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine-moonlight.nix
   ];
@@ -52,6 +53,7 @@
   programs.kdeconnect.enable = true;
   programs.coolercontrol.enable = true;
   custom.bluetooth.enable = true;
+  custom.mullvad.enable = true;
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
   bundles.wine.enable = true;
