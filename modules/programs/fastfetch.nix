@@ -1,5 +1,8 @@
 { ... }:
 
+let
+  flakeRepo = "/home/david/repos/nixos-config";
+in
 {
   programs.fastfetch = {
     enable = true;
@@ -26,41 +29,41 @@
           title = "red";
         };
         key = {
-          width = 4;
-          type = "icon";
-        };
-        bar = {
-          width = 10;
-          char = {
-            elapsed = "■";
-            total = "-";
-          };
-        };
-        percent = {
-          type = 9;
-          color = {
-            green = "green";
-            yellow = "light_yellow";
-            red = "light_red";
-          };
+          width = 15;
+          type = "string";
         };
       };
 
       modules = [
-        "os"
+        {
+          type = "title";
+          format = "{host-name-colored}";
+        }
+        "separator"
         "kernel"
         "uptime"
-        "packages"
-        "de"
-        "wm"
-        "cpu"
-        "gpu"
-        "memory"
-        "swap"
-        "disk"
-        "localip"
+        {
+          type = "localip";
+          key = "Local IP";
+          showPrefixLen = false;
+        }
+        {
+          type = "publicip";
+          key = "External IP";
+          timeout = 2000;
+          format = "{ip}";
+        }
         "break"
-        "colors"
+        {
+          type = "command";
+          key = "Generations";
+          text = "ls -d /nix/var/nix/profiles/system-*-link 2>/dev/null | wc -l";
+        }
+        {
+          type = "command";
+          key = "Last Flake Pin";
+          text = "git -C ${flakeRepo} log -1 --format='%as (%ar)' -- flake.lock";
+        }
       ];
     };
   };
