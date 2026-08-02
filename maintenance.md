@@ -148,16 +148,27 @@ Last full scan: 2026-07-16.
   Re-enabled since it was pure downside: with it blacklisted, saruman had no
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = worked around via
-  hibernate-on-lid-close (2026-07-22); the underlying s2idle bug itself is
-  still unresolved upstream. Watch for hangs via the hypridle idle-timeout
-  suspend path, which is not yet covered by this workaround.
-- **Action:** Use saruman normally for a few days/weeks. If lid-close hangs
-  stop but idle-timeout suspend (30 min, no lid activity) still hangs, either
-  convert that listener to hibernate too or drop the idle-timeout-suspend
-  listener in favor of relying on lid close. If hibernate itself proves
-  unreliable (slower resume, disk wear, etc.), fall back to investigating
-  further kernel-level fixes.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang was worked around
+  via hibernate-on-lid-close (2026-07-22); **temporarily reverted to plain
+  `"suspend"` on 2026-08-02** (`HandleLidSwitch`/`HandleLidSwitchExternalPower`
+  back to `"suspend"` in `hosts/saruman/configuration.nix`) to retest whether
+  a recent nixpkgs/kernel bump (flake update 2026-08-01, commit `24dbc01`)
+  fixed the underlying s2idle wedge upstream. `boot.resumeDevice` and the
+  `amdgpu.dcdebugmask=0x800`/`mt7921e disable_aspm=1` mitigations were left in
+  place. Separately: `HandleLidSwitchDocked` (not currently set, defaults to
+  `"ignore"`) takes priority over both `HandleLidSwitch` settings whenever
+  logind sees more than one display connected — since saruman is routinely
+  used with an external monitor, closing the lid while docked may do *nothing
+  at all* regardless of the suspend/hibernate choice above. Not yet addressed;
+  worth revisiting if lid-close appears to silently no-op while an external
+  display is attached.
+- **Action:** Use saruman normally for a few days/weeks with plain suspend. If
+  the s2idle hang recurs, revert `HandleLidSwitch`/`HandleLidSwitchExternalPower`
+  to `"hibernate"`. If it holds up over real-world use, the hibernate
+  workaround (and eventually `amdgpu.dcdebugmask=0x800`) can be dropped for
+  good. Idle-timeout suspend (30 min, no lid activity, `modules/desktop/hypridle.nix`)
+  still calls plain `systemctl suspend` either way — same s2idle exposure as
+  lid-close, watch it too.
 - **Removal condition:** Upstream fixes the s2idle wedge for this hardware
   (watch bug #219445) in a shipped kernel and it's confirmed stable over
   real-world use — then `lidSwitchCmd` can revert to `"systemctl suspend"`
