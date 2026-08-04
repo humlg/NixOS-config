@@ -16,6 +16,7 @@
   hl.bind(mainMod .. " + SHIFT + M",   hl.dsp.exec_cmd("uwsm stop"))
   hl.bind(mainMod .. " + SHIFT + R",   hl.dsp.exec_cmd("${reloadDesktop}/bin/reload-desktop"))
   hl.bind(mainMod .. " + E",           hl.dsp.exec_cmd(fileManager))
+  hl.bind(mainMod .. " + SHIFT + E",   hl.dsp.exec_cmd("rofimoji"))
   hl.bind(mainMod .. " + O",           hl.dsp.window.float({ action = "toggle" }))
   hl.bind(mainMod .. " + I",           hl.dsp.window.fullscreen())
   hl.bind(mainMod .. " + R",           hl.dsp.exec_cmd(menu))

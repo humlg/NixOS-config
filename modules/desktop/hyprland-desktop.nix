@@ -157,6 +157,7 @@ in
       awww
       waypaper
       rofi
+      rofimoji
       cliphist
       wl-clipboard
       networkmanagerapplet

@@ -15,6 +15,7 @@
   bind = $mainMod SHIFT, M, exec,          uwsm stop
   bind = $mainMod SHIFT, R, exec,          ${reloadDesktop}/bin/reload-desktop
   bind = $mainMod,       E, exec,          $fileManager
+  bind = $mainMod SHIFT, E, exec,          rofimoji
   bind = $mainMod,       O, togglefloating
   bind = $mainMod,       I, fullscreen
   bind = $mainMod,       R, exec,          $menu
