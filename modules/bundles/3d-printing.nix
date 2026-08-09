@@ -13,6 +13,7 @@ in
     environment.systemPackages = with pkgs; [
       prusa-slicer   # 3D print slicing
       #bambu-studio
+      printrun
     ];
   };
 }
