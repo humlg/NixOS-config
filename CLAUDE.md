@@ -105,6 +105,7 @@ modules/
     megacmd.nix                    # MEGA sync daemon — orphaned, not imported by any host (see maintenance.md #14)
     ollama.nix                     # Ollama (ROCm build) + oterm TUI
     sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
+    wivrn.nix                      # WiVRn wireless VR streaming server (Meta Quest 2), custom.wivrn.enable — used by sauron
   system/
     common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)
     locale.nix                     # Timezone, locale (en_US/cs_CZ), keymap (cz)
