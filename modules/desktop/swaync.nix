@@ -3,21 +3,27 @@
 let
   home = config.home.homeDirectory;
 
+  # Flag file consumed by modules/desktop/hypridle.nix's guarded listeners.
+  # hypridle.service itself is left running throughout so before_sleep_cmd
+  # still locks the session on a lid-close-triggered suspend — only the
+  # idle-timeout listeners (dim/lock/dpms/suspend) are gated on this file.
+  hypridleInhibitFlag = "$XDG_RUNTIME_DIR/hypridle-idle-inhibited";
+
   sleepInhibitToggle = pkgs.writeShellScript "sleep-inhibit-toggle" ''
-    if systemctl --user is-active --quiet hypridle.service; then
-      systemctl --user stop hypridle.service
-      ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: ON"
-    else
-      systemctl --user start hypridle.service
+    if [ -f "${hypridleInhibitFlag}" ]; then
+      rm -f "${hypridleInhibitFlag}"
       ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: OFF"
+    else
+      touch "${hypridleInhibitFlag}"
+      ${pkgs.libnotify}/bin/notify-send "󰒳 Sleep inhibition: ON"
     fi
   '';
 
   sleepInhibitCheck = pkgs.writeShellScript "sleep-inhibit-check" ''
-    if systemctl --user is-active --quiet hypridle.service; then
-      echo false
-    else
+    if [ -f "${hypridleInhibitFlag}" ]; then
       echo true
+    else
+      echo false
     fi
   '';
 

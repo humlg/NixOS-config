@@ -2,6 +2,16 @@
 
 let
   cfg = config.desktop.hyprland-desktop;
+
+  # Idle-timeout listeners are gated on this flag file so the "sleep inhibit"
+  # toggle (modules/desktop/swaync.nix) can disable *just* the idle timeouts
+  # while leaving hypridle running — it must keep running so before_sleep_cmd
+  # still locks the session on a lid-close-triggered suspend (handled directly
+  # by logind, independent of hypridle's own listeners).
+  runUnlessIdleInhibited = pkgs.writeShellScript "hypridle-run-unless-inhibited" ''
+    [ -f "$XDG_RUNTIME_DIR/hypridle-idle-inhibited" ] || exec "$@"
+  '';
+  guarded = cmd: "${runUnlessIdleInhibited} ${cmd}";
 in
 {
   config = lib.mkIf cfg.enable {
@@ -19,21 +29,21 @@ in
         listener = [
           {
             timeout    = 300;   # 5 min — dim backlight
-            on-timeout = "brightnessctl -s set 39900";
+            on-timeout = guarded "brightnessctl -s set 39900";
             on-resume  = "brightnessctl -r";
           }
           {
             timeout    = 600;   # 10 min — lock screen
-            on-timeout = "loginctl lock-session";
+            on-timeout = guarded "loginctl lock-session";
           }
           {
             timeout    = 1200;  # 20 min — DPMS off
-            on-timeout = "hyprctl dispatch dpms off";
+            on-timeout = guarded "hyprctl dispatch dpms off";
             on-resume  = "hyprctl dispatch dpms on && brightnessctl -r";
           }
           {
             timeout    = 1800;  # 30 min — suspend
-            on-timeout = "systemctl suspend";
+            on-timeout = guarded "systemctl suspend";
           }
         ];
       };
