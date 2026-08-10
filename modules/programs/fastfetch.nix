@@ -10,6 +10,13 @@ let
   # version, ...) — no cursor-position escape trickery needed.
   valueWidth = 28;
 
+  # Must exceed the longest "│ <Label>" key text plus display.separator,
+  # or fastfetch's key-width alignment jump lands *inside* the label
+  # instead of after it, corrupting the text. Longest key is
+  # "│ Generation" (12 chars) + 2-char separator = 14, so this needs to
+  # stay above 15.
+  keyWidth = 16;
+
   # Wrap a shell snippet that prints a value on stdout so the value is
   # captured, then right-justified into valueWidth via printf.
   padded = cmd: ''
@@ -17,7 +24,7 @@ let
     printf "%${toString valueWidth}s" "$v"
   '';
 
-  frameWidth = 41;
+  frameWidth = keyWidth + valueWidth - 2;
   hbar = builtins.concatStringsSep "" (builtins.genList (_: "─") frameWidth);
   topBorder = "╭${hbar}╮";
   midBorder = "├${hbar}┤";
@@ -31,6 +38,9 @@ in
 
       logo = {
         type = "data";
+        # Printed above the frame (not beside it) so the frame's own width
+        # — not the logo's — is what has to fit in a narrow terminal.
+        position = "top";
         source = ''
           $1                ___   __
                    /¯\    \  \ /  ;
@@ -51,7 +61,7 @@ in
         padding = {
           top = 0;
           left = 0;
-          right = 1;
+          right = 0;
         };
       };
 
@@ -62,7 +72,7 @@ in
           title = "red";
         };
         key = {
-          width = 15;
+          width = keyWidth;
           type = "string";
         };
       };
@@ -75,7 +85,10 @@ in
         {
           type = "command";
           key = "│ ";
-          text = padded ''printf "\033[1;31m%s\033[0m" "$(hostname)"'';
+          # Color codes must wrap the already-padded string, not sit inside
+          # the printf width argument — otherwise their invisible bytes eat
+          # into the width budget and this row falls short of the others.
+          text = ''printf "\033[1;31m%${toString valueWidth}s\033[0m" "$(hostname)"'';
           format = "{}│";
         }
         {
@@ -102,7 +115,7 @@ in
         }
         {
           type = "command";
-          key = "│ External IP";
+          key = "│ Public IP";
           text = padded "timeout 2 fastfetch --logo none -s publicip --pipe true 2>/dev/null | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -1";
           format = "{}│";
         }
@@ -118,7 +131,7 @@ in
         }
         {
           type = "command";
-          key = "│ Last Flake Pin";
+          key = "│ Flake Pin";
           text = padded "git -C ${flakeRepo} log -1 --format='%as (%ar)' -- flake.lock";
           format = "{}│";
         }
