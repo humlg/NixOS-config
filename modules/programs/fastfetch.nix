@@ -3,20 +3,19 @@
 let
   flakeRepo = "/home/david/repos/nixos-config";
 
-  # Raw ANSI escape (ESC, 0x1b) — used to build cursor save/restore/move
-  # sequences so the frame's right border lands in a fixed column no matter
-  # how long a value (IP, date, kernel version, ...) turns out to be:
-  # save the cursor right where the value starts, print the value, restore
-  # to that saved point, then step a fixed distance right before drawing
-  # the border. This is immune to value-length changes since it never
-  # depends on an absolute column — only on a fixed offset from the save
-  # point, which fastfetch itself always places consistently thanks to
-  # display.key.width.
-  esc = "";
-  valueBudget = 28;
-  save = "${esc}[s";
-  restoreAndBorder = "${esc}[u${esc}[${toString valueBudget}C│";
-  framed = value: "${save}${value}${restoreAndBorder}";
+  # Fixed display width every value is right-justified into (via printf)
+  # before the row's border char is appended literally. Because the value
+  # arrives already padded to this exact width, the border always lands in
+  # the same column regardless of the value's real length (IP/date/kernel
+  # version, ...) — no cursor-position escape trickery needed.
+  valueWidth = 28;
+
+  # Wrap a shell snippet that prints a value on stdout so the value is
+  # captured, then right-justified into valueWidth via printf.
+  padded = cmd: ''
+    v="$(${cmd})"
+    printf "%${toString valueWidth}s" "$v"
+  '';
 
   frameWidth = 41;
   hbar = builtins.concatStringsSep "" (builtins.genList (_: "─") frameWidth);
@@ -52,7 +51,7 @@ in
         padding = {
           top = 0;
           left = 0;
-          right = 3;
+          right = 1;
         };
       };
 
@@ -74,35 +73,38 @@ in
           key = topBorder;
         }
         {
-          type = "title";
+          type = "command";
           key = "│ ";
-          format = framed "{host-name-colored}";
+          text = padded ''printf "\033[1;31m%s\033[0m" "$(hostname)"'';
+          format = "{}│";
         }
         {
           type = "custom";
           key = midBorder;
         }
         {
-          type = "kernel";
+          type = "command";
           key = "│ Kernel";
-          format = framed "{sysname} {release}";
+          text = padded "fastfetch --logo none -s kernel --pipe true 2>/dev/null | sed -E 's/^Kernel[[:space:]]*//; s/\\x1b\\[[0-9;]*[A-Za-z]//g'";
+          format = "{}│";
         }
         {
-          type = "uptime";
+          type = "command";
           key = "│ Uptime";
-          format = framed "{formatted}";
+          text = padded "fastfetch --logo none -s uptime --pipe true 2>/dev/null | sed -E 's/^Uptime[[:space:]]*//; s/\\x1b\\[[0-9;]*[A-Za-z]//g'";
+          format = "{}│";
         }
         {
-          type = "localip";
+          type = "command";
           key = "│ Local IP";
-          showPrefixLen = false;
-          format = framed "{ipv4}";
+          text = padded "fastfetch --logo none -s localip --pipe true 2>/dev/null | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -1";
+          format = "{}│";
         }
         {
-          type = "publicip";
+          type = "command";
           key = "│ External IP";
-          timeout = 2000;
-          format = framed "{ip}";
+          text = padded "timeout 2 fastfetch --logo none -s publicip --pipe true 2>/dev/null | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -1";
+          format = "{}│";
         }
         {
           type = "custom";
@@ -111,14 +113,14 @@ in
         {
           type = "command";
           key = "│ Generation";
-          text = "ls /nix/var/nix/profiles/system-*-link 2>/dev/null | grep -oP 'system-\\K[0-9]+' | sort -n | tail -1";
-          format = framed "{}";
+          text = padded "ls /nix/var/nix/profiles/system-*-link 2>/dev/null | grep -oP 'system-\\K[0-9]+' | sort -n | tail -1";
+          format = "{}│";
         }
         {
           type = "command";
           key = "│ Last Flake Pin";
-          text = "git -C ${flakeRepo} log -1 --format='%as (%ar)' -- flake.lock";
-          format = framed "{}";
+          text = padded "git -C ${flakeRepo} log -1 --format='%as (%ar)' -- flake.lock";
+          format = "{}│";
         }
         {
           type = "custom";
