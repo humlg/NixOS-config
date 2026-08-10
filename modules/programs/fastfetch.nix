@@ -10,8 +10,21 @@ in
       "$schema" = "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json";
 
       logo = {
-        type = "builtin";
-        source = "NixOS_small";
+        type = "data-raw";
+        source = ''
+                        ___   __
+                 /¯\    \  \ /  ;
+                 \  \    \  v  /
+              /¯¯¯   ¯¯¯¯\\   /  /\
+             ’————————————·\  \ /  ;
+                  /¯¯;      \ //  /_
+            _____/  /        ‘/     \
+            \      /,        /  /¯¯¯¯
+             ¯¯/  // \      /__/
+              .  / \  \·————————————.
+               \/  /   \\_____   ___/
+                  /  ,  \     \  \
+                  \_/ \__\     \_/            '';
         padding = {
           top = 0;
           left = 0;
