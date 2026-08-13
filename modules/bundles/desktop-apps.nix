@@ -16,6 +16,7 @@ in
       chromium
       spotify
       megasync
+      appimage-run
     ];
   };
 }
