@@ -7,7 +7,7 @@
     <actions>
       <action>
         <name>Mount Vault</name>
-        <command>sh -c 'gocryptfs -extpass "zenity --password --title=Vault" ~/.vault ~/Vault &amp;&amp; thunar ~/Vault'</command>
+        <command>sh -c 'gocryptfs -extpass "zenity --password --title=Vault" /mnt/data1/.vault ~/Vault &amp;&amp; thunar ~/Vault'</command>
         <description>Unlock encrypted vault</description>
         <icon>folder-locked</icon>
         <unique-id>vault-mount</unique-id>
