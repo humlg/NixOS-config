@@ -81,7 +81,8 @@ modules/
     3d-printing.nix                # 3D printing/CAD (prusa-slicer)
     gaming.nix                     # Gaming (Steam, gamemode, mangohud, lsfg-vk)
     wine.nix                       # Wine support
-    yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — saruman only
+    yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — Home Manager half of the yg-work bundle — saruman only
+    yg-work-system.nix             # System (NixOS) half of the yg-work bundle: NetworkManager-openvpn plugin + agenix secrets for the 1NCE cellular IoT VPN — shares the bundles.yg-work.enable option name with yg-work.nix by convention but is a separate NixOS-tree option, toggled independently in configuration.nix — saruman only
   programs/
     zsh.nix                        # Zsh shell config (oh-my-zsh, autosuggestions)
     git.nix                        # Git identity + defaults (rebase pulls, zdiff3, rerere)
@@ -229,8 +230,12 @@ sudo nixos-rebuild switch --flake .#newhost
 |------|---------|
 | `secrets/secrets.nix` | Recipient key map — edit when adding/removing hosts |
 | `secrets/shell-env.age` | Shell environment variables (API tokens, etc.) |
-| `modules/system/secrets.nix` | NixOS declarations for all secrets |
+| `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
+| `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
+| `modules/system/secrets.nix` | NixOS declarations for secrets shared/common across hosts |
 | `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
+
+Not all `age.secrets` live in `modules/system/secrets.nix` — a host- or bundle-specific secret (like the 1NCE VPN's) can be declared directly inside its own opt-in module (see `modules/bundles/yg-work-system.nix`) so it's only decrypted on hosts that enable that module.
 
 ## Workflow Rules
 

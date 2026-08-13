@@ -18,6 +18,7 @@
     ../../modules/programs/mullvad.nix
     ../../modules/services/ollama.nix
     ../../modules/bundles/gaming.nix
+    ../../modules/bundles/yg-work-system.nix
     ../../modules/programs/zen-browser.nix
     ../../modules/system/secrets.nix
     ../../modules/services/sunshine-moonlight.nix
@@ -145,6 +146,7 @@
   bundles."3d-printing".enable = true;
   bundles.wine.enable = true;
   bundles.gaming.enable = true;
+  bundles.yg-work.enable = true;
 
   home-manager = {
     backupFileExtension = "hm-bak";

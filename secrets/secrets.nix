@@ -7,8 +7,13 @@ let
   sauron  = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA870ubTokXb4ENXyp6zVALdaUnFyRqKeJOWD9/7xahN root@sauron";
 
   desktops = [ sauron saruman david ];
+
+  # saruman only — 1NCE cellular VPN, not needed on sauron
+  sarumanOnly = [ saruman david ];
 in
 {
   "shell-env.age".publicKeys = desktops;
   "github-huml-yg.age".publicKeys = desktops;
+  "1nce-vpn.ovpn.age".publicKeys = sarumanOnly;
+  "1nce-vpn-credentials.age".publicKeys = sarumanOnly;
 }
