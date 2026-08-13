@@ -43,6 +43,7 @@
     wget
     curl
     htop
+    openvpn
   ];
 
   # Prevent inotify watch exhaustion (VS Code, MEGAcmd, etc. consume many watches)
