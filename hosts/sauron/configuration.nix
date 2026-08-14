@@ -20,6 +20,7 @@
     ../../modules/programs/mullvad.nix
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine-moonlight.nix
+    ../../modules/services/wivrn.nix
   ];
 
   networking.hostName = "sauron";
@@ -48,6 +49,7 @@
 
   custom.sunshine-moonlight.enable = true;
   custom.sunshine-moonlight.enableMoonlight = true;
+  custom.wivrn.enable = true;
 
   programs.zen-browser-custom.enable = true;
   programs.kdeconnect.enable = true;
