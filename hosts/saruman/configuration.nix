@@ -12,6 +12,7 @@
     ../../modules/services/bluetooth.nix
     ../../modules/services/kvm.nix
     ../../modules/services/darkproject-keyboard.nix
+    ../../modules/services/lid-undock-hibernate.nix
     ../../modules/bundles/photography.nix
     ../../modules/bundles/3d-printing.nix
     ../../modules/bundles/wine.nix
@@ -124,6 +125,20 @@
   # upstream fix to point at — see maintenance.md item 7.
   services.logind.settings.Login.HandleLidSwitch = "hibernate";
   services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
+
+  # Lid close *with an external monitor attached*: keep running, so the laptop
+  # can be used lid-shut on the Iiyama. This was already the effective
+  # behaviour (logind defaults HandleLidSwitchDocked to "ignore" whenever it
+  # sees an external display) but was never stated — pinning it explicitly so
+  # it can't drift, and so the pairing with lid-undock-hibernate below is
+  # obvious. Note logind evaluates this *only* at the moment the lid event
+  # fires; it never re-checks afterwards, which is exactly the gap the module
+  # below closes.
+  services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
+
+  # ...and once that external monitor is unplugged while the lid is still
+  # shut, hibernate — otherwise the machine stays awake in a bag.
+  custom.lid-undock-hibernate.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

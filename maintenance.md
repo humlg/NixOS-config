@@ -129,6 +129,22 @@ Last full scan: 2026-07-16.
      to `"hibernate"` too. The option defaults to `systemctl suspend` so
      sauron is unaffected — it has a swap device but no `boot.resumeDevice`,
      so hibernate there would power off and lose the session.
+     The fourth path — lid closed *while docked* — is deliberately left as
+     `HandleLidSwitchDocked = "ignore"` (now set explicitly rather than
+     relying on the logind default) so the laptop stays usable lid-shut on
+     an external monitor. logind evaluates that choice only at the instant
+     the lid event fires and never re-checks, so unplugging the monitor
+     afterwards would strand the machine awake in a bag. `modules/services/
+     lid-undock-hibernate.nix` closes that: a udev rule on DRM hotplug runs
+     a unit that hibernates when the last external display disappears with
+     the lid shut. It edge-triggers on a 1→0 external-display transition
+     (state cached in `/run`, which survives hibernation) specifically so
+     powering the machine back on with the lid still shut and no monitor
+     attached does not immediately re-hibernate it. Note this module is a
+     workaround for a *design* gap in logind, not for an upstream bug, so
+     it does not disappear when #219445 is fixed — but it also becomes
+     much less important then, since the fallback would be a working
+     suspend rather than a wedge.
   5. **2026-08-02 → 2026-08-14 retest on plain `suspend`: FAILED, reverted.**
      Lid close was temporarily set back to `"suspend"` to check whether a
      nixpkgs/kernel update had fixed the underlying bug. It had not. On
