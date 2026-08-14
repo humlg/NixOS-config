@@ -47,12 +47,12 @@ let
     lid=$(cat /proc/acpi/button/lid/*/state 2>/dev/null | awk '{ print $2; exit }' || true)
     [ "$lid" = "closed" ] || exit 0
 
-    # Respect the same "sleep inhibit" toggle hypridle honours
-    # (modules/desktop/swaync.nix) so one switch silences every sleep path.
-    ${lib.optionalString (cfg.inhibitFlag != "") ''
-      [ -f "${cfg.inhibitFlag}" ] && exit 0
-    ''}
-
+    # Deliberately does NOT consult the swaync "sleep inhibit" flag
+    # (modules/desktop/swaync.nix). That toggle exists to hold off the *idle*
+    # timeouts in hypridle — dim/lock/dpms/suspend — not to keep the machine
+    # awake with the lid shut. A closed lid is an explicit "I am done" signal
+    # and must always sleep, same as logind's own lid handling, which ignores
+    # inhibitors too (LidSwitchIgnoreInhibited defaults to yes).
     echo "external display disconnected while lid closed — hibernating"
     exec systemctl --no-block hibernate
   '';
@@ -82,15 +82,6 @@ in
       '';
     };
 
-    inhibitFlag = lib.mkOption {
-      type    = lib.types.str;
-      default = "/run/user/1000/hypridle-idle-inhibited";
-      description = ''
-        If this file exists, do not hibernate. Points at the flag file the
-        swaync "sleep inhibit" toggle creates for hypridle. Set to "" to
-        hibernate unconditionally regardless of the inhibit toggle.
-      '';
-    };
   };
 
   config = lib.mkIf cfg.enable {
