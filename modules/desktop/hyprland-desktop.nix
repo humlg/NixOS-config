@@ -143,6 +143,18 @@ in
       default = "";
       description = "Extra Lua lines appended at the end (per-host overrides, Lua format). Used only when useLuaConfig = true.";
     };
+
+    sleepCommand = lib.mkOption {
+      type    = lib.types.str;
+      default = "systemctl suspend";
+      description = ''
+        Command hypridle runs when the final idle timeout fires. Defaults to
+        plain suspend; hosts whose firmware wedges on s2idle can set this to
+        "systemctl hibernate" (saruman does — see maintenance.md item 7).
+        Only set hibernate on a host that has boot.resumeDevice configured,
+        otherwise the machine powers off and loses the session.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {

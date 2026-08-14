@@ -107,16 +107,23 @@
     };
   };
 
-  # Power button suspends instead of powering off
-  services.logind.settings.Login.HandlePowerKey = "suspend";
+  # Power button hibernates instead of powering off. Deliberately NOT "suspend":
+  # every s2idle entry on this machine risks the wedge described below, and the
+  # power key is just as much a path into it as the lid is.
+  services.logind.settings.Login.HandlePowerKey = "hibernate";
 
-  # Lid close: back to plain suspend (s2idle) as of 2026-08-02, temporarily
-  # reverted from hibernate to retest whether the upstream s2idle wedge (see
-  # maintenance.md item 7, kernel bugzilla #219445) got fixed by a recent
-  # nixpkgs/kernel update. If the hang comes back, revert to
-  # HandleLidSwitch = "hibernate" / HandleLidSwitchExternalPower = "hibernate".
-  services.logind.settings.Login.HandleLidSwitch = "suspend";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
+  # Lid close: hibernate, restored 2026-08-14 after the s2idle retest FAILED.
+  # The 2026-08-02 revert to plain "suspend" (retesting whether a nixpkgs/kernel
+  # update had fixed upstream bugzilla #219445) ran on kernel 7.1.5 for 12 days
+  # and reproduced the hang 8 times out of ~36 suspends (~22%): the journal ends
+  # dead on "PM: suspend entry (s2idle)" with no matching "PM: suspend exit",
+  # requiring a hard power-off and losing unsaved work. By contrast the
+  # 2026-07-24..08-02 hibernate window logged 9 lid-close cycles with a
+  # hibernation entry/exit pair every time and zero hangs (one of them a 7-day
+  # hibernation). Do not revert this to "suspend" again without a concrete
+  # upstream fix to point at — see maintenance.md item 7.
+  services.logind.settings.Login.HandleLidSwitch = "hibernate";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

@@ -122,10 +122,28 @@ Last full scan: 2026-07-16.
      handling must live in `services.logind`, not a compositor keybind —
      logind reacts to lid events on its own regardless of what the
      compositor does.
-     **Not yet extended to hypridle's 30-min idle-timeout suspend listener**
-     (`modules/desktop/hypridle.nix`) — that's a second, still-live path
-     into s2idle if the laptop sits open and idle long enough; revisit if it
-     turns out to reproduce the hang too.
+     **Extended to the other two s2idle paths on 2026-08-14**: hypridle's
+     30-min idle-timeout listener (`modules/desktop/hypridle.nix`) now runs
+     `desktop.hyprland-desktop.sleepCommand`, set to `systemctl hibernate`
+     in `hosts/saruman/home.nix`; and `HandlePowerKey` went from `"suspend"`
+     to `"hibernate"` too. The option defaults to `systemctl suspend` so
+     sauron is unaffected — it has a swap device but no `boot.resumeDevice`,
+     so hibernate there would power off and lose the session.
+  5. **2026-08-02 → 2026-08-14 retest on plain `suspend`: FAILED, reverted.**
+     Lid close was temporarily set back to `"suspend"` to check whether a
+     nixpkgs/kernel update had fixed the underlying bug. It had not. On
+     kernel 7.1.5 over 12 days the hang reproduced **8 times in ~36 suspend
+     attempts (~22%)** — boots -12, -11, -9, -8, -6, -5, -4 and -1 each end
+     with `PM: suspend entry (s2idle)` as the literal last journal line and
+     no matching `PM: suspend exit`, i.e. the machine never came back and
+     was hard-powered-off. For contrast, the 2026-07-24..08-02 hibernate
+     window logged 9 lid-close cycles, every one a clean `hibernation
+     entry` → `hibernation exit` pair, zero hangs, including a 7-day
+     hibernation (Jul 25 → Aug 1). Restored to `"hibernate"` on 2026-08-14.
+     **Removal condition for the whole workaround:** a specific upstream fix
+     for bugzilla #219445 landing in the running kernel. Don't retest by
+     flipping back to `"suspend"` on spec — the cost of a failed retest is
+     the user's unsaved work, and it has now failed once that way.
 - **Root-cause lead (2026-07-21, unconfirmed as sole cause):** Upstream kernel
   bugzilla [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is
   filed against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the

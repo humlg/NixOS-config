@@ -42,8 +42,13 @@ in
             on-resume  = "hyprctl dispatch dpms on && brightnessctl -r";
           }
           {
-            timeout    = 1800;  # 30 min — suspend
-            on-timeout = guarded "systemctl suspend";
+            # 30 min — sleep. The exact command is host-configurable via
+            # desktop.hyprland-desktop.sleepCommand because saruman must
+            # hibernate here rather than suspend: this listener is a third
+            # path into the s2idle wedge (alongside lid close and the power
+            # key, both handled in its configuration.nix via logind).
+            timeout    = 1800;
+            on-timeout = guarded cfg.sleepCommand;
           }
         ];
       };

@@ -54,6 +54,11 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
+    # Hibernate rather than suspend on the 30-min idle timeout — this iGPU
+    # wedges on s2idle resume (maintenance.md item 7), and the idle path is
+    # just as capable of eating unsaved work as the lid-close path was.
+    sleepCommand  = "systemctl hibernate";
+
     extraConfig = ''
       xwayland {
           force_zero_scaling = false
