@@ -80,6 +80,7 @@ modules/
     photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2, DaVinci Resolve)
     3d-printing.nix                # 3D printing/CAD (prusa-slicer)
     gaming.nix                     # Gaming (Steam, gamemode, mangohud, lsfg-vk)
+    ham-radio.nix                  # Amateur radio: sdrpp, wsjtx, hamlib + RTL-SDR udev rules (plugdev/dialout groups) — saruman only
     wine.nix                       # Wine support
     yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — Home Manager half of the yg-work bundle — saruman only
     yg-work-system.nix             # System (NixOS) half of the yg-work bundle: NetworkManager-openvpn plugin + agenix secrets for the 1NCE cellular IoT VPN — shares the bundles.yg-work.enable option name with yg-work.nix by convention but is a separate NixOS-tree option, toggled independently in configuration.nix — saruman only
