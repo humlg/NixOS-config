@@ -149,10 +149,11 @@ in
       default = "systemctl suspend";
       description = ''
         Command hypridle runs when the final idle timeout fires. Defaults to
-        plain suspend; hosts whose firmware wedges on s2idle can set this to
-        "systemctl hibernate" (saruman does — see maintenance.md item 7).
-        Only set hibernate on a host that has boot.resumeDevice configured,
-        otherwise the machine powers off and loses the session.
+        plain suspend; hosts that should not sit suspended indefinitely can set
+        "systemctl hibernate" or "systemctl suspend-then-hibernate" (saruman
+        uses the latter — see maintenance.md item 7). Only pick a hibernating
+        variant on a host that has boot.resumeDevice configured, otherwise the
+        machine powers off and loses the session.
       '';
     };
   };

@@ -1,0 +1,46 @@
+Revert the DCN3.5+ "enter IPS before D3cold" s2idle entry sequence.
+
+Upstream commit f6098641d3e1e4d4052ff9378857c831f9675f6b
+("drm/amd/display: fix s2idle entry for DCN3.5+", v6.11) makes dm_suspend()
+force the display block into idle power state before D3cold, so that DCN3.5+
+parts reach their lowest power state during s2idle.
+
+On saruman (Ryzen AI 9 365 / Radeon 880M, DCN3.5) this wedges the machine on
+resume from any s2idle long enough to actually reach hardware sleep: the
+journal's last line is "PM: suspend entry (s2idle)" with no matching
+"PM: suspend exit", the display never comes back and the kernel stops
+responding to SysRq. Reproduced at roughly a 22% rate over ~36 suspends on
+kernel 7.1.5.
+
+  kernel bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=219445
+                   (filed against this exact laptop model, bisected to the
+                   commit reverted here)
+  amd-gfx thread:  "[REGRESSION] drm/amd/display: Radeon 840M/860M: bisected
+                   suspend crash" - same commit, same symptom, same DCN3.5
+                   display block on Ryzen AI 7 350 / AI 5 340, and deleting
+                   these lines is confirmed to fix it there too.
+  drm/amd issue:   https://gitlab.freedesktop.org/drm/amd/-/issues/4344
+
+Note that amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS) does NOT suppress this
+call path: the guard here is dc->caps.ips_support, a hardware capability bit,
+whereas DC_DISABLE_IPS sets the separate dc->config.disable_ips mode field.
+That is why disabling IPS by module parameter never fixed the hang.
+
+The cost of this revert is the reason AMD declined it upstream: without the
+IPS entry the part does not reach its deepest hardware sleep, so idle drain
+during suspend is higher. saruman accepts that and bounds it with
+suspend-then-hibernate. Drop this patch once #4344 produces a real fix, or
+once the call gains a guard that this hardware fails.
+
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm.c
+@@ -3333,9 +3333,6 @@
+ 
+ 	dc_set_power_state(dm->dc, DC_ACPI_CM_POWER_STATE_D3);
+ 
+-	if (dm->dc->caps.ips_support && adev->in_s0ix)
+-		dc_allow_idle_optimizations(dm->dc, true);
+-
+ 	dc_dmub_srv_set_power_state(dm->dc->ctx->dmub_srv, DC_ACPI_CM_POWER_STATE_D3);
+ 
+ 	return 0;

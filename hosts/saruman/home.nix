@@ -54,10 +54,13 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
-    # Hibernate rather than suspend on the 30-min idle timeout — this iGPU
-    # wedges on s2idle resume (maintenance.md item 7), and the idle path is
-    # just as capable of eating unsaved work as the lid-close path was.
-    sleepCommand  = "systemctl hibernate";
+    # suspend-then-hibernate on the 30-min idle timeout, matching the logind
+    # lid/power-key paths in configuration.nix. Was plain "hibernate" while
+    # s2idle resume wedged this iGPU; that is fixed at the source now by
+    # custom.amdgpu-s2idle-patch (maintenance.md item 7). Still not bare
+    # "suspend": the idle path is just as capable of eating unsaved work to a
+    # flat battery as the lid-close path.
+    sleepCommand  = "systemctl suspend-then-hibernate";
 
     extraConfig = ''
       xwayland {

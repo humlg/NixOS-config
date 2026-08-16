@@ -80,17 +80,23 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — worked around by hibernating on lid close
-- **Where:** `hosts/saruman/configuration.nix` (`boot.resumeDevice`,
-  `services.logind.settings.Login.HandleLidSwitch`/
-  `HandleLidSwitchExternalPower`).
+### 7. Saruman: s2idle sleep/resume hang — fixed 2026-08-16 by a local amdgpu kernel patch
+- **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
+  `modules/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
+  (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
+  `services.logind.settings.Login.Handle*` values, `systemd.sleep.settings.Sleep`).
 - **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
-  2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — kernel-level mitigation,
-     **confirmed 2026-07-22 to NOT fix the hang on its own** (rebooted onto
-     it, hang recurred). Kept as a harmless secondary mitigation.
+  2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — **confirmed 2026-07-22 to
+     NOT fix the hang**, and as of 2026-08-16 we know why it never could. The
+     offending call in `dm_suspend()` is guarded by `dc->caps.ips_support`, a
+     *hardware capability* bit, whereas `DC_DISABLE_IPS` sets the unrelated
+     `dc->config.disable_ips` mode field (a `dmub_ips_disable_type`). The
+     parameter was aimed at the right commit but the wrong field, so it never
+     touched the code path at all. Kept only until the patched kernel in bullet 6
+     below has a clean validation week — then drop it, it is pure noise.
   3. `mt7921e disable_aspm=1` — secondary/unconfirmed theory, kept since it's harmless (the WiFi chip *may* also wedge the platform in deep ASPM states).
-  4. **Hibernate on lid close (2026-07-22, active fix)** —
+  4. **Hibernate on lid close (2026-07-22 → 2026-08-16, superseded by bullet 6)** —
      `services.logind.settings.Login.HandleLidSwitch = "hibernate"` (also
      `HandleLidSwitchExternalPower`) in `configuration.nix`. This sidesteps
      s2idle entirely for the lid-close path instead of trying to fix the
@@ -156,10 +162,40 @@ Last full scan: 2026-07-16.
      window logged 9 lid-close cycles, every one a clean `hibernation
      entry` → `hibernation exit` pair, zero hangs, including a 7-day
      hibernation (Jul 25 → Aug 1). Restored to `"hibernate"` on 2026-08-14.
-     **Removal condition for the whole workaround:** a specific upstream fix
-     for bugzilla #219445 landing in the running kernel. Don't retest by
-     flipping back to `"suspend"` on spec — the cost of a failed retest is
-     the user's unsaved work, and it has now failed once that way.
+     Superseded on 2026-08-16 — see bullet 6.
+  6. **Local kernel patch (2026-08-16, active fix)** —
+     `patches/amdgpu-no-idle-opt-on-s2idle.patch`, applied via
+     `boot.kernelPatches` from `modules/system/amdgpu-s2idle-patch.nix`
+     (`custom.amdgpu-s2idle-patch.enable`). It deletes the two lines that
+     `f6098641d3e1e4` added to `dm_suspend()`:
+     `if (dm->dc->caps.ips_support && adev->in_s0ix) dc_allow_idle_optimizations(dm->dc, true);`
+     Confirmed still present in the running kernel before writing the patch, by
+     disassembling the *shipped* `amdgpu.ko` (7.1.5) rather than trusting
+     upstream source: `dm_suspend` relocates a call to
+     `dc_allow_idle_optimizations_internal` sitting between
+     `hpd_rx_irq_work_suspend` and `dc_dmub_srv_set_power_state`.
+     Corroboration that deleting it is the right remedy comes from the amd-gfx
+     thread *"[REGRESSION] drm/amd/display: Radeon 840M/860M: bisected suspend
+     crash"* — same commit, same symptom, same DCN3.5 display block (Ryzen AI 7
+     350 / AI 5 340), where the reporter confirmed removing these lines fixes
+     it. AMD's Mario Limonciello declined it upstream because it "blocks
+     hardware sleep" and redirected to
+     [drm/amd#4344](https://gitlab.freedesktop.org/drm/amd/-/issues/4344),
+     which has produced no fix — so there is nothing to wait for.
+     **Costs, both accepted deliberately:** every kernel version bump now
+     compiles the kernel locally (~15–25 min on this 10-core/20-thread part);
+     and the part no longer reaches its deepest hardware sleep, so idle drain
+     while suspended is higher than stock. The second is bounded by
+     suspend-then-hibernate (see the sleep-policy bullet below). The module also flips
+     `CONFIG_HIBERNATION_COMP_LZ4` on and sets `hibernate.compressor=lz4`,
+     which stock nixpkgs kernels ship as `n` — free to do while building from
+     source anyway, and it shortens the hibernate resume that remains.
+     **Removal condition:** drm/amd#4344 (or bugzilla #219445) landing a real
+     fix in the running kernel, or the call gaining a guard this hardware
+     fails. At that point drop the patch, the module import, and
+     `amdgpu.dcdebugmask=0x800` together, and re-test plain suspend.
+     If a kernel bump makes the patch fail to apply, that is the intended
+     tripwire — re-read `dm_suspend()` before regenerating it.
 - **Root-cause lead (2026-07-21, unconfirmed as sole cause):** Upstream kernel
   bugzilla [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is
   filed against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the
@@ -168,10 +204,13 @@ Last full scan: 2026-07-16.
   on that bug bisected it to commit `f6098641d3e1e4` ("drm/amd/display: fix
   s2idle entry for DCN3.5+", merged ~6.10→6.11, backported to stable): kernel
   6.10 resumes fine, 6.11+ hangs. That commit forces DCN3.5+ display hardware
-  (saruman's Radeon 880M/890M iGPU, RDNA 3.5 = DCN 3.5) into IPS (Idle Power
-  States) before D3cold on s2idle entry. `amdgpu.dcdebugmask=0x800` disables
-  that path but did **not** stop the hang on its own — either the bisected
-  commit isn't the (whole) cause, or there's a second contributing bug.
+  (saruman's Radeon 880M iGPU, RDNA 3.5 = DCN 3.5) into IPS (Idle Power
+  States) before D3cold on s2idle entry. **Confirmed as the cause on
+  2026-08-16** — the bisect was right all along; only the chosen mitigation was
+  wrong. `amdgpu.dcdebugmask=0x800` sets a different field than the one guarding
+  the call (see bullet 2 above), so it never disabled that path despite
+  appearing to. Removing the call outright (item 6) is what actually addresses
+  it. No second contributing bug needs to be postulated.
 - **Also:** the reboot-hang half of this was independently fixed and documented
   as solved (commit `505cd04`, no `reboot=` override needed on BIOS PSCN23WW) —
   see project memory `saruman-sleep-hang.md`. That testing was done **undocked**
@@ -182,31 +221,36 @@ Last full scan: 2026-07-16.
   Re-enabled since it was pure downside: with it blacklisted, saruman had no
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang was worked around
-  via hibernate-on-lid-close (2026-07-22); **temporarily reverted to plain
-  `"suspend"` on 2026-08-02** (`HandleLidSwitch`/`HandleLidSwitchExternalPower`
-  back to `"suspend"` in `hosts/saruman/configuration.nix`) to retest whether
-  a recent nixpkgs/kernel bump (flake update 2026-08-01, commit `24dbc01`)
-  fixed the underlying s2idle wedge upstream. `boot.resumeDevice` and the
-  `amdgpu.dcdebugmask=0x800`/`mt7921e disable_aspm=1` mitigations were left in
-  place. Separately: `HandleLidSwitchDocked` (not currently set, defaults to
-  `"ignore"`) takes priority over both `HandleLidSwitch` settings whenever
-  logind sees more than one display connected — since saruman is routinely
-  used with an external monitor, closing the lid while docked may do *nothing
-  at all* regardless of the suspend/hibernate choice above. Not yet addressed;
-  worth revisiting if lid-close appears to silently no-op while an external
-  display is attached.
-- **Action:** Use saruman normally for a few days/weeks with plain suspend. If
-  the s2idle hang recurs, revert `HandleLidSwitch`/`HandleLidSwitchExternalPower`
-  to `"hibernate"`. If it holds up over real-world use, the hibernate
-  workaround (and eventually `amdgpu.dcdebugmask=0x800`) can be dropped for
-  good. Idle-timeout suspend (30 min, no lid activity, `modules/desktop/hypridle.nix`)
-  still calls plain `systemctl suspend` either way — same s2idle exposure as
-  lid-close, watch it too.
-- **Removal condition:** Upstream fixes the s2idle wedge for this hardware
-  (watch bug #219445) in a shipped kernel and it's confirmed stable over
-  real-world use — then `lidSwitchCmd` can revert to `"systemctl suspend"`
-  and `amdgpu.dcdebugmask=0x800` can be dropped and re-tested without it.
+- **Sleep policy as of 2026-08-16:** all four paths are
+  `suspend-then-hibernate` with `HibernateDelaySec=60min` — `HandlePowerKey`,
+  `HandleLidSwitch` and `HandleLidSwitchExternalPower` in
+  `hosts/saruman/configuration.nix`, hypridle's 30-min idle timeout via
+  `desktop.hyprland-desktop.sleepCommand` in `hosts/saruman/home.nix`, and the
+  undock path via `custom.lid-undock-hibernate.sleepCommand`. `sleepCommand`
+  still defaults to `systemctl suspend` (hyprland-desktop) and `systemctl
+  --no-block hibernate` (lid-undock-hibernate) so sauron is unaffected — it has
+  swap but no `boot.resumeDevice`, so hibernating there would lose the session.
+  `HandleLidSwitchDocked` stays `"ignore"`, explicitly set, paired with
+  `custom.lid-undock-hibernate.enable` as described in item 4 above.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = fixed at the source
+  by the kernel patch in item 6, replacing the 2026-07-22 hibernate-everything
+  workaround that made every lid close cost a full boot and a LUKS passphrase.
+  **Not yet soaked** — the patch is correct in principle and matches an
+  independently confirmed fix on the same silicon, but it has not yet
+  accumulated real-world suspend cycles on this machine.
+- **Action:** Validate before trusting it. After the first boot on the patched
+  kernel, confirm the patch took (`objdump -dr` on the shipped `amdgpu.ko`
+  should show no `dc_allow_idle_optimizations` call inside `dm_suspend`), then
+  run an escalating `rtcwake` ladder — 2, 10, 30, 60 min — because the old hang
+  needed >10 min of sleep residency and short cycles never reproduced it.
+  Every `PM: suspend entry (s2idle)` must have a matching `PM: suspend exit`.
+  Also measure drain: note `/sys/class/power_supply/BAT*/energy_now` across a
+  60-min suspend (battery is 67.6 Wh) and shorten `HibernateDelaySec` if it
+  exceeds roughly 5 W. Then a week of normal use including an overnight, which
+  must land in hibernation rather than a flat battery. If the hang recurs, set
+  the three `Handle*` values back to `"hibernate"` — that restores the old
+  behaviour independently of the patch, which can stay while investigating.
+- **Removal condition:** see bullet 6 above.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.

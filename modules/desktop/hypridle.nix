@@ -43,10 +43,11 @@ in
           }
           {
             # 30 min — sleep. The exact command is host-configurable via
-            # desktop.hyprland-desktop.sleepCommand because saruman must
-            # hibernate here rather than suspend: this listener is a third
-            # path into the s2idle wedge (alongside lid close and the power
-            # key, both handled in its configuration.nix via logind).
+            # desktop.hyprland-desktop.sleepCommand: saruman uses
+            # suspend-then-hibernate here so this listener matches its lid-close
+            # and power-key paths (both handled in its configuration.nix via
+            # logind), rather than leaving the machine suspended indefinitely on
+            # a kernel whose deepest sleep state is patched out.
             timeout    = 1800;
             on-timeout = guarded cfg.sleepCommand;
           }

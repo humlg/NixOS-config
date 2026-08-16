@@ -24,6 +24,7 @@
     ../../modules/programs/zen-browser.nix
     ../../modules/system/secrets.nix
     ../../modules/services/sunshine-moonlight.nix
+    ../../modules/system/amdgpu-s2idle-patch.nix
   ];
 
   networking.hostName = "saruman";
@@ -54,8 +55,9 @@
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Hibernate support: resume from the LUKS swap partition above (unlocked in
-  # initrd, same as root). Needed because lid-close now hibernates instead of
-  # suspending — see the s2idle sleep-hang note below and maintenance.md item 7.
+  # initrd, same as root). Still required after the s2idle fix below, because
+  # every sleep path is now suspend-then-hibernate — s2idle first, hibernation
+  # once HibernateDelaySec expires. See maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Plymouth boot splash (shows * for LUKS password entry)
@@ -68,11 +70,13 @@
   # amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS): disables Idle Power States on
   # the iGPU. Targeted kernel bugzilla #219445 (this exact laptop model),
   # bisected to commit f6098641d3e1e4 ("drm/amd/display: fix s2idle entry for
-  # DCN3.5+"). Confirmed 2026-07-22 NOT to fix the sleep hang on its own
-  # (hang recurred after a real reboot with this param active) — kept as a
-  # harmless secondary mitigation. Lid-close now hibernates instead of
-  # suspending (see boot.resumeDevice above), sidestepping s2idle entirely;
-  # see maintenance.md item 7.
+  # DCN3.5+"). Confirmed 2026-07-22 NOT to fix the sleep hang, and we now know
+  # why it never could: the offending call in dm_suspend() is guarded by
+  # dc->caps.ips_support (a hardware capability bit), while DC_DISABLE_IPS sets
+  # the separate dc->config.disable_ips mode field. The actual fix is the kernel
+  # patch enabled via custom.amdgpu-s2idle-patch below. Kept for now only so the
+  # s2idle validation soak changes one variable at a time — drop it once the
+  # patched kernel has a clean week. See maintenance.md item 7.
   # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
   # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
   # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
@@ -109,23 +113,29 @@
     };
   };
 
-  # Power button hibernates instead of powering off. Deliberately NOT "suspend":
-  # every s2idle entry on this machine risks the wedge described below, and the
-  # power key is just as much a path into it as the lid is.
-  services.logind.settings.Login.HandlePowerKey = "hibernate";
+  # All three sleep paths (power key, lid on battery, lid on AC) are
+  # suspend-then-hibernate as of 2026-08-16, replacing the blanket "hibernate"
+  # that had been in force since 2026-07-22.
+  #
+  # The blanket hibernate existed because s2idle wedged on resume (~22% of ~36
+  # suspends on kernel 7.1.5; journal ends dead on "PM: suspend entry (s2idle)"
+  # with no matching "PM: suspend exit"). That is now fixed at the source by
+  # custom.amdgpu-s2idle-patch above, so plain suspend is trustworthy again and
+  # the machine resumes instantly when the lid is reopened.
+  #
+  # It is suspend-*then*-hibernate rather than plain suspend for two reasons:
+  # the patch trades away the deepest hardware sleep state, so idle drain while
+  # suspended is higher than stock; and a flat battery in a bag loses unsaved
+  # work exactly the way the old hang did. Hibernating after HibernateDelaySec
+  # bounds both. Short absences stay instant, long ones cost nothing.
+  services.logind.settings.Login.HandlePowerKey = "suspend-then-hibernate";
+  services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend-then-hibernate";
 
-  # Lid close: hibernate, restored 2026-08-14 after the s2idle retest FAILED.
-  # The 2026-08-02 revert to plain "suspend" (retesting whether a nixpkgs/kernel
-  # update had fixed upstream bugzilla #219445) ran on kernel 7.1.5 for 12 days
-  # and reproduced the hang 8 times out of ~36 suspends (~22%): the journal ends
-  # dead on "PM: suspend entry (s2idle)" with no matching "PM: suspend exit",
-  # requiring a hard power-off and losing unsaved work. By contrast the
-  # 2026-07-24..08-02 hibernate window logged 9 lid-close cycles with a
-  # hibernation entry/exit pair every time and zero hangs (one of them a 7-day
-  # hibernation). Do not revert this to "suspend" again without a concrete
-  # upstream fix to point at — see maintenance.md item 7.
-  services.logind.settings.Login.HandleLidSwitch = "hibernate";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
+  # Explicit, rather than letting systemd 261 fall back to estimating the window
+  # from the battery discharge rate — the estimate assumes stock s2idle drain,
+  # which the kernel patch above deliberately breaks.
+  systemd.sleep.settings.Sleep.HibernateDelaySec = "60min";
 
   # Lid close *with an external monitor attached*: keep running, so the laptop
   # can be used lid-shut on the Iiyama. This was already the effective
@@ -138,8 +148,16 @@
   services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
   # ...and once that external monitor is unplugged while the lid is still
-  # shut, hibernate — otherwise the machine stays awake in a bag.
+  # shut, sleep — otherwise the machine stays awake in a bag. Same
+  # suspend-then-hibernate treatment as the lid paths above, since undocking to
+  # walk somewhere is the same "back shortly" gesture as closing the lid.
   custom.lid-undock-hibernate.enable = true;
+  custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend-then-hibernate";
+
+  # The actual fix for the s2idle resume hang: a patched kernel that drops
+  # amdgpu's DCN3.5+ "enter IPS before D3cold" step. See the module and
+  # patches/amdgpu-no-idle-opt-on-s2idle.patch.
+  custom.amdgpu-s2idle-patch.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

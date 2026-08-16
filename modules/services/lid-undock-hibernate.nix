@@ -53,18 +53,19 @@ let
     # awake with the lid shut. A closed lid is an explicit "I am done" signal
     # and must always sleep, same as logind's own lid handling, which ignores
     # inhibitors too (LidSwitchIgnoreInhibited defaults to yes).
-    echo "external display disconnected while lid closed — hibernating"
-    exec systemctl --no-block hibernate
+    echo "external display disconnected while lid closed — sleeping"
+    exec ${cfg.sleepCommand}
   '';
 in
 {
   options.custom.lid-undock-hibernate = {
     enable = lib.mkEnableOption ''
-      hibernating when the last external display is unplugged while the lid is
-      already shut. Complements HandleLidSwitchDocked = "ignore": closing the
-      lid while docked keeps the machine running on the external monitor, but
-      pulling the monitor afterwards (i.e. packing the laptop away) no longer
-      leaves it awake and cooking in a bag
+      sleeping when the last external display is unplugged while the lid is
+      already shut (hibernating by default — see sleepCommand). Complements
+      HandleLidSwitchDocked = "ignore": closing the lid while docked keeps the
+      machine running on the external monitor, but pulling the monitor
+      afterwards (i.e. packing the laptop away) no longer leaves it awake and
+      cooking in a bag
     '';
 
     internalConnector = lib.mkOption {
@@ -82,6 +83,21 @@ in
       '';
     };
 
+    sleepCommand = lib.mkOption {
+      type    = lib.types.str;
+      default = "systemctl --no-block hibernate";
+      example = "systemctl --no-block suspend-then-hibernate";
+      description = ''
+        Command run once the last external display goes away with the lid shut.
+        Defaults to hibernate because that is safe on any host: it survives a
+        flat battery and needs no working suspend path. Hosts whose s2idle is
+        trustworthy should point this at suspend-then-hibernate instead, so a
+        quick undock-and-walk resumes instantly.
+
+        Must return promptly — it runs from a oneshot unit started by a udev
+        rule, hence --no-block in the default.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
