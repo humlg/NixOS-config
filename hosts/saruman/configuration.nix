@@ -55,9 +55,11 @@
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Hibernate support: resume from the LUKS swap partition above (unlocked in
-  # initrd, same as root). Still required after the s2idle fix below, because
-  # every sleep path is now suspend-then-hibernate — s2idle first, hibernation
-  # once HibernateDelaySec expires. See maintenance.md item 7.
+  # initrd, same as root). Nothing enters hibernation automatically any more
+  # (see the logind block below), but this is kept so a manual
+  # `systemctl hibernate` still has somewhere to resume from, and so the
+  # backstop can be turned back on without another initrd change once the
+  # hibernate-resume crash is fixed. See maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Plymouth boot splash (shows * for LUKS password entry)
@@ -113,29 +115,30 @@
     };
   };
 
-  # All three sleep paths (power key, lid on battery, lid on AC) are
-  # suspend-then-hibernate as of 2026-08-16, replacing the blanket "hibernate"
-  # that had been in force since 2026-07-22.
+  # All three sleep paths (power key, lid on battery, lid on AC) are plain
+  # s2idle suspend as of 2026-08-17, replacing both the blanket "hibernate" in
+  # force since 2026-07-22 and the day-old suspend-then-hibernate.
   #
   # The blanket hibernate existed because s2idle wedged on resume (~22% of ~36
   # suspends on kernel 7.1.5; journal ends dead on "PM: suspend entry (s2idle)"
-  # with no matching "PM: suspend exit"). That is now fixed at the source by
-  # custom.amdgpu-s2idle-patch above, so plain suspend is trustworthy again and
-  # the machine resumes instantly when the lid is reopened.
+  # with no matching "PM: suspend exit"). That is fixed at the source by
+  # custom.amdgpu-s2idle-patch above — validated 2026-08-16 with 7 s, 22 min and
+  # 60 min residencies, all resuming cleanly — so suspend is trustworthy again
+  # and the machine wakes instantly when the lid is reopened.
   #
-  # It is suspend-*then*-hibernate rather than plain suspend for two reasons:
-  # the patch trades away the deepest hardware sleep state, so idle drain while
-  # suspended is higher than stock; and a flat battery in a bag loses unsaved
-  # work exactly the way the old hang did. Hibernating after HibernateDelaySec
-  # bounds both. Short absences stay instant, long ones cost nothing.
-  services.logind.settings.Login.HandlePowerKey = "suspend-then-hibernate";
-  services.logind.settings.Login.HandleLidSwitch = "suspend-then-hibernate";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend-then-hibernate";
-
-  # Explicit, rather than letting systemd 261 fall back to estimating the window
-  # from the battery discharge rate — the estimate assumes stock s2idle drain,
-  # which the kernel patch above deliberately breaks.
-  systemd.sleep.settings.Sleep.HibernateDelaySec = "60min";
+  # Hibernation was briefly kept as a backstop (suspend-then-hibernate, 60 min)
+  # because the patch trades away the deepest hardware sleep state and so raises
+  # idle drain. That backstop is off again because hibernate *resume* is what
+  # breaks now: the first hibernation on the patched kernel restored its image
+  # fine and then died in TTM ("list_add corruption" -> ttm_bo_populate ->
+  # ttm_resource_add_bulk_move), wedging the GPU and needing a hard power-off.
+  # That path is only reachable via ttm_device_prepare_hibernation(), which
+  # amdgpu calls only under adev->in_s4, so avoiding hibernation avoids it
+  # entirely. Trade accepted: a long unattended absence drains the battery
+  # instead of hibernating. See maintenance.md item 7.
+  services.logind.settings.Login.HandlePowerKey = "suspend";
+  services.logind.settings.Login.HandleLidSwitch = "suspend";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
 
   # Lid close *with an external monitor attached*: keep running, so the laptop
   # can be used lid-shut on the Iiyama. This was already the effective
@@ -148,11 +151,11 @@
   services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
   # ...and once that external monitor is unplugged while the lid is still
-  # shut, sleep — otherwise the machine stays awake in a bag. Same
-  # suspend-then-hibernate treatment as the lid paths above, since undocking to
-  # walk somewhere is the same "back shortly" gesture as closing the lid.
+  # shut, sleep — otherwise the machine stays awake in a bag. Same plain
+  # suspend as the lid paths above, since undocking to walk somewhere is the
+  # same "back shortly" gesture as closing the lid.
   custom.lid-undock-hibernate.enable = true;
-  custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend-then-hibernate";
+  custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend";
 
   # The actual fix for the s2idle resume hang: a patched kernel that drops
   # amdgpu's DCN3.5+ "enter IPS before D3cold" step. See the module and

@@ -12,6 +12,14 @@ let
     [ -f "$XDG_RUNTIME_DIR/hypridle-idle-inhibited" ] || exec "$@"
   '';
   guarded = cmd: "${runUnlessIdleInhibited} ${cmd}";
+
+  # All hosts run the Lua config (desktop.hyprland-desktop.useLuaConfig), where
+  # hyprctl hands its dispatch argument to Lua rather than to the hyprlang
+  # dispatcher parser. The bare `hyprctl dispatch dpms on` spelling therefore
+  # fails to parse ("')' expected near 'on'") and the panel never comes back —
+  # silently, because hypridle doesn't check exit status. Same external-Lua form
+  # as hyprland-config-lua/autostart.nix uses.
+  dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 in
 {
   config = lib.mkIf cfg.enable {
@@ -23,7 +31,7 @@ in
         general = {
           lock_cmd         = "pidof hyprlock || hyprlock";
           before_sleep_cmd = "loginctl lock-session";
-          after_sleep_cmd  = "sh -c 'hyprctl dispatch dpms on'";
+          after_sleep_cmd  = dpms "on";
         };
 
         listener = [
@@ -38,16 +46,14 @@ in
           }
           {
             timeout    = 1200;  # 20 min — DPMS off
-            on-timeout = guarded "hyprctl dispatch dpms off";
-            on-resume  = "hyprctl dispatch dpms on && brightnessctl -r";
+            on-timeout = guarded (dpms "off");
+            on-resume  = "${dpms "on"} && brightnessctl -r";
           }
           {
             # 30 min — sleep. The exact command is host-configurable via
-            # desktop.hyprland-desktop.sleepCommand: saruman uses
-            # suspend-then-hibernate here so this listener matches its lid-close
-            # and power-key paths (both handled in its configuration.nix via
-            # logind), rather than leaving the machine suspended indefinitely on
-            # a kernel whose deepest sleep state is patched out.
+            # desktop.hyprland-desktop.sleepCommand, so this listener always
+            # matches the host's lid-close and power-key paths (handled by
+            # logind in its configuration.nix).
             timeout    = 1800;
             on-timeout = guarded cfg.sleepCommand;
           }

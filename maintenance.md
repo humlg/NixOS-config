@@ -80,11 +80,11 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — fixed 2026-08-16 by a local amdgpu kernel patch
+### 7. Saruman: s2idle sleep/resume hang — fixed 2026-08-16 by a local amdgpu kernel patch (validated 2026-08-16)
 - **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
   `modules/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
   (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
-  `services.logind.settings.Login.Handle*` values, `systemd.sleep.settings.Sleep`).
+  `services.logind.settings.Login.Handle*` values).
 - **What workarounds are stacked here:**
   1. `pm_debug_messages` + `amd_pmc.enable_stb=1` kernel params — diagnostics only, no fix.
   2. `amdgpu.dcdebugmask=0x800` (`DC_DISABLE_IPS`) — **confirmed 2026-07-22 to
@@ -185,17 +185,73 @@ Last full scan: 2026-07-16.
      **Costs, both accepted deliberately:** every kernel version bump now
      compiles the kernel locally (~15–25 min on this 10-core/20-thread part);
      and the part no longer reaches its deepest hardware sleep, so idle drain
-     while suspended is higher than stock. The second is bounded by
-     suspend-then-hibernate (see the sleep-policy bullet below). The module also flips
+     while suspended is higher than stock. The second was meant to be bounded by
+     suspend-then-hibernate; that backstop had to be withdrawn a day later (see
+     bullet 7), so higher standby drain is now unbounded and is the one open
+     cost of this arrangement. The module also flips
      `CONFIG_HIBERNATION_COMP_LZ4` on and sets `hibernate.compressor=lz4`,
      which stock nixpkgs kernels ship as `n` — free to do while building from
-     source anyway, and it shortens the hibernate resume that remains.
+     source anyway. It is left enabled but is **untrusted**: it is one of the two
+     unresolved suspects for the crash in bullet 7, and nothing takes the
+     hibernate path automatically any more. Note only
+     `CONFIG_HIBERNATION_DEF_COMP` changed — `CONFIG_CRYPTO_LZO=y` survives, so
+     `hibernate.compressor=lzo` is still selectable at runtime with no rebuild.
+     **Validation result (2026-08-16, boot -1):** three s2idle cycles at 7 s,
+     22 min and 60 min residency, every `PM: suspend entry (s2idle)` matched by a
+     `PM: suspend exit`. The hang that reproduced ~22% of the time is gone.
      **Removal condition:** drm/amd#4344 (or bugzilla #219445) landing a real
      fix in the running kernel, or the call gaining a guard this hardware
      fails. At that point drop the patch, the module import, and
      `amdgpu.dcdebugmask=0x800` together, and re-test plain suspend.
      If a kernel bump makes the patch fail to apply, that is the intended
      tripwire — re-read `dm_suspend()` before regenerating it.
+  7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — this is why
+     there is no hibernate backstop).** The very first hibernation on the
+     patched kernel restored its image successfully and then died ~350 ms later,
+     in the first GPU submission after resume:
+     ```
+     list_add corruption. prev->next should be next (…ee28), but was 0000000000000000.
+     kernel BUG at lib/list_debug.c:32!
+     CPU: 12 … Comm: gjs            ← the AGS bar
+       ttm_bo_populate+0x83 [ttm]   ← inlined ttm_resource_add_bulk_move()
+       ttm_bo_handle_move_mem → ttm_bo_validate → amdgpu_cs_bo_validate → amdgpu_cs_ioctl
+     ```
+     `hyprlock:cs0` then spun in `ttm_resource_manager_usage` until softlockup.
+     Symptom from the user's side: hyprlock draws exactly one frame (clock
+     updates from the sleep time to the current time), then the session freezes
+     completely — no VT switch, CapsLock still toggling because the kernel is
+     otherwise alive. Only a hard power-off recovers it.
+     The corrupted structure is TTM's bulk-move range
+     (`struct ttm_resource.lru.link`, the `kmalloc-96` object at offset 64 in the
+     log). That branch of `ttm_bo_populate()`
+     (`drivers/gpu/drm/ttm/ttm_bo.c:1275`) runs only for a BO that *was swapped
+     out and just came back*, and the only thing that swaps BOs out here is
+     `ttm_device_prepare_hibernation()`, which `amdgpu_device_evict_resources()`
+     (`drivers/gpu/drm/amd/amdgpu/amdgpu_device.c:4336`) calls **only when
+     `adev->in_s4`**. So it is hibernate-specific and lives in kernel code this
+     repo does not patch.
+     **Two suspects, neither eliminated** (n=1 failure): LZ4 image compression,
+     and hibernating out of a *resumed s2idle* — the transition also logged
+     `amd_pmc: failed to talk to SMU` / `resume failed: -110` seconds earlier.
+     The stock kernel hibernated and restored cleanly twice the same afternoon
+     (boot -2), so this is new. Not bisected, because with s2idle working
+     hibernation has no job left on this machine.
+     **Consequence:** `suspend-then-hibernate` lasted one day (2026-08-16 →
+     2026-08-17). All automatic sleep is plain s2idle now; see the sleep-policy
+     bullet below.
+     **Removal condition / how to pick it back up** if standby drain turns out to
+     need a hibernate backstop after all — first two steps need no kernel rebuild:
+     (a) plain `systemctl hibernate` from a running desktop ×3, which separates
+     "hibernate is broken" from "hibernating out of a resumed s2idle is broken";
+     (b) `hibernate.compressor=lzo` in `boot.kernelParams` (`CONFIG_CRYPTO_LZO=y`
+     is still built in), which clears or convicts LZ4 for the price of a reboot;
+     (c) boot the pre-`32e854b` generation and hibernate, for a stock-kernel
+     comparison. Candidate targeted fix if plain hibernate is implicated: a
+     second patch in `custom.amdgpu-s2idle-patch` skipping the
+     `ttm_device_prepare_hibernation()` call — it is the sole producer of swapped
+     TTM objects here and so of the crashing path, it exists to shrink
+     hibernation images on multi-TB-VRAM servers, and it buys an iGPU laptop
+     essentially nothing. Cost would be a slightly larger image.
 - **Root-cause lead (2026-07-21, unconfirmed as sole cause):** Upstream kernel
   bugzilla [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) is
   filed against this *exact* laptop model (Lenovo Yoga Pro 7 14ASP9) for the
@@ -221,36 +277,41 @@ Last full scan: 2026-07-16.
   Re-enabled since it was pure downside: with it blacklisted, saruman had no
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
-- **Sleep policy as of 2026-08-16:** all four paths are
-  `suspend-then-hibernate` with `HibernateDelaySec=60min` — `HandlePowerKey`,
-  `HandleLidSwitch` and `HandleLidSwitchExternalPower` in
-  `hosts/saruman/configuration.nix`, hypridle's 30-min idle timeout via
-  `desktop.hyprland-desktop.sleepCommand` in `hosts/saruman/home.nix`, and the
-  undock path via `custom.lid-undock-hibernate.sleepCommand`. `sleepCommand`
-  still defaults to `systemctl suspend` (hyprland-desktop) and `systemctl
-  --no-block hibernate` (lid-undock-hibernate) so sauron is unaffected — it has
-  swap but no `boot.resumeDevice`, so hibernating there would lose the session.
+- **Sleep policy as of 2026-08-17:** all four paths are plain s2idle
+  `suspend` — `HandlePowerKey`, `HandleLidSwitch` and
+  `HandleLidSwitchExternalPower` in `hosts/saruman/configuration.nix`,
+  hypridle's 30-min idle timeout via `desktop.hyprland-desktop.sleepCommand` in
+  `hosts/saruman/home.nix`, and the undock path via
+  `custom.lid-undock-hibernate.sleepCommand`. Nothing hibernates automatically;
+  `boot.resumeDevice` and the LUKS swap are kept so a manual `systemctl
+  hibernate` still works and so the backstop can be restored without an initrd
+  change. `sleepCommand` still defaults to `systemctl suspend`
+  (hyprland-desktop) and `systemctl --no-block hibernate`
+  (lid-undock-hibernate), so sauron is unaffected either way — it has swap but
+  no `boot.resumeDevice`, so hibernating there would lose the session.
   `HandleLidSwitchDocked` stays `"ignore"`, explicitly set, paired with
-  `custom.lid-undock-hibernate.enable` as described in item 4 above.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = fixed at the source
-  by the kernel patch in item 6, replacing the 2026-07-22 hibernate-everything
+  `custom.lid-undock-hibernate.enable` as described in item 4 above. Note the
+  module's file and option name still say "hibernate"; it is the historical name
+  and the action is whatever `sleepCommand` says.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = **fixed and
+  validated** by the kernel patch in bullet 6 (three cycles up to 60 min
+  residency, all clean), replacing the 2026-07-22 hibernate-everything
   workaround that made every lid close cost a full boot and a LUKS passphrase.
-  **Not yet soaked** — the patch is correct in principle and matches an
-  independently confirmed fix on the same silicon, but it has not yet
-  accumulated real-world suspend cycles on this machine.
-- **Action:** Validate before trusting it. After the first boot on the patched
-  kernel, confirm the patch took (`objdump -dr` on the shipped `amdgpu.ko`
-  should show no `dc_allow_idle_optimizations` call inside `dm_suspend`), then
-  run an escalating `rtcwake` ladder — 2, 10, 30, 60 min — because the old hang
-  needed >10 min of sleep residency and short cycles never reproduced it.
-  Every `PM: suspend entry (s2idle)` must have a matching `PM: suspend exit`.
-  Also measure drain: note `/sys/class/power_supply/BAT*/energy_now` across a
-  60-min suspend (battery is 67.6 Wh) and shorten `HibernateDelaySec` if it
-  exceeds roughly 5 W. Then a week of normal use including an overnight, which
-  must land in hibernation rather than a flat battery. If the hang recurs, set
-  the three `Handle*` values back to `"hibernate"` — that restores the old
-  behaviour independently of the patch, which can stay while investigating.
-- **Removal condition:** see bullet 6 above.
+  Open: hibernate *resume* now crashes (bullet 7), so there is no backstop
+  against a flat battery on a long unattended absence, and the patched kernel
+  draws more in standby than stock by design.
+- **Action:** Measure standby drain — that is the one number that decides
+  whether the current no-hibernate arrangement is livable. Note
+  `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min lid-shut
+  suspend on battery (`energy_full` is 65.85 Wh; the 67.6 Wh figure quoted here
+  earlier was the design capacity). Under ~1.5 W is several days of standby and
+  fine as-is; over ~3 W is under a day, and chasing bullet 7's bisect becomes
+  worth it. Then soak a week of real lid-close-and-walk cycles including an
+  overnight. Also drop `amdgpu.dcdebugmask=0x800` (bullet 2) once that week is
+  clean — it is now known to be inert. If the s2idle hang ever recurs, the
+  fallback is *not* hibernate any more; capture an STB trace
+  (`amd_pmc.enable_stb=1` is already on) before changing anything.
+- **Removal condition:** see bullets 6 and 7 above.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.
