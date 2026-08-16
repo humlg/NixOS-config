@@ -81,6 +81,7 @@
     cava
     openrgb
     usbutils
+    bs-manager
   ];
 
   system.stateVersion = "25.11";
