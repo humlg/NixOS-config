@@ -80,7 +80,7 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — fixed 2026-08-16 by a local amdgpu kernel patch (validated 2026-08-16)
+### 7. Saruman: s2idle sleep/resume hang — mitigated 2026-08-16 by a local amdgpu kernel patch, recurred 2026-08-17 (still intermittent, gathering data)
 - **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
   `modules/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
   (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
@@ -198,7 +198,24 @@ Last full scan: 2026-07-16.
      `hibernate.compressor=lzo` is still selectable at runtime with no rebuild.
      **Validation result (2026-08-16, boot -1):** three s2idle cycles at 7 s,
      22 min and 60 min residency, every `PM: suspend entry (s2idle)` matched by a
-     `PM: suspend exit`. The hang that reproduced ~22% of the time is gone.
+     `PM: suspend exit`. Looked like the hang was gone.
+     **Recurrence (2026-08-17, boot -1):** hung again — `18:21:50 kernel: PM:
+     suspend entry (s2idle)` is the literal last line of that boot, no matching
+     exit, next boot didn't start until ~15h later (2026-08-18 09:06), consistent
+     with an overnight hang requiring a hard power-off. This boot was running the
+     patched kernel (patch landed in commit `32e854b`, well before this boot
+     started). As before, the fatal cycle logged nothing beyond the entry line —
+     `pm_debug_messages`/`amd_pmc.enable_stb=1` did not capture a cause. Same
+     boot session, two earlier suspend/resume cycles on 2026-08-18 (boot 0) went
+     clean, so this isn't a total regression — more likely the patch reduced the
+     hang rate (previously ~22%) rather than eliminating it, and three clean
+     cycles wasn't enough to tell the difference. **Current status: no further
+     change made** — user chose to gather more journal evidence across future
+     boots before deciding between (a) accepting a lower-but-nonzero hang rate,
+     or (b) reintroducing a hibernate backstop (would need to dodge the TTM bug
+     in bullet 7, e.g. by never hibernating out of a *resumed* s2idle). Use the
+     `journalctl -b N -k | grep -c "PM: suspend entry"` vs `"PM: suspend exit"`
+     recipe from bullet 5 to keep counting hangs per boot.
      **Removal condition:** drm/amd#4344 (or bugzilla #219445) landing a real
      fix in the running kernel, or the call gaining a guard this hardware
      fails. At that point drop the patch, the module import, and
