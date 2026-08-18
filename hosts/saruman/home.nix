@@ -54,13 +54,13 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
-    # Plain s2idle suspend on the 30-min idle timeout, matching the logind
-    # lid/power-key paths in configuration.nix. Was "hibernate" while s2idle
-    # resume wedged this iGPU, then briefly suspend-then-hibernate; s2idle is
-    # fixed at the source now by custom.amdgpu-s2idle-patch, and hibernation is
-    # off every automatic path because its *resume* crashes in TTM. See
-    # maintenance.md item 7.
-    sleepCommand  = "systemctl suspend";
+    # Direct hibernate on the 30-min idle timeout, matching the logind
+    # lid/power-key paths in configuration.nix — never suspend-then-hibernate,
+    # see the comment there for why that distinction matters. Plain s2idle
+    # suspend (2026-08-17 -> 08-18) still hung on unattended sleeps despite
+    # the amdgpu kernel patch, so hibernate is back on every automatic path.
+    # See maintenance.md item 7.
+    sleepCommand  = "systemctl hibernate";
 
     extraConfig = ''
       xwayland {

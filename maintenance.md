@@ -80,7 +80,7 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — mitigated 2026-08-16 by a local amdgpu kernel patch, recurred 2026-08-17 (still intermittent, gathering data)
+### 7. Saruman: s2idle sleep/resume hang — kernel patch (2026-08-16) reduces but doesn't fix it; direct hibernate restored on every sleep path (2026-08-18)
 - **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
   `modules/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
   (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
@@ -207,25 +207,53 @@ Last full scan: 2026-07-16.
      started). As before, the fatal cycle logged nothing beyond the entry line —
      `pm_debug_messages`/`amd_pmc.enable_stb=1` did not capture a cause. Same
      boot session, two earlier suspend/resume cycles on 2026-08-18 (boot 0) went
-     clean, so this isn't a total regression — more likely the patch reduced the
-     hang rate (previously ~22%) rather than eliminating it, and three clean
-     cycles wasn't enough to tell the difference. **Current status: no further
-     change made** — user chose to gather more journal evidence across future
-     boots before deciding between (a) accepting a lower-but-nonzero hang rate,
-     or (b) reintroducing a hibernate backstop (would need to dodge the TTM bug
-     in bullet 7, e.g. by never hibernating out of a *resumed* s2idle). Use the
-     `journalctl -b N -k | grep -c "PM: suspend entry"` vs `"PM: suspend exit"`
-     recipe from bullet 5 to keep counting hangs per boot.
-     **Removal condition:** drm/amd#4344 (or bugzilla #219445) landing a real
-     fix in the running kernel, or the call gaining a guard this hardware
-     fails. At that point drop the patch, the module import, and
-     `amdgpu.dcdebugmask=0x800` together, and re-test plain suspend.
-     If a kernel bump makes the patch fail to apply, that is the intended
-     tripwire — re-read `dm_suspend()` before regenerating it.
-  7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — this is why
-     there is no hibernate backstop).** The very first hibernation on the
-     patched kernel restored its image successfully and then died ~350 ms later,
-     in the first GPU submission after resume:
+     clean, so this wasn't a total regression by itself.
+     **Second recurrence, same night (2026-08-18, boot -2 = the boot *before*
+     the one above):** re-checking history turned up an earlier hang the user
+     hadn't yet mentioned — boot -2 (Aug 16 20:45 → Aug 17 00:45, i.e. the
+     night right after the "validated" boot -3) had exactly **one** suspend
+     attempt, at 00:45:50, and it hung too — same signature, dead until the
+     next boot ~9.5h later. So the two most recent *unattended* sleep attempts
+     both hung (2 for 2), right after a controlled 3-cycle test (done awake,
+     watched, over ~1.5h) had looked clean. Conclusion: the patch does not
+     eliminate the hang; it may or may not even reduce the historical ~22%
+     rate — three short watched cycles was never enough sample size to tell,
+     and the real-world failures were both long unattended sleeps.
+     **Decision (2026-08-18): direct hibernate restored on every sleep path**
+     (`HandlePowerKey`/`HandleLidSwitch`/`HandleLidSwitchExternalPower` back to
+     `"hibernate"`, `custom.lid-undock-hibernate.sleepCommand` back to its
+     `systemctl --no-block hibernate` default, hypridle's
+     `desktop.hyprland-desktop.sleepCommand` back to `systemctl hibernate`).
+     Critically this is **direct** hibernate, never suspend-then-hibernate —
+     see bullet 7 for why that distinction is load-bearing, given the one
+     known hibernate-resume crash happened specifically via the delayed-
+     conversion path. `custom.amdgpu-s2idle-patch.fasterHibernateCompression`
+     was also flipped to `false`, dropping back to LZO — it's the other named
+     suspect for that crash and was never exercised during the 9/9 proven-good
+     direct-hibernate window (2026-07-24 → 08-02, pre-dates this option). The
+     kernel patch itself (`custom.amdgpu-s2idle-patch.enable`) is left on: it
+     isn't implicated in either open bug and may still help on the rare path
+     that ends up in plain s2idle.
+     **Not yet soaked** — this reinstates almost exactly the 2026-08-14
+     configuration (bullet 4) but building on the patched kernel for the first
+     time with LZ4 removed, so watch for the TTM crash from bullet 7
+     specifically (it was seen exactly once, via suspend-then-hibernate with
+     LZ4 — this arrangement changes both of those, but "changes both
+     variables" is not the same as "proven safe," it just removes the two
+     leads we have). If it recurs even via direct hibernate, LZ4 and the
+     delayed-conversion path are both cleared as suspects and the crash is
+     TTM/hibernate-resume-on-this-kernel in general — at that point hibernate
+     needs to come off every automatic path again and the battery-drain
+     trade-off of plain s2idle has to be accepted instead.
+     **Removal condition (for the kernel patch and dcdebugmask):** drm/amd#4344
+     (or bugzilla #219445) landing a real fix in the running kernel, or the
+     call gaining a guard this hardware fails. If a kernel bump makes the
+     patch fail to apply, that is the intended tripwire — re-read
+     `dm_suspend()` before regenerating it.
+  7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — root cause
+     of the LZO/direct-hibernate-only constraints above).** The very first
+     hibernation on the patched kernel restored its image successfully and
+     then died ~350 ms later, in the first GPU submission after resume:
      ```
      list_add corruption. prev->next should be next (…ee28), but was 0000000000000000.
      kernel BUG at lib/list_debug.c:32!

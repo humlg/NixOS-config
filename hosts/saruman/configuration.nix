@@ -55,11 +55,8 @@
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Hibernate support: resume from the LUKS swap partition above (unlocked in
-  # initrd, same as root). Nothing enters hibernation automatically any more
-  # (see the logind block below), but this is kept so a manual
-  # `systemctl hibernate` still has somewhere to resume from, and so the
-  # backstop can be turned back on without another initrd change once the
-  # hibernate-resume crash is fixed. See maintenance.md item 7.
+  # initrd, same as root). All sleep paths hibernate directly again as of
+  # 2026-08-18 — see the logind block below. See maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Plymouth boot splash (shows * for LUKS password entry)
@@ -115,30 +112,32 @@
     };
   };
 
-  # All three sleep paths (power key, lid on battery, lid on AC) are plain
-  # s2idle suspend as of 2026-08-17, replacing both the blanket "hibernate" in
-  # force since 2026-07-22 and the day-old suspend-then-hibernate.
+  # All sleep paths hibernate directly again as of 2026-08-18. Plain s2idle
+  # (2026-08-17 -> 2026-08-18) did NOT hold: the amdgpu kernel patch was
+  # "validated" on 2026-08-16 with 3 clean cycles (7 s / 22 min / 60 min, all
+  # watched, awake), but the next two *unattended* overnight sleeps both hung
+  # the exact same way (journal ends dead on "PM: suspend entry (s2idle)" with
+  # no matching "PM: suspend exit") -- 2 for 2, not an isolated fluke. The
+  # patch may still help (baseline was ~22% of ~36 suspends before it), but it
+  # clearly does not eliminate the hang, and an unattended hang costs a whole
+  # night. See maintenance.md item 7.
   #
-  # The blanket hibernate existed because s2idle wedged on resume (~22% of ~36
-  # suspends on kernel 7.1.5; journal ends dead on "PM: suspend entry (s2idle)"
-  # with no matching "PM: suspend exit"). That is fixed at the source by
-  # custom.amdgpu-s2idle-patch above — validated 2026-08-16 with 7 s, 22 min and
-  # 60 min residencies, all resuming cleanly — so suspend is trustworthy again
-  # and the machine wakes instantly when the lid is reopened.
-  #
-  # Hibernation was briefly kept as a backstop (suspend-then-hibernate, 60 min)
-  # because the patch trades away the deepest hardware sleep state and so raises
-  # idle drain. That backstop is off again because hibernate *resume* is what
-  # breaks now: the first hibernation on the patched kernel restored its image
-  # fine and then died in TTM ("list_add corruption" -> ttm_bo_populate ->
-  # ttm_resource_add_bulk_move), wedging the GPU and needing a hard power-off.
-  # That path is only reachable via ttm_device_prepare_hibernation(), which
-  # amdgpu calls only under adev->in_s4, so avoiding hibernation avoids it
-  # entirely. Trade accepted: a long unattended absence drains the battery
-  # instead of hibernating. See maintenance.md item 7.
-  services.logind.settings.Login.HandlePowerKey = "suspend";
-  services.logind.settings.Login.HandleLidSwitch = "suspend";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
+  # This is a *direct* hibernate, never suspend-then-hibernate. That
+  # distinction matters: the one hibernate-resume crash seen on this machine
+  # (TTM "list_add corruption" in ttm_bo_populate, wedging the GPU, hard
+  # power-off needed) happened specifically via suspend-then-hibernate --
+  # s2idle first, then a 60-min HibernateDelaySec silently resumed it
+  # internally before converting to hibernate. Direct hibernate (straight from
+  # a fully awake state, no intervening s2idle resume) is exactly what ran
+  # clean for 9/9 cycles including a 7-day hibernation during 2026-07-24 ->
+  # 08-02, before this kernel patch even existed -- so never route sleep
+  # through suspend-then-hibernate here. hibernate.compressor is pinned to
+  # lzo (see custom.amdgpu-s2idle-patch.fasterHibernateCompression below) to
+  # also remove LZ4 as a variable, since it's the other named suspect for that
+  # crash and was never exercised during the proven-good window.
+  services.logind.settings.Login.HandlePowerKey = "hibernate";
+  services.logind.settings.Login.HandleLidSwitch = "hibernate";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
 
   # Lid close *with an external monitor attached*: keep running, so the laptop
   # can be used lid-shut on the Iiyama. This was already the effective
@@ -151,16 +150,20 @@
   services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
   # ...and once that external monitor is unplugged while the lid is still
-  # shut, sleep — otherwise the machine stays awake in a bag. Same plain
-  # suspend as the lid paths above, since undocking to walk somewhere is the
-  # same "back shortly" gesture as closing the lid.
+  # shut, sleep — otherwise the machine stays awake in a bag. Direct hibernate
+  # (the module's default), matching the lid/power-key paths above.
   custom.lid-undock-hibernate.enable = true;
-  custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend";
 
-  # The actual fix for the s2idle resume hang: a patched kernel that drops
-  # amdgpu's DCN3.5+ "enter IPS before D3cold" step. See the module and
-  # patches/amdgpu-no-idle-opt-on-s2idle.patch.
+  # Reduces the s2idle hang rate (see the logind block above for why it's no
+  # longer trusted as the sole fix) and is kept in case anything still ends up
+  # going through plain suspend. fasterHibernateCompression is off: LZ4 is one
+  # of the two named suspects for the hibernate-resume TTM crash in
+  # maintenance.md item 7 and was never exercised during the proven-good
+  # direct-hibernate window, so pin back to LZO (the option this repo used
+  # before LZ4 existed) rather than carry an unproven variable into the
+  # backstop this is meant to protect.
   custom.amdgpu-s2idle-patch.enable = true;
+  custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

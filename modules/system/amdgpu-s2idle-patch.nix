@@ -13,8 +13,13 @@ in
       maintenance.md for the removal condition.
 
       Note this makes every kernel version bump compile the kernel locally
-      (~15-25 min), and trades away the deepest hardware sleep state, so idle
-      drain while suspended is higher — pair it with suspend-then-hibernate
+      (~15-25 min), and reduces but does NOT eliminate the hang (confirmed
+      2026-08-18: recurred on two consecutive unattended sleeps after a
+      short watched soak looked clean). Do not pair this with
+      suspend-then-hibernate — that specific sequence (s2idle, then a
+      delayed silent internal resume before converting to hibernate) is what
+      triggered a separate hibernate-resume TTM crash on this machine. See
+      maintenance.md item 7.
     '';
 
     fasterHibernateCompression = lib.mkOption {
