@@ -12,14 +12,6 @@
     no_initial_focus = true,
   })
   hl.window_rule({
-    match     = { class = "^(kitty-startup)$" },
-    workspace = "1",
-    float     = true,
-    move      = "45 396",
-    size      = "799 430",
-  })
-
-  hl.window_rule({
     match  = { title = "File Operation Progress" },
     float  = true,
     center = true,
