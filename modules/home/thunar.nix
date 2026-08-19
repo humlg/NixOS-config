@@ -1,6 +1,6 @@
 { pkgs, ... }:
 {
-  home.packages = with pkgs; [ gocryptfs zenity xfce.thunar ];
+  home.packages = with pkgs; [ gocryptfs zenity thunar ];
 
   xdg.configFile."Thunar/uca.xml".text = ''
     <?xml version="1.0" encoding="UTF-8"?>
