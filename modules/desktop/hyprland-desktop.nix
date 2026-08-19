@@ -4,12 +4,14 @@ let
   cfg = config.desktop.hyprland-desktop;
   home = config.home.homeDirectory;
 
-  reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" ''
+  reloadDesktop = pkgs.writeShellScriptBin "reload-desktop" (''
     hyprctl reload
+  '' + lib.optionalString (!cfg.useNoctalia) ''
     (ags quit -i bar 2>/dev/null; ags run) &
     systemctl --user restart swaync.service
+  '' + ''
     pywalfox update
-  '';
+  '');
 
   # On/off toggle for Darkroom mode (no rebuild needed).
   # The Lua config parser rejects `hyprctl keyword`, so use `hyprctl eval`.
@@ -181,7 +183,6 @@ in
       hyprshot
       hyprpicker
       awww
-      waypaper
       rofi
       rofimoji
       cliphist
@@ -196,7 +197,7 @@ in
       qt6Packages.qt6ct
       wallust
       pywalfox-native
-    ]);
+    ]) ++ lib.optional (!cfg.useNoctalia) pkgs.waypaper;
 
     # ── Session variables ───────────────────────────────────────────
     # NOTE: Do NOT put secrets (API tokens, etc.) here!!!
@@ -288,12 +289,16 @@ in
     };
 
     # ── Waypaper seed config ────────────────────────────────────────
-    home.activation.seedWaypaperConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      if [[ ! -f "$HOME/.config/waypaper/config.ini" ]]; then
-        $DRY_RUN_CMD mkdir -p "$HOME/.config/waypaper"
-        $DRY_RUN_CMD cp ${waypaperDefaultConfig} "$HOME/.config/waypaper/config.ini"
-      fi
-    '';
+    # Skipped under Noctalia — its own wallpaper picker replaces waypaper on
+    # that host, so seeding a config waypaper will never read is pointless.
+    home.activation.seedWaypaperConfig = lib.mkIf (!cfg.useNoctalia) (
+      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        if [[ ! -f "$HOME/.config/waypaper/config.ini" ]]; then
+          $DRY_RUN_CMD mkdir -p "$HOME/.config/waypaper"
+          $DRY_RUN_CMD cp ${waypaperDefaultConfig} "$HOME/.config/waypaper/config.ini"
+        fi
+      ''
+    );
 
     # ── Wallust restore (login) ──────────────────────────────────────
     systemd.user.services.wallust-restore = {

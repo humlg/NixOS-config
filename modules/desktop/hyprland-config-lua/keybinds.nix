@@ -1,4 +1,4 @@
-{ reloadDesktop, ... }:
+{ reloadDesktop, cfg, ... }:
 ''
   -- ── Keybinds ────────────────────────────────────────────────────
   -- Flag reference: { locked=true } = bindl, { repeating=true } = binde,
@@ -24,9 +24,12 @@
   hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
+  -- SUPER+L stays on lockScreen (hyprlock) even under Noctalia — repointing
+  -- the lock screen is Phase D of the Noctalia migration, gated separately
+  -- given saruman's sleep/hibernate hang history (see maintenance.md item 7).
   hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(lockScreen))
-  hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd("waypaper"))
-  hl.bind(mainMod .. " + N",           hl.dsp.exec_cmd("swaync-client -R && swaync-client -t"))
+  hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd("${if cfg.useNoctalia then "noctalia msg panel-toggle wallpaper" else "waypaper"}"))
+  hl.bind(mainMod .. " + N",           hl.dsp.exec_cmd("${if cfg.useNoctalia then "noctalia msg panel-toggle control-center" else "swaync-client -R && swaync-client -t"}"))
   hl.bind("ALT + TAB",                 hl.dsp.focus({ workspace = "previous" }))
   hl.bind(mainMod .. " + G",           hl.dsp.exec_cmd("darkroom-toggle"))      -- Darkroom mode (red night vision)
 

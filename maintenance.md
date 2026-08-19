@@ -508,9 +508,8 @@ Last full scan: 2026-07-16.
   (`hosts/saruman/configuration.nix`, `hosts/saruman/home.nix`).
 - **What:** Trialing Noctalia (v5, Beta — `github:noctalia-dev/noctalia-shell`)
   as a possible replacement for the AGS bar + swaync notifications + hyprlock
-  lock screen + waypaper wallpaper picker. All four of those stay fully
-  enabled and running in parallel for now — this is Phase A/B of a staged
-  migration (see the Noctalia migration plan from 2026-08-19), not a cutover.
+  lock screen + waypaper wallpaper picker, per the staged migration plan from
+  2026-08-19.
   `programs.noctalia.recommendedServices.enable` wants
   `services.power-profiles-daemon.enable`, but saruman (and every host using
   this module) already runs TLP for power management, and NixOS's TLP module
@@ -518,12 +517,39 @@ Last full scan: 2026-07-16.
   `power-profiles-daemon.enable = false` to avoid that build failure.
   Noctalia does not read wallust output; it generates its own palette
   (`[theme] source = "wallpaper"`, matugen-style) independently, so its colors
-  currently won't match the rest of the wallust-themed desktop.
-- **Status:** Bar/notifications/wallpaper/lock screen not yet validated
-  standalone on real hardware. `hypridle.nix`'s `lock_cmd`/`before_sleep_cmd`
-  are deliberately untouched and still point at hyprlock — saruman's
-  sleep/hibernate path (item #7) must not be repointed until Noctalia's lock
-  screen has been proven reliable through real suspend/resume cycles.
+  currently won't match the rest of the wallust-themed desktop. To keep
+  wallust-driven apps (hyprlock, hyprland core, rofi, btop, cava, vim) in
+  sync, `noctalia.nix` wires Noctalia's `wallpaper_changed` hook to
+  `wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop` — the same
+  role waypaper's old `post_command` played.
+- **Status:** Phase A/B done and confirmed working on real hardware (bar,
+  notifications, wallpaper, lock, tested 2026-08-19). Phase C done the same
+  day: AGS (`ags.nix`) and swaync (`swaync.nix`) are now gated
+  `cfg.enable && !cfg.useNoctalia`; waypaper's package/config-seed are gated
+  `!cfg.useNoctalia`; `reloadDesktop` skips the ags/swaync restart under
+  Noctalia; `SUPER+W`/`SUPER+N` map to `noctalia msg panel-toggle
+  wallpaper`/`control-center` on saruman (Lua config tree only — see item #16).
+  All three are therefore fully inert on saruman now, present only as
+  `!cfg.useNoctalia`-gated code for other hosts / a fallback if the pilot is
+  abandoned. `hypridle.nix`'s `lock_cmd`/`before_sleep_cmd` and the `SUPER+L`
+  keybind are still deliberately untouched and point at hyprlock — that's
+  Phase D, gated separately, not yet started. Note for Phase D: Noctalia's own
+  docs say `loginctl lock-session` already routes to whichever client
+  implements the session-lock protocol, so hyprlock and Noctalia's lock
+  screen may race if both are ever active listeners at once — worth
+  confirming before repointing `lock_cmd`.
+- **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,
+  which was the only UI for the sleep-inhibit toggle (see CLAUDE.md's
+  "sleep inhibit gates idle timeouts only" rule) -- `hypridle.nix`'s flag-file
+  mechanism itself (`$XDG_RUNTIME_DIR/hypridle-idle-inhibited`) is untouched
+  and still gates the idle-timeout listeners correctly, but there is
+  currently no way to flip that flag on saruman. Noctalia has a built-in
+  `caffeine` bar widget (`noctalia msg caffeine-toggle`), but it uses the
+  standard `zwp_idle_inhibit_manager_v1` Wayland protocol, not this repo's
+  flag file -- whether Hyprland's idle-notify (which hypridle listens to)
+  already suppresses itself for idle-inhibit protocol holders, making
+  `caffeine` a drop-in replacement, or whether it's a no-op for our
+  guarded listeners, is unconfirmed and needs testing before relying on it.
 - **Removal condition:** Either the migration completes (AGS/swaync/hyprlock/
   waypaper get disabled per-host via `!cfg.useNoctalia` guards, `ags`/`astal`
   flake inputs removed, this entry closed out) or the pilot is abandoned
