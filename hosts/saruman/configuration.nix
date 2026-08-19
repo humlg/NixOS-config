@@ -102,16 +102,16 @@
   # Firmware updates via LVFS (fwupdmgr refresh && fwupdmgr update)
   services.fwupd.enable = true;
 
-  # Power management
-  services.tlp = {
-    enable = true;
-    settings = {
-      PLATFORM_PROFILE_ON_AC = "balanced";
-      CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
-      PLATFORM_PROFILE_ON_BAT = "low-power";
-      CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
-    };
-  };
+  # Power management — power-profiles-daemon, not TLP (see maintenance.md
+  # item 20). Noctalia's power-profile widget/panel only speaks
+  # org.freedesktop.UPower.PowerProfiles, which TLP doesn't provide without
+  # its own tlp-pd bridge; switched to PPD outright instead. Profile
+  # selection is now purely manual (PPD has no AC/battery auto-switching the
+  # way TLP's PLATFORM_PROFILE_ON_AC/BAT did) via Noctalia's widget. Accepted
+  # gap: TLP's other default power-saving (USB autosuspend, SATA/PCIe link
+  # power, disk/sound power saving, radio power saving on battery) is gone
+  # with no replacement — revisit if battery life regresses noticeably.
+  services.power-profiles-daemon.enable = true;
 
   # All sleep paths hibernate directly again as of 2026-08-18. Plain s2idle
   # (2026-08-17 -> 2026-08-18) did NOT hold: the amdgpu kernel patch was

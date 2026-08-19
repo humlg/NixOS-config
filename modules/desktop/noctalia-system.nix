@@ -22,11 +22,9 @@ in
       recommendedServices.enable = true;
     };
 
-    # recommendedServices.enable above default-enables power-profiles-daemon,
-    # but NixOS's TLP module asserts power-profiles-daemon and TLP are never
-    # both enabled — and every host using this module already runs TLP for
-    # power management. Force it back off; TLP stays the one thing managing
-    # power profiles.
-    services.power-profiles-daemon.enable = lib.mkForce false;
+    # recommendedServices.enable above default-enables power-profiles-daemon
+    # (needed for Noctalia's power-profile widget/panel — see maintenance.md
+    # item 20) and lets it apply with no override now that saruman runs it
+    # instead of TLP.
   };
 }

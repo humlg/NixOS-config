@@ -73,7 +73,7 @@ modules/
     hypridle.nix                   # Hypridle config (idle timers). Dispatchers here must use the external-Lua form (`hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`) — under the Lua config hyprctl feeds its argument to Lua, so the bare hyprlang spelling fails to parse and hypridle never notices
     swaync.nix                     # SwayNC notification center
     noctalia.nix                   # Noctalia desktop shell HM module — pilot only (desktop.hyprland-desktop.useNoctalia, saruman-only as of 2026-08-19), runs alongside AGS/swaync/hyprlock/waypaper rather than replacing them yet; imports inputs.noctalia.homeModules.default
-    noctalia-system.nix            # NixOS-level counterpart (custom.noctalia.enable) — imports inputs.noctalia.nixosModules.default, sets programs.noctalia.recommendedServices.enable but forces services.power-profiles-daemon.enable = false since TLP (already enabled on every host using this module) asserts against it
+    noctalia-system.nix            # NixOS-level counterpart (custom.noctalia.enable) — imports inputs.noctalia.nixosModules.default, sets programs.noctalia.recommendedServices.enable (which default-enables power-profiles-daemon, needed for Noctalia's power-profile widget) — saruman runs power-profiles-daemon instead of TLP as of 2026-08-19, see maintenance.md item 20
     dark-theme.nix                 # GTK/Qt dark theming (Home Manager module)
     default-apps.nix               # xdg-mime default application associations
   bundles/

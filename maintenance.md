@@ -511,10 +511,12 @@ Last full scan: 2026-07-16.
   lock screen + waypaper wallpaper picker, per the staged migration plan from
   2026-08-19.
   `programs.noctalia.recommendedServices.enable` wants
-  `services.power-profiles-daemon.enable`, but saruman (and every host using
-  this module) already runs TLP for power management, and NixOS's TLP module
-  asserts the two are never both enabled — `noctalia-system.nix` forces
-  `power-profiles-daemon.enable = false` to avoid that build failure.
+  `services.power-profiles-daemon.enable`, since Noctalia's power-profile
+  widget/panel only speaks that DBus interface. Originally worked around by
+  forcing `power-profiles-daemon.enable = false` since saruman ran TLP, which
+  NixOS's TLP module refuses to run alongside power-profiles-daemon; saruman
+  switched from TLP to power-profiles-daemon outright on 2026-08-19 instead
+  (item 20), so that override is gone and the widget is now functional.
   Noctalia does not read wallust output; it generates its own palette
   (`[theme] source = "wallpaper"`, matugen-style) independently, so its colors
   currently won't match the rest of the wallust-themed desktop. To keep
@@ -594,6 +596,48 @@ Last full scan: 2026-07-16.
   flake inputs removed, this entry closed out) or the pilot is abandoned
   (`useNoctalia`/`custom.noctalia.enable` flipped back off, the `noctalia`
   flake input and both new modules removed).
+
+### 20. Saruman: TLP replaced with power-profiles-daemon (2026-08-19)
+- **Where:** `hosts/saruman/configuration.nix` (`services.power-profiles-daemon.enable`
+  replaces the old `services.tlp` block), `modules/desktop/noctalia-system.nix`
+  (the `power-profiles-daemon.enable = lib.mkForce false` workaround from
+  item 19 is gone).
+- **Why:** Noctalia's power-profile bar widget/control-center panel only
+  speaks `org.freedesktop.UPower.PowerProfiles` over DBus (confirmed by
+  reading `src/dbus/power/power_profiles_service.cpp` in the noctalia-shell
+  source) — nothing provided that interface while saruman ran TLP, since
+  NixOS's TLP module refuses to enable TLP and power-profiles-daemon (PPD)
+  together.
+- **Road not taken:** TLP ships its own upstream-recommended DBus bridge for
+  exactly this interface (`services.tlp.pd.enable`, package `tlp-pd`, built
+  from TLP's own source tree — nixpkgs' TLP module assertion literally says
+  "upstream does not recommend using tlp together with power-profiles-daemon"
+  and points at `tlp.pd` instead). That would have kept TLP as the one thing
+  managing power without any real conflict. The user chose a full switch to
+  PPD instead, partly hoping it would also help saruman's s2idle sleep/resume
+  hang (item 7). Worth being explicit that this is unlikely — item 7's hang
+  is bisected to a specific amdgpu DCN3.5+ kernel commit unrelated to which
+  power daemon runs — but it's a cheap variable to have changed in case
+  behavior shifts; note it if the hang recurs or stops.
+- **Accepted gap:** the repo's TLP config was only 4 explicit settings
+  (`PLATFORM_PROFILE_ON_AC/BAT`, `CPU_ENERGY_PERF_POLICY_ON_AC/BAT`) — every
+  other TLP behavior (USB autosuspend, SATA/PCIe link power management,
+  disk/sound power saving, radio power saving on battery) came from TLP's
+  compiled-in defaults with no explicit override here, and has **no
+  replacement** now that TLP is gone: PPD only covers CPU governor/EPP +
+  `platform_profile`. Deliberately not replicated with manual
+  `powerManagement`/udev rules for now — accepted regression, revisit if
+  battery life measurably worsens.
+- **Behavior change:** power profile is now purely user-selected (via
+  Noctalia's widget/panel or `noctalia msg power-set`/`power-cycle`) with no
+  automatic AC/battery switching — TLP's old `PLATFORM_PROFILE_ON_AC/BAT`
+  auto-switching is gone by design, not an oversight.
+- **Removal condition:** N/A — this is a deliberate architecture choice, not
+  a temporary bodge. Revisit only if the accepted power-saving gap turns out
+  to matter in practice (worth trying `services.tlp.pd` instead at that
+  point, now that it's a known option), or if PPD's `platform_profile`
+  driver turns out to fight the amdgpu s2idle patch (`custom.amdgpu-s2idle-
+  patch`, item 7) in some way TLP didn't.
 
 ---
 
