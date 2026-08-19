@@ -533,7 +533,9 @@ Last full scan: 2026-07-16.
   `!cfg.useNoctalia`-gated code for other hosts / a fallback if the pilot is
   abandoned.
 
-  **Phase D done (code) 2026-08-19, NOT YET VALIDATED on real hardware.**
+  **Phase D done (code) 2026-08-19. Rebuilt and manual SUPER+L lock/unlock
+  confirmed working the same day. Watched suspend/resume and an unattended
+  overnight sleep are still outstanding before this is trusted — see below.**
   `hypridle.nix`'s `lock_cmd` and the `SUPER+L` keybind now both branch on
   `cfg.useNoctalia`: on saruman they call `noctalia msg session lock`
   (Noctalia's documented IPC lock command) instead of spawning hyprlock, so
@@ -551,9 +553,10 @@ Last full scan: 2026-07-16.
   has a documented history (item #7) of a mitigation looking solved after a
   short watched soak and then failing on the very next unattended overnight
   sleep. Do not trust this after one clean cycle: validate with (1) a manual
-  `SUPER+L` lock/unlock while awake, (2) a real watched lid-close/suspend/
-  resume cycle, and only then (3) at least one unattended overnight sleep,
-  before considering it reliable.
+  `SUPER+L` lock/unlock while awake — **done, confirmed working
+  2026-08-19** — (2) a real watched lid-close/suspend/resume cycle, and only
+  then (3) at least one unattended overnight sleep, before considering it
+  reliable. (2) and (3) are still outstanding.
 - **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,
   which was the only UI for the sleep-inhibit toggle (see CLAUDE.md's
   "sleep inhibit gates idle timeouts only" rule) -- `hypridle.nix`'s flag-file
