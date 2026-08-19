@@ -62,13 +62,11 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
-    # Direct hibernate on the 30-min idle timeout, matching the logind
-    # lid/power-key paths in configuration.nix — never suspend-then-hibernate,
-    # see the comment there for why that distinction matters. Plain s2idle
-    # suspend (2026-08-17 -> 08-18) still hung on unattended sleeps despite
-    # the amdgpu kernel patch, so hibernate is back on every automatic path.
-    # See maintenance.md item 7.
-    sleepCommand  = "systemctl hibernate";
+    # Plain suspend on the 30-min idle timeout, matching the logind
+    # lid/power-key paths in configuration.nix — third attempt at this
+    # (2026-08-19), see maintenance.md item 7 for why the first two failed
+    # and what to revert to if this one does too.
+    sleepCommand  = "systemctl suspend";
 
     extraConfig = ''
       xwayland {

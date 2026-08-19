@@ -80,7 +80,7 @@ Last full scan: 2026-07-16.
 - **Why:** Same class of problem as #5 — RDNA 3.5 isn't officially supported.
 - **Removal condition:** ROCm adds native RDNA 3.5 support.
 
-### 7. Saruman: s2idle sleep/resume hang — kernel patch (2026-08-16) reduces but doesn't fix it; direct hibernate restored on every sleep path (2026-08-18)
+### 7. Saruman: s2idle sleep/resume hang — kernel patch (2026-08-16) reduces but doesn't fix it; third plain-suspend retest underway (2026-08-19)
 - **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
   `modules/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
   (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
@@ -250,6 +250,25 @@ Last full scan: 2026-07-16.
      call gaining a guard this hardware fails. If a kernel bump makes the
      patch fail to apply, that is the intended tripwire — re-read
      `dm_suspend()` before regenerating it.
+  8. **Third plain-suspend retest (2026-08-19), user-requested.** Direct
+     hibernate (bullet 6's decision) is reverted on all four paths back to
+     plain `systemctl suspend` — `HandlePowerKey`, `HandleLidSwitch`,
+     `HandleLidSwitchExternalPower` in `hosts/saruman/configuration.nix`,
+     `custom.lid-undock-hibernate.sleepCommand`, and
+     `desktop.hyprland-desktop.sleepCommand` in `hosts/saruman/home.nix`. This
+     is the same configuration bullet 5 tried (22% hang rate over ~36
+     attempts) and that failed again post-patch in bullet 6 (2/2 unattended
+     overnight hangs) — going in with that history explicit rather than
+     re-discovering it. The kernel patch
+     (`custom.amdgpu-s2idle-patch.enable`) stays on since it may still lower
+     the hang rate even though it didn't eliminate it; compression is
+     irrelevant now since nothing hibernates automatically.
+     **Not yet soaked** — watch for the `PM: suspend entry (s2idle)`-with-no-
+     `exit` signature, especially on unattended/overnight sleeps, since that's
+     exactly where both prior attempts failed while short watched cycles
+     looked clean. If it recurs, revert bullet 8's four settings back to
+     hibernate (the exact values are in bullet 6's decision above) and record
+     the outcome here.
   7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — root cause
      of the LZO/direct-hibernate-only constraints above).** The very first
      hibernation on the patched kernel restored its image successfully and
@@ -322,41 +341,41 @@ Last full scan: 2026-07-16.
   Re-enabled since it was pure downside: with it blacklisted, saruman had no
   `typec`/UCSI subsystem at all, so USB-C PD contract negotiation (e.g. with a
   power bank) couldn't happen — charging fell back to basic detection only.
-- **Sleep policy as of 2026-08-17:** all four paths are plain s2idle
-  `suspend` — `HandlePowerKey`, `HandleLidSwitch` and
+- **Sleep policy as of 2026-08-19:** all four paths are plain s2idle
+  `suspend` again (bullet 8) — `HandlePowerKey`, `HandleLidSwitch` and
   `HandleLidSwitchExternalPower` in `hosts/saruman/configuration.nix`,
   hypridle's 30-min idle timeout via `desktop.hyprland-desktop.sleepCommand` in
   `hosts/saruman/home.nix`, and the undock path via
-  `custom.lid-undock-hibernate.sleepCommand`. Nothing hibernates automatically;
-  `boot.resumeDevice` and the LUKS swap are kept so a manual `systemctl
-  hibernate` still works and so the backstop can be restored without an initrd
-  change. `sleepCommand` still defaults to `systemctl suspend`
-  (hyprland-desktop) and `systemctl --no-block hibernate`
+  `custom.lid-undock-hibernate.sleepCommand`. This reverses the 2026-08-18
+  direct-hibernate-everywhere decision (bullet 6) — third attempt at plain
+  suspend, see bullet 8. `boot.resumeDevice` and the LUKS swap are kept so a
+  manual `systemctl hibernate` still works and so the hibernate backstop can
+  be restored without an initrd change. `sleepCommand` still defaults to
+  `systemctl suspend` (hyprland-desktop) and `systemctl --no-block hibernate`
   (lid-undock-hibernate), so sauron is unaffected either way — it has swap but
   no `boot.resumeDevice`, so hibernating there would lose the session.
   `HandleLidSwitchDocked` stays `"ignore"`, explicitly set, paired with
   `custom.lid-undock-hibernate.enable` as described in item 4 above. Note the
   module's file and option name still say "hibernate"; it is the historical name
   and the action is whatever `sleepCommand` says.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = **fixed and
-  validated** by the kernel patch in bullet 6 (three cycles up to 60 min
-  residency, all clean), replacing the 2026-07-22 hibernate-everything
-  workaround that made every lid close cost a full boot and a LUKS passphrase.
-  Open: hibernate *resume* now crashes (bullet 7), so there is no backstop
-  against a flat battery on a long unattended absence, and the patched kernel
-  draws more in standby than stock by design.
-- **Action:** Measure standby drain — that is the one number that decides
-  whether the current no-hibernate arrangement is livable. Note
-  `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min lid-shut
-  suspend on battery (`energy_full` is 65.85 Wh; the 67.6 Wh figure quoted here
-  earlier was the design capacity). Under ~1.5 W is several days of standby and
-  fine as-is; over ~3 W is under a day, and chasing bullet 7's bisect becomes
-  worth it. Then soak a week of real lid-close-and-walk cycles including an
-  overnight. Also drop `amdgpu.dcdebugmask=0x800` (bullet 2) once that week is
-  clean — it is now known to be inert. If the s2idle hang ever recurs, the
-  fallback is *not* hibernate any more; capture an STB trace
-  (`amd_pmc.enable_stb=1` is already on) before changing anything.
-- **Removal condition:** see bullets 6 and 7 above.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = **not solved** —
+  the kernel patch (bullet 6) reduces but does not eliminate it (2/2
+  unattended hangs even with the patch, 2026-08-17 → 08-18), and hibernate
+  resume has its own unresolved TTM crash (bullet 7). As of 2026-08-19 the
+  host is back on plain suspend for a third data-gathering pass (bullet 8),
+  user-requested, going in with both prior failure modes known rather than
+  expecting either bug to be newly fixed.
+- **Action:** Watch for the sleep hang recurring under bullet 8's plain-
+  suspend policy, especially unattended/overnight — that's where both prior
+  suspend attempts actually failed despite short watched cycles looking
+  clean. If it holds up over a real week of use, also measure standby drain:
+  note `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min
+  lid-shut suspend on battery (`energy_full` is 65.85 Wh). Also drop
+  `amdgpu.dcdebugmask=0x800` (bullet 2) once a clean week confirms the patch
+  isn't making things worse — it is already known to be inert either way.
+  Capture an STB trace (`amd_pmc.enable_stb=1` is already on) if the hang
+  recurs, before changing anything.
+- **Removal condition:** see bullets 6, 7 and 8 above.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.

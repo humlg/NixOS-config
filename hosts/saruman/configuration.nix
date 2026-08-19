@@ -56,8 +56,10 @@
   boot.initrd.luks.devices."luks-01b4b8c5-f250-4434-b00a-86d91e74ce05".device = "/dev/disk/by-uuid/01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Hibernate support: resume from the LUKS swap partition above (unlocked in
-  # initrd, same as root). All sleep paths hibernate directly again as of
-  # 2026-08-18 — see the logind block below. See maintenance.md item 7.
+  # initrd, same as root). Kept even though all sleep paths are back on plain
+  # suspend as of 2026-08-19 (see the logind block below) so manual
+  # `systemctl hibernate` still works and the automatic-hibernate backstop can
+  # be restored without an initrd change. See maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # Plymouth boot splash (shows * for LUKS password entry)
@@ -113,32 +115,19 @@
   # with no replacement — revisit if battery life regresses noticeably.
   services.power-profiles-daemon.enable = true;
 
-  # All sleep paths hibernate directly again as of 2026-08-18. Plain s2idle
-  # (2026-08-17 -> 2026-08-18) did NOT hold: the amdgpu kernel patch was
-  # "validated" on 2026-08-16 with 3 clean cycles (7 s / 22 min / 60 min, all
-  # watched, awake), but the next two *unattended* overnight sleeps both hung
-  # the exact same way (journal ends dead on "PM: suspend entry (s2idle)" with
-  # no matching "PM: suspend exit") -- 2 for 2, not an isolated fluke. The
-  # patch may still help (baseline was ~22% of ~36 suspends before it), but it
-  # clearly does not eliminate the hang, and an unattended hang costs a whole
-  # night. See maintenance.md item 7.
-  #
-  # This is a *direct* hibernate, never suspend-then-hibernate. That
-  # distinction matters: the one hibernate-resume crash seen on this machine
-  # (TTM "list_add corruption" in ttm_bo_populate, wedging the GPU, hard
-  # power-off needed) happened specifically via suspend-then-hibernate --
-  # s2idle first, then a 60-min HibernateDelaySec silently resumed it
-  # internally before converting to hibernate. Direct hibernate (straight from
-  # a fully awake state, no intervening s2idle resume) is exactly what ran
-  # clean for 9/9 cycles including a 7-day hibernation during 2026-07-24 ->
-  # 08-02, before this kernel patch even existed -- so never route sleep
-  # through suspend-then-hibernate here. hibernate.compressor is pinned to
-  # lzo (see custom.amdgpu-s2idle-patch.fasterHibernateCompression below) to
-  # also remove LZ4 as a variable, since it's the other named suspect for that
-  # crash and was never exercised during the proven-good window.
-  services.logind.settings.Login.HandlePowerKey = "hibernate";
-  services.logind.settings.Login.HandleLidSwitch = "hibernate";
-  services.logind.settings.Login.HandleLidSwitchExternalPower = "hibernate";
+  # Third attempt at plain s2idle suspend on every path, 2026-08-19 — see
+  # maintenance.md item 7 for the full history. It failed twice before: a
+  # 22% hang rate over ~36 attempts pre-patch (2026-08-02 -> 08-14), then 2/2
+  # unattended overnight hangs even with the amdgpu kernel patch applied
+  # (2026-08-17 -> 08-18), which is why hibernate was restored on every path
+  # the very next day. The kernel patch (custom.amdgpu-s2idle-patch.enable)
+  # stays on below since it may still reduce the hang rate even though it
+  # didn't eliminate it. If this recurs, revert these three lines and
+  # custom.lid-undock-hibernate.sleepCommand back to hibernate, matching the
+  # 2026-08-18 decision, and update maintenance.md item 7 with the result.
+  services.logind.settings.Login.HandlePowerKey = "suspend";
+  services.logind.settings.Login.HandleLidSwitch = "suspend";
+  services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
 
   # Lid close *with an external monitor attached*: keep running, so the laptop
   # can be used lid-shut on the Iiyama. This was already the effective
@@ -151,9 +140,11 @@
   services.logind.settings.Login.HandleLidSwitchDocked = "ignore";
 
   # ...and once that external monitor is unplugged while the lid is still
-  # shut, sleep — otherwise the machine stays awake in a bag. Direct hibernate
-  # (the module's default), matching the lid/power-key paths above.
+  # shut, sleep — otherwise the machine stays awake in a bag. Overridden to
+  # plain suspend to match the lid/power-key paths above (2026-08-19 retest,
+  # see maintenance.md item 7); the module's own default is hibernate.
   custom.lid-undock-hibernate.enable = true;
+  custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend";
 
   # Reduces the s2idle hang rate (see the logind block above for why it's no
   # longer trusted as the sole fix) and is kept in case anything still ends up
