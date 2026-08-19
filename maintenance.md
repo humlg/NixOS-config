@@ -578,6 +578,28 @@ Last full scan: 2026-07-16.
   2026-08-19** — (2) a real watched lid-close/suspend/resume cycle, and only
   then (3) at least one unattended overnight sleep, before considering it
   reliable. (2) and (3) are still outstanding.
+
+  **Phase E (2026-08-19): hypridle disabled entirely on saruman.** User
+  configured Noctalia's own idle service (outside Nix — Noctalia's settings
+  UI, not this repo) to handle dim/lock/dpms/sleep itself and confirmed by
+  testing that it locks before suspend on lid-close/power-key, not just via
+  manual `SUPER+L`. `modules/desktop/hypridle.nix` is now gated
+  `cfg.enable && !cfg.useNoctalia`, the same pattern Phase C already used for
+  `ags.nix`/`swaync.nix`, making hypridle fully inert on saruman — no dim,
+  lock, DPMS-off, or sleep-timeout listeners run there any more, and
+  `desktop.hyprland-desktop.sleepCommand` (`hosts/saruman/home.nix`) is
+  correspondingly unused there (kept set so it's correct again if
+  `useNoctalia` ever flips back off). Rationale: running both hypridle's
+  idle-timeout listeners and Noctalia's own idle service at once would have
+  raced the same way the compositor and logind once raced over lid-switch
+  sleep (item #7's first attempt, before the fix of moving lid handling to
+  `services.logind` alone) — two independent daemons both listening for the
+  same idle events. **Not gated on any hardware validation of its own** — the
+  underlying sleep hang (item #7) is a kernel/amdgpu issue, orthogonal to
+  which daemon requests the sleep, so this phase doesn't need its own
+  overnight soak the way Phase D did. `custom.lid-undock-hibernate` is
+  unaffected — it fires from an independent udev-triggered systemd unit, not
+  through hypridle.
 - **`gtk-4.0/gtk.css` fights home-manager's backup mechanism (found/fixed
   2026-08-19):** Noctalia's own GTK4 live-theming (`assets/templates/gtk/
   apply.sh` in the noctalia-shell source, run by its theming daemon on every

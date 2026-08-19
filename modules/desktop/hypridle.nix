@@ -22,7 +22,14 @@ let
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 in
 {
-  config = lib.mkIf cfg.enable {
+  # Gated the same way as ags.nix/swaync.nix (Phase C of the Noctalia
+  # migration, maintenance.md item 19): Noctalia owns idle/dim/lock/dpms/sleep
+  # entirely on hosts that pilot it, via its own idle service configured
+  # outside Nix. Running hypridle's listeners alongside it would race the same
+  # way the compositor and logind once raced over lid-switch sleep (item 7's
+  # first attempt) — two independent daemons both listening for the same idle
+  # events, only one of which can win unpredictably.
+  config = lib.mkIf (cfg.enable && !cfg.useNoctalia) {
 
     # ── Hypridle ──────────────────────────────────────────────────────────────
     services.hypridle = {
