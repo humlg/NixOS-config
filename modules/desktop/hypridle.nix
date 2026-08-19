@@ -29,7 +29,16 @@ in
       enable = true;
       settings = {
         general = {
-          lock_cmd         = "pidof hyprlock || hyprlock";
+          # Under Noctalia (Phase D of the migration, see maintenance.md item
+          # 19), lock_cmd must not spawn hyprlock at all: Noctalia also
+          # implements the session-lock protocol, and running both risks a
+          # race for the lock surface. Use Noctalia's documented IPC lock
+          # command instead, so hyprlock is never invoked automatically on
+          # this host again. hyprlock.nix itself stays enabled/untouched so
+          # this is a one-line rollback if Noctalia's lock proves unreliable.
+          lock_cmd         = if cfg.useNoctalia
+            then "noctalia msg session lock"
+            else "pidof hyprlock || hyprlock";
           before_sleep_cmd = "loginctl lock-session";
           after_sleep_cmd  = dpms "on";
         };

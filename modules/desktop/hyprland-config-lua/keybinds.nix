@@ -24,10 +24,10 @@
   hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
-  -- SUPER+L stays on lockScreen (hyprlock) even under Noctalia — repointing
-  -- the lock screen is Phase D of the Noctalia migration, gated separately
-  -- given saruman's sleep/hibernate hang history (see maintenance.md item 7).
-  hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(lockScreen))
+  -- Phase D of the Noctalia migration (see maintenance.md item 19) — matches
+  -- hypridle.nix's lock_cmd branch so the keybind and the idle/sleep-
+  -- triggered lock always agree on which lock screen actually runs.
+  hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(${if cfg.useNoctalia then ''"noctalia msg session lock"'' else "lockScreen"}))
   hl.bind(mainMod .. " + W",           hl.dsp.exec_cmd("${if cfg.useNoctalia then "noctalia msg panel-toggle wallpaper" else "waypaper"}"))
   hl.bind(mainMod .. " + N",           hl.dsp.exec_cmd("${if cfg.useNoctalia then "noctalia msg panel-toggle control-center" else "swaync-client -R && swaync-client -t"}"))
   hl.bind("ALT + TAB",                 hl.dsp.focus({ workspace = "previous" }))

@@ -531,13 +531,29 @@ Last full scan: 2026-07-16.
   wallpaper`/`control-center` on saruman (Lua config tree only — see item #16).
   All three are therefore fully inert on saruman now, present only as
   `!cfg.useNoctalia`-gated code for other hosts / a fallback if the pilot is
-  abandoned. `hypridle.nix`'s `lock_cmd`/`before_sleep_cmd` and the `SUPER+L`
-  keybind are still deliberately untouched and point at hyprlock — that's
-  Phase D, gated separately, not yet started. Note for Phase D: Noctalia's own
-  docs say `loginctl lock-session` already routes to whichever client
-  implements the session-lock protocol, so hyprlock and Noctalia's lock
-  screen may race if both are ever active listeners at once — worth
-  confirming before repointing `lock_cmd`.
+  abandoned.
+
+  **Phase D done (code) 2026-08-19, NOT YET VALIDATED on real hardware.**
+  `hypridle.nix`'s `lock_cmd` and the `SUPER+L` keybind now both branch on
+  `cfg.useNoctalia`: on saruman they call `noctalia msg session lock`
+  (Noctalia's documented IPC lock command) instead of spawning hyprlock, so
+  hyprlock is never invoked automatically or by keybind on this host anymore
+  — avoids a race for the session-lock surface, since Noctalia's docs say
+  `loginctl lock-session` already routes to whichever client implements the
+  session-lock protocol, and running both risked exactly that race.
+  `before_sleep_cmd` (`loginctl lock-session`) is unchanged — it's just the
+  trigger, `lock_cmd` decides which client actually locks.
+  **`hyprlock.nix` itself is deliberately left enabled/untouched on saruman**
+  so rollback (flip the two `useNoctalia` branches, or just set
+  `useNoctalia = false`) is a one-line revert, not a re-install, if Noctalia's
+  lock proves unreliable.
+  **This is the highest-blast-radius step in the whole migration** — saruman
+  has a documented history (item #7) of a mitigation looking solved after a
+  short watched soak and then failing on the very next unattended overnight
+  sleep. Do not trust this after one clean cycle: validate with (1) a manual
+  `SUPER+L` lock/unlock while awake, (2) a real watched lid-close/suspend/
+  resume cycle, and only then (3) at least one unattended overnight sleep,
+  before considering it reliable.
 - **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,
   which was the only UI for the sleep-inhibit toggle (see CLAUDE.md's
   "sleep inhibit gates idle timeouts only" rule) -- `hypridle.nix`'s flag-file
