@@ -19,7 +19,7 @@
   hl.bind(mainMod .. " + SHIFT + E",   hl.dsp.exec_cmd("rofimoji"))
   hl.bind(mainMod .. " + O",           hl.dsp.window.float({ action = "toggle" }))
   hl.bind(mainMod .. " + I",           hl.dsp.window.fullscreen())
-  hl.bind(mainMod .. " + R",           hl.dsp.exec_cmd(menu))
+  hl.bind(mainMod .. " + R",           hl.dsp.exec_cmd(${if cfg.useNoctalia then ''"noctalia msg panel-toggle launcher"'' else "menu"}))
   hl.bind(mainMod .. " + P",           hl.dsp.window.pseudo())
   hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
