@@ -33,8 +33,9 @@
   hl.bind("ALT + TAB",                 hl.dsp.focus({ workspace = "previous" }))
   hl.bind(mainMod .. " + G",           hl.dsp.exec_cmd("darkroom-toggle"))      -- Darkroom mode (red night vision)
 
-  -- Clipboard (cliphist + rofi)
-  hl.bind(mainMod .. " + V",         hl.dsp.exec_cmd("cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"))
+  -- Clipboard (cliphist + rofi, or Noctalia's own clipboard panel — see
+  -- the mainMod + L/W/N Noctalia-migration binds above for the same pattern)
+  hl.bind(mainMod .. " + V",         hl.dsp.exec_cmd("${if cfg.useNoctalia then "noctalia msg panel-toggle clipboard" else "cliphist list | rofi -dmenu -display-columns 2 | cliphist decode | wl-copy"}"))
   hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist wipe"))
 
   -- Focus
