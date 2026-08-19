@@ -85,6 +85,7 @@ in
     ./anyrun.nix
     ./hyprlock.nix
     ./hypridle.nix
+    ./noctalia.nix
   ];
 
   options.desktop.hyprland-desktop = {
@@ -130,6 +131,18 @@ in
       type    = lib.types.bool;
       default = false;
       description = "Switch to Lua config format (Hyprland 0.55+). When true, hyprland.lua is used instead of hyprland.conf.";
+    };
+
+    useNoctalia = lib.mkOption {
+      type    = lib.types.bool;
+      default = false;
+      description = ''
+        Pilot the Noctalia desktop shell (see noctalia.nix) alongside the
+        existing AGS/swaync/hyprlock/waypaper stack, none of which are
+        disabled by this flag — it only enables Noctalia in parallel. Pair
+        with custom.noctalia.enable (noctalia-system.nix) at the host's
+        NixOS-tree level for the system services Noctalia recommends.
+      '';
     };
 
     monitorsLua = lib.mkOption {

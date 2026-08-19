@@ -38,6 +38,14 @@ in
 
     useLuaConfig = true;
 
+    # Noctalia desktop shell pilot (2026-08-19) — runs alongside AGS/swaync/
+    # hyprlock/waypaper for now (all still enabled below), not replacing them
+    # yet. See the Noctalia migration plan: bar/notifications/wallpaper/lock
+    # get validated standalone (Phase B) before any keybind/autostart cutover
+    # (Phase C), and hypridle's lock_cmd is deliberately left on hyprlock
+    # until Phase D, gated separately given saruman's sleep-hang history.
+    useNoctalia = true;
+
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
       monitor = desc:Iiyama North America PL2797H 12497503A1590,1920x1080@100,1440x-258,1

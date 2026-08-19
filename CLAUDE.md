@@ -49,7 +49,7 @@ modules/
     common.nix                     # Shared home-manager boilerplate (username, stateVersion, etc.)
   desktop/
     hyprland-desktop.nix           # Main Hyprland HM module (options, packages, services)
-    hyprland-config/               # Legacy hyprlang config fragments — kept in sync by hand with hyprland-config-lua/ below (see maintenance.md #16)
+    hyprland-config/               # Legacy hyprlang config fragments — frozen/unmaintained as of 2026-08-19; no longer kept in sync with hyprland-config-lua/ below. New config work goes into hyprland-config-lua/ only (see maintenance.md #16)
       variables.nix                #   $terminal, $fileManager, $menu, etc.
       autostart.nix                #   exec-once entries
       input.nix                    #   Input, gestures, per-device overrides
@@ -72,6 +72,8 @@ modules/
     hyprlock.nix                   # Hyprlock config (lock screen)
     hypridle.nix                   # Hypridle config (idle timers). Dispatchers here must use the external-Lua form (`hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`) — under the Lua config hyprctl feeds its argument to Lua, so the bare hyprlang spelling fails to parse and hypridle never notices
     swaync.nix                     # SwayNC notification center
+    noctalia.nix                   # Noctalia desktop shell HM module — pilot only (desktop.hyprland-desktop.useNoctalia, saruman-only as of 2026-08-19), runs alongside AGS/swaync/hyprlock/waypaper rather than replacing them yet; imports inputs.noctalia.homeModules.default
+    noctalia-system.nix            # NixOS-level counterpart (custom.noctalia.enable) — imports inputs.noctalia.nixosModules.default, sets programs.noctalia.recommendedServices.enable but forces services.power-profiles-daemon.enable = false since TLP (already enabled on every host using this module) asserts against it
     dark-theme.nix                 # GTK/Qt dark theming (Home Manager module)
     default-apps.nix               # xdg-mime default application associations
   bundles/

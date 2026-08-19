@@ -25,6 +25,7 @@
     ../../modules/system/secrets.nix
     ../../modules/services/sunshine-moonlight.nix
     ../../modules/system/amdgpu-s2idle-patch.nix
+    ../../modules/desktop/noctalia-system.nix
   ];
 
   networking.hostName = "saruman";
@@ -189,6 +190,10 @@
   custom.bluetooth.enable = true;
   custom.darkproject-keyboard.enable = true;
   custom.mullvad.enable = true;
+  # Noctalia desktop shell pilot (2026-08-19) — trialed alongside the
+  # existing AGS/swaync/hyprlock/waypaper stack, not yet replacing it. See
+  # desktop.hyprland-desktop.useNoctalia in home.nix for the HM-side pairing.
+  custom.noctalia.enable = true;
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
   bundles.wine.enable = true;

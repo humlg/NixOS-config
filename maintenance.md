@@ -467,18 +467,22 @@ Last full scan: 2026-07-16.
   as dead code and deleted by accident, or conversely doesn't quietly bit-rot
   into an unusable fallback if AGS ever needs to be abandoned in a hurry.
 
-### 16. Two parallel Hyprland config formats coexist
+### 16. Two parallel Hyprland config formats coexist (hyprlang tree now frozen)
 - **Where:** `modules/desktop/hyprland-config/` (hyprlang, legacy) vs.
   `modules/desktop/hyprland-config-lua/` (Lua, active)
-- **What:** Both directories are fully built out and kept in sync by hand. All
-  three hosts actually run the Lua config (`useLuaConfig = true` in each
-  `home.nix`).
-- **Risk:** Any future edit to keybinds/appearance/window-rules must be applied
-  to **both** directories or they silently drift (see item #9 above, where the
-  namespace fix landed in both but they're edited independently). If the
-  hyprlang path is truly unused, consider deleting it; if it's a deliberate
-  fallback, document the sync obligation more visibly (e.g. a comment at the
-  top of each file pointing at its twin).
+- **What:** Both directories are fully built out. All three hosts actually run
+  the Lua config (`useLuaConfig = true` in each `home.nix`).
+- **Status (2026-08-19):** No longer kept in sync — David confirmed the
+  hyprlang tree is deprecated; all new config work (keybinds, autostart,
+  appearance, window-rules) goes into `hyprland-config-lua/` only going
+  forward. The two directories were already drifting before this was
+  clarified (see item #9, where a namespace fix landed in both independently)
+  and will now drift further by design, not by accident.
+- **Action:** Since the hyprlang tree is confirmed unused and no longer
+  maintained, it's now a candidate for outright deletion rather than a
+  fallback worth preserving — flag for a decision next time it's touched
+  (per CLAUDE.md's "flag orphaned modules, don't silently delete" rule) rather
+  than deleting it unprompted.
 
 ### 17. Commented-out packages with no explanation
 - **Where:**
@@ -496,6 +500,35 @@ Last full scan: 2026-07-16.
   add sauron as recipient, rekey all secrets"`. The current `secrets/secrets.nix`
   already lists sauron's key and all secrets have been rekeyed.
 - **Action:** Delete the stale "Sauron TODO" section from `CLAUDE.md`.
+
+### 19. Noctalia desktop shell — pilot on saruman, not yet replacing AGS/swaync/hyprlock/waypaper
+- **Where:** `modules/desktop/noctalia.nix` (HM, `desktop.hyprland-desktop.useNoctalia`),
+  `modules/desktop/noctalia-system.nix` (NixOS, `custom.noctalia.enable`), new
+  `noctalia` flake input in `flake.nix`. Enabled on saruman only
+  (`hosts/saruman/configuration.nix`, `hosts/saruman/home.nix`).
+- **What:** Trialing Noctalia (v5, Beta — `github:noctalia-dev/noctalia-shell`)
+  as a possible replacement for the AGS bar + swaync notifications + hyprlock
+  lock screen + waypaper wallpaper picker. All four of those stay fully
+  enabled and running in parallel for now — this is Phase A/B of a staged
+  migration (see the Noctalia migration plan from 2026-08-19), not a cutover.
+  `programs.noctalia.recommendedServices.enable` wants
+  `services.power-profiles-daemon.enable`, but saruman (and every host using
+  this module) already runs TLP for power management, and NixOS's TLP module
+  asserts the two are never both enabled — `noctalia-system.nix` forces
+  `power-profiles-daemon.enable = false` to avoid that build failure.
+  Noctalia does not read wallust output; it generates its own palette
+  (`[theme] source = "wallpaper"`, matugen-style) independently, so its colors
+  currently won't match the rest of the wallust-themed desktop.
+- **Status:** Bar/notifications/wallpaper/lock screen not yet validated
+  standalone on real hardware. `hypridle.nix`'s `lock_cmd`/`before_sleep_cmd`
+  are deliberately untouched and still point at hyprlock — saruman's
+  sleep/hibernate path (item #7) must not be repointed until Noctalia's lock
+  screen has been proven reliable through real suspend/resume cycles.
+- **Removal condition:** Either the migration completes (AGS/swaync/hyprlock/
+  waypaper get disabled per-host via `!cfg.useNoctalia` guards, `ags`/`astal`
+  flake inputs removed, this entry closed out) or the pilot is abandoned
+  (`useNoctalia`/`custom.noctalia.enable` flipped back off, the `noctalia`
+  flake input and both new modules removed).
 
 ---
 
