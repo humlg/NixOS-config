@@ -30,6 +30,18 @@
 
   networking.hostName = "saruman";
 
+  # Skip the SDDM greeter at boot (LUKS already gates access — entering a
+  # second password right after is redundant) but still land on the SDDM
+  # greeter after an explicit logout (SUPER+SHIFT+M): autologin only fires
+  # when the SDDM daemon itself starts (i.e. once, at boot), not on every
+  # return-to-greeter after a session ends, so a manual logout naturally
+  # shows the normal login screen. defaultSession must be set explicitly so
+  # autologin knows which session to launch (withUWSM = true registers the
+  # session as "hyprland-uwsm", not "hyprland").
+  services.displayManager.autoLogin.enable = true;
+  services.displayManager.autoLogin.user = "david";
+  services.displayManager.defaultSession = "hyprland-uwsm";
+
   # K3B needs direct (non-ACL/session) access to the optical writer
   users.users.david.extraGroups = [ "cdrom" ];
 
