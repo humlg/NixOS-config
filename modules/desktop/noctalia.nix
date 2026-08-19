@@ -33,5 +33,21 @@ in
       # gap for this pilot (see maintenance.md item 19).
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';
     };
+
+    # Noctalia's own GTK4 live-theming (assets/templates/gtk/apply.sh in the
+    # noctalia-shell source, run by its theming daemon on every start/theme
+    # change) detects that dark-theme.nix's home-manager-managed gtk-4.0/
+    # gtk.css is a read-only Nix-store symlink, deletes it, and replaces it
+    # with a plain file carrying its own `@import url("noctalia.css");`
+    # line. The next activation then finds a real file where it expects its
+    # symlink, backs it up to gtk.css.hm-bak, and re-symlinks — which then
+    # collects a stale .hm-bak that blocks the activation *after* that with
+    # "existing file ... would be clobbered", since nothing ever removes it.
+    # `force = true` makes home-manager skip the backup step and just
+    # overwrite unconditionally, breaking that cycle; Noctalia re-patches its
+    # import back in within moments of the service restarting, so this
+    # doesn't lose the live theming, just the doomed backup dance. See
+    # maintenance.md item 19.
+    xdg.configFile."gtk-4.0/gtk.css".force = true;
   };
 }

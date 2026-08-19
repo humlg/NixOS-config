@@ -557,6 +557,26 @@ Last full scan: 2026-07-16.
   2026-08-19** — (2) a real watched lid-close/suspend/resume cycle, and only
   then (3) at least one unattended overnight sleep, before considering it
   reliable. (2) and (3) are still outstanding.
+- **`gtk-4.0/gtk.css` fights home-manager's backup mechanism (found/fixed
+  2026-08-19):** Noctalia's own GTK4 live-theming (`assets/templates/gtk/
+  apply.sh` in the noctalia-shell source, run by its theming daemon on every
+  start/theme change) detects that dark-theme.nix's home-manager-managed
+  `gtk-4.0/gtk.css` is a read-only Nix-store symlink, deletes it, and
+  replaces it with a plain file carrying its own `@import
+  url("noctalia.css");` line appended. The next activation then finds a real
+  file where it expects its symlink, backs it up to `gtk.css.hm-bak`, and
+  re-symlinks — Noctalia immediately reconverts it again — so every *other*
+  activation finds a leftover `.hm-bak` already in place and aborts with
+  "existing file ... would be clobbered by backing up ...". Fixed by setting
+  `xdg.configFile."gtk-4.0/gtk.css".force = true;` in `noctalia.nix` (gated
+  under the same `useNoctalia` block), which makes home-manager skip the
+  backup step and just overwrite unconditionally — Noctalia re-patches its
+  import back in within moments of its service restarting, so this doesn't
+  lose the live theming, just the doomed backup dance. `gtk-3.0/gtk.css`
+  isn't affected the same way: home-manager doesn't manage a `gtk-3.0/
+  gtk.css` file at all (GTK3 theme selection goes through `settings.ini`
+  instead), so Noctalia creating one fresh there has nothing to collide
+  with.
 - **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,
   which was the only UI for the sleep-inhibit toggle (see CLAUDE.md's
   "sleep inhibit gates idle timeouts only" rule) -- `hypridle.nix`'s flag-file
