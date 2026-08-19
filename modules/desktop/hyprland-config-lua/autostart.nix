@@ -10,7 +10,6 @@
     ${if cfg.useNoctalia then "" else ''hl.exec_cmd("ags run")''}
     hl.exec_cmd("awww-daemon")
     ${if cfg.useNoctalia then "" else ''hl.exec_cmd("sleep 1 && waypaper --restore")''}
-    hl.exec_cmd("nm-applet --indicator & blueman-applet &")
     hl.exec_cmd([[sleep 3 && hyprctl dispatch 'hl.dsp.exec_cmd("[workspace special:mail silent] thunderbird")']])
     hl.exec_cmd([[sleep 4 && hyprctl dispatch 'hl.dsp.exec_cmd("[workspace special:notes silent] obsidian")']])
     -- no_initial_focus only stops these from stealing focus from an ALREADY-focused
