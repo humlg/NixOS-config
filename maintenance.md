@@ -269,6 +269,19 @@ Last full scan: 2026-07-16.
      looked clean. If it recurs, revert bullet 8's four settings back to
      hibernate (the exact values are in bullet 6's decision above) and record
      the outcome here.
+  9. **First unattended overnight sleep survived (2026-08-20).** Under
+     bullet 8's plain-suspend policy, saruman went to sleep overnight
+     unattended and woke cleanly the next morning — the first unattended
+     overnight cycle since the third retest started that did *not* hit the
+     `PM: suspend entry (s2idle)`-with-no-`exit` hang. Battery dropped ~15%
+     over the sleep (exact `energy_now` before/after not captured this time —
+     still needed for a precise Wh/hr drain figure per the Action item
+     below). One clean night is not a trend yet — bullet 5's original attempt
+     also had clean-looking stretches before failing at a 22% rate over ~36
+     suspends, so keep treating this as encouraging but not conclusive. If
+     drain stays around this level on repeat, it's workable but on the high
+     side for s2idle; worth comparing against sauron/typical s2idle drain
+     once more data points exist.
   7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — root cause
      of the LZO/direct-hibernate-only constraints above).** The very first
      hibernation on the patched kernel restored its image successfully and
@@ -358,23 +371,30 @@ Last full scan: 2026-07-16.
   `custom.lid-undock-hibernate.enable` as described in item 4 above. Note the
   module's file and option name still say "hibernate"; it is the historical name
   and the action is whatever `sleepCommand` says.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = **not solved** —
-  the kernel patch (bullet 6) reduces but does not eliminate it (2/2
-  unattended hangs even with the patch, 2026-08-17 → 08-18), and hibernate
-  resume has its own unresolved TTM crash (bullet 7). As of 2026-08-19 the
-  host is back on plain suspend for a third data-gathering pass (bullet 8),
-  user-requested, going in with both prior failure modes known rather than
-  expecting either bug to be newly fixed.
-- **Action:** Watch for the sleep hang recurring under bullet 8's plain-
-  suspend policy, especially unattended/overnight — that's where both prior
-  suspend attempts actually failed despite short watched cycles looking
-  clean. If it holds up over a real week of use, also measure standby drain:
-  note `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min
-  lid-shut suspend on battery (`energy_full` is 65.85 Wh). Also drop
-  `amdgpu.dcdebugmask=0x800` (bullet 2) once a clean week confirms the patch
-  isn't making things worse — it is already known to be inert either way.
-  Capture an STB trace (`amd_pmc.enable_stb=1` is already on) if the hang
-  recurs, before changing anything.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = **not solved,
+  but the first unattended overnight cycle under the third retest woke
+  cleanly (2026-08-20, bullet 9)** — the kernel patch (bullet 6) reduces but
+  has not been shown to eliminate the hang (2/2 unattended hangs on the
+  prior post-patch attempt, 2026-08-17 → 08-18), and hibernate resume has its
+  own unresolved TTM crash (bullet 7). As of 2026-08-19 the host is on plain
+  suspend for a third data-gathering pass (bullet 8), user-requested, going
+  in with both prior failure modes known rather than expecting either bug to
+  be newly fixed. One clean overnight is a data point, not a resolution —
+  watch for more before calling it fixed. Standby drain on that one night was
+  ~15% of battery, which is workable but on the high side; not yet measured
+  precisely (see Action).
+- **Action:** Keep watching for the sleep hang recurring under bullet 8's
+  plain-suspend policy on unattended/overnight sleeps — both prior suspend
+  attempts failed there despite short watched cycles looking clean, so one
+  clean night (bullet 9) doesn't clear it yet. If it keeps holding up, also
+  get a precise standby-drain figure: note
+  `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min
+  lid-shut suspend on battery (`energy_full` is 65.85 Wh) — the ~15% drop
+  seen on 2026-08-20 was eyeballed from the percentage, not measured this
+  way. Also drop `amdgpu.dcdebugmask=0x800` (bullet 2) once a clean week
+  confirms the patch isn't making things worse — it is already known to be
+  inert either way. Capture an STB trace (`amd_pmc.enable_stb=1` is already
+  on) if the hang recurs, before changing anything.
 - **Removal condition:** see bullets 6, 7 and 8 above.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
