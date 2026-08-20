@@ -34,6 +34,26 @@ in
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';
     };
 
+    # One-shot seed of the tuned look-and-feel (bar layout, theme, lockscreen
+    # widgets, plugin list, idle behavior, etc.) from saruman's live-tuned
+    # config, captured 2026-08-21 into noctalia-settings-seed.toml. This file
+    # is Noctalia's own runtime state, not a declarative Nix option — its
+    # settings GUI rewrites it live, so home-manager must not symlink/manage
+    # it directly (same class of problem as the gtk.css clobbering below).
+    # Only written if absent, exactly like seedWaypaperConfig in
+    # hyprland-desktop.nix, so a host that already has its own tuned
+    # settings.toml (saruman) is left untouched, and once seeded here
+    # Noctalia owns the file completely — this activation script never
+    # touches it again. Referenced plugins/community palette are fetched by
+    # Noctalia's own marketplace mechanism on first run, not copied here.
+    home.activation.seedNoctaliaSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      if [[ ! -f "$HOME/.local/state/noctalia/settings.toml" ]]; then
+        $DRY_RUN_CMD mkdir -p "$HOME/.local/state/noctalia"
+        $DRY_RUN_CMD cp ${./noctalia-settings-seed.toml} "$HOME/.local/state/noctalia/settings.toml"
+        $DRY_RUN_CMD touch "$HOME/.local/state/noctalia/.setup-complete"
+      fi
+    '';
+
     # Noctalia's own GTK4 live-theming (assets/templates/gtk/apply.sh in the
     # noctalia-shell source, run by its theming daemon on every start/theme
     # change) detects that dark-theme.nix's home-manager-managed gtk-4.0/

@@ -540,11 +540,41 @@ Last full scan: 2026-07-16.
   already lists sauron's key and all secrets have been rekeyed.
 - **Action:** Delete the stale "Sauron TODO" section from `CLAUDE.md`.
 
-### 19. Noctalia desktop shell — pilot on saruman, not yet replacing AGS/swaync/hyprlock/waypaper
+### 19. Noctalia desktop shell — pilot on saruman, full replacement on sauron
 - **Where:** `modules/desktop/noctalia.nix` (HM, `desktop.hyprland-desktop.useNoctalia`),
   `modules/desktop/noctalia-system.nix` (NixOS, `custom.noctalia.enable`), new
-  `noctalia` flake input in `flake.nix`. Enabled on saruman only
-  (`hosts/saruman/configuration.nix`, `hosts/saruman/home.nix`).
+  `noctalia` flake input in `flake.nix`. Enabled on saruman
+  (`hosts/saruman/configuration.nix`, `hosts/saruman/home.nix`) and, as of
+  2026-08-21, on sauron too (`hosts/sauron/configuration.nix`,
+  `hosts/sauron/home.nix`) — sauron skipped the staged pilot and went
+  straight to full replacement in one pass, since none of the phase-by-phase
+  caution below was ever about Noctalia itself, it was about not stacking a
+  new variable on top of saruman's unresolved sleep hang (item #7). Sauron
+  has no such history, so AGS/swaync/hyprlock/waypaper/hypridle are inert
+  there from the first rebuild (all already gated `!cfg.useNoctalia`
+  generically, not saruman-specific).
+- **Runtime settings seeded, not migrated live:** Noctalia's actual tuned
+  look-and-feel (bar layout, theme, lockscreen widgets, plugin list, idle
+  behavior) lives in `~/.local/state/noctalia/settings.toml`, which its own
+  settings GUI rewrites at runtime — not a Nix-managed file, same category as
+  the `gtk.css` clobbering problem below. `modules/desktop/
+  noctalia-settings-seed.toml` is a snapshot of saruman's live settings.toml
+  captured 2026-08-21; `noctalia.nix`'s `seedNoctaliaSettings` activation
+  script copies it to `~/.local/state/noctalia/settings.toml` once, only if
+  that file doesn't already exist (same "seed if absent" pattern as
+  `seedWaypaperConfig` in `hyprland-desktop.nix`). This is how sauron got an
+  identical starting look-and-feel to saruman in one rebuild. Once seeded,
+  this repo never touches the file again — Noctalia owns it, and further
+  tuning on either host diverges independently unless the seed file is
+  manually refreshed and re-copied (deleting the target file first, since the
+  guard only fires when it's absent). Referenced plugins
+  (`gustav0ar/drive-health`, `yocraft/battery-widget`, `kenn/
+  keybind-cheatsheet`) and the `Rosey AMOLED` community palette are fetched
+  by Noctalia's own marketplace mechanism on first run, not copied by the
+  seed — confirmed present under `~/.local/state/noctalia/plugins/` and
+  `community-palettes/` with `.catalog` metadata suggesting an online
+  catalog, but the actual auto-fetch-on-sauron behavior is unconfirmed until
+  tested there.
 - **What:** Trialing Noctalia (v5, Beta — `github:noctalia-dev/noctalia-shell`)
   as a possible replacement for the AGS bar + swaync notifications + hyprlock
   lock screen + waypaper wallpaper picker, per the staged migration plan from

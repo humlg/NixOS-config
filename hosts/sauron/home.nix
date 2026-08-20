@@ -21,6 +21,14 @@
 
     useLuaConfig = true;
 
+    # Noctalia desktop shell — replaces AGS/swaync/hyprlock/waypaper/hypridle
+    # outright (see custom.noctalia.enable in configuration.nix and
+    # maintenance.md item 19). Runtime look-and-feel (bar/theme/lockscreen/
+    # plugins/idle behavior) is seeded once from saruman's tuned config by
+    # noctalia.nix's seedNoctaliaSettings activation script, then left
+    # entirely to Noctalia's own settings GUI to manage from there on.
+    useNoctalia = true;
+
     # Machine-specific monitor layout (sauron — desktop with external display)
     monitors = ''
       monitor = DP-2, 2560x1440@165.08, 1920x0, 1
