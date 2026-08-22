@@ -7,7 +7,7 @@ order = [ "top-bar" ]
     background_opacity = 0.34999999217689037
     capsule_radius = 11
     capsule_thickness = 0.84999998472630978
-    center = [ "workspaces", "taskbar" ]
+    center = [ "taskbar" ]
     end = [ "tray", "notifications", "clipboard", "volume", "brightness", "group:g1", "clock" ]
     margin_ends = 0
     padding = 4
@@ -17,7 +17,7 @@ order = [ "top-bar" ]
     radius_bottom_right = 12
     radius_top_left = 0
     radius_top_right = 0
-    start = [ "cpu", "ram", "battery", "media" ]
+    start = [ "workspaces", "cpu", "ram", "battery", "media" ]
     thickness = 28
     widget_spacing = 3
 
