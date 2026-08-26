@@ -9,11 +9,13 @@
     ../../modules/desktop/hyprland-system.nix
     ../../modules/programs/zsh.nix
     ../../modules/services/bluetooth.nix
+    ../../modules/services/tailscale.nix
   ];
 
   networking.hostName = "nixosvm";
 
   custom.bluetooth.enable = true;
+  custom.tailscale.enable = true;
 
   # Virtual Machine agent
   services.spice-vdagentd.enable = true;

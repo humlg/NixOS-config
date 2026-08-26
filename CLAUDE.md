@@ -112,6 +112,7 @@ modules/
     ollama.nix                     # Ollama (ROCm build) + oterm TUI
     sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
     wivrn.nix                      # WiVRn wireless VR streaming server (Meta Quest 2), custom.wivrn.enable — used by sauron
+    tailscale.nix                  # Tailscale VPN mesh networking (services.tailscale + firewall trust for tailscale0), custom.tailscale.enable — used by all three hosts
   system/
     amdgpu-s2idle-patch.nix        # Builds a locally-patched kernel dropping amdgpu's DCN3.5+ "IPS before D3cold" s2idle step (the actual fix for the saruman resume hang) + optional LZ4 hibernate compression — opt-in via custom.amdgpu-s2idle-patch.enable — saruman only (see maintenance.md #7)
     common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)

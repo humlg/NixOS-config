@@ -24,6 +24,7 @@
     ../../modules/programs/zen-browser.nix
     ../../modules/system/secrets.nix
     ../../modules/services/sunshine-moonlight.nix
+    ../../modules/services/tailscale.nix
     ../../modules/system/amdgpu-s2idle-patch.nix
     ../../modules/desktop/noctalia-system.nix
     ../../modules/system/tui-askpass.nix
@@ -195,6 +196,7 @@
   custom.bluetooth.enable = true;
   custom.darkproject-keyboard.enable = true;
   custom.mullvad.enable = true;
+  custom.tailscale.enable = true;
   # Noctalia desktop shell pilot (2026-08-19) — trialed alongside the
   # existing AGS/swaync/hyprlock/waypaper stack, not yet replacing it. See
   # desktop.hyprland-desktop.useNoctalia in home.nix for the HM-side pairing.

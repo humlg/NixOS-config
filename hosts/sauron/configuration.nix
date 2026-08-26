@@ -21,6 +21,7 @@
     ../../modules/services/ollama.nix
     ../../modules/services/sunshine-moonlight.nix
     ../../modules/services/wivrn.nix
+    ../../modules/services/tailscale.nix
     ../../modules/desktop/noctalia-system.nix
   ];
 
@@ -57,6 +58,7 @@
   programs.coolercontrol.enable = true;
   custom.bluetooth.enable = true;
   custom.mullvad.enable = true;
+  custom.tailscale.enable = true;
   # Noctalia desktop shell — full replacement of AGS/swaync/hyprlock/waypaper/
   # hypridle (all auto-gated off by useNoctalia in home.nix below). Unlike
   # saruman this skips the staged pilot: sauron has none of saruman's
