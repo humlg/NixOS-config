@@ -282,6 +282,55 @@ Last full scan: 2026-07-16.
      drain stays around this level on repeat, it's workable but on the high
      side for s2idle; worth comparing against sauron/typical s2idle drain
      once more data points exist.
+  10. **Failure-rate audit across the third retest, 2026-08-19 → 08-26
+      (journalctl, all boots since bullet 8's revert).** Counted every
+      `PM: suspend entry (s2idle)` vs `PM: suspend exit` pair per boot:
+      | boot start | attempts | clean | hang (last cycle unresolved) |
+      |---|---|---|---|
+      | Aug 19 18:02 → Aug 20 00:05 | 2 | 2 | 0 |
+      | Aug 20 00:05 → Aug 20 20:34 | 5 | 4 | 1 (20:34:48) |
+      | Aug 20 21:24 → Aug 22 12:55 | 5 | 4 | 1 (Aug 22 12:55:11) |
+      | Aug 22 14:44 → Aug 24 15:22 | 7 | 6 | 1 (Aug 24 15:22:05) |
+      | Aug 24 15:24 → Aug 26 13:32 | 6 | 6 | 0 |
+      **Total: 25 attempts, 22 clean, 3 hangs ≈ 12%** — roughly half the
+      pre-patch rate (22% over ~36 attempts, bullet 5), though still not
+      zero. All three hangs happened early (Aug 20 evening, Aug 22 midday,
+      Aug 24 midday), each confirmed via the same signature used throughout
+      this item (last journal line of the boot is the bare
+      `PM: suspend entry (s2idle)`, systemd's own freeze/sleep-actions lines
+      immediately above it, nothing after — i.e. it never returned within
+      that boot). Recovery gaps to the next boot were short (50 min, 1h49m,
+      2 min), consistent with the user hard-power-cycling shortly after
+      noticing. **The most recent boot (Aug 24 15:24 → Aug 26 13:32, the
+      current state as of 2026-08-26) ran 6/6 clean**, including two long
+      unattended sleeps — Aug 24 18:59 → Aug 25 10:08 (~15h) and Aug 25
+      18:04 → Aug 26 11:41 (~17h40m) — both clean, which is what prompted
+      the user to describe recent hanging as "pretty minimal."
+      **Drain figure (closes the outstanding measurement from bullet 9):**
+      no `energy_now` snapshot was taken manually, but upower keeps its own
+      percentage log (`/var/lib/upower/history-charge-*.dat`, world-
+      readable, epoch/percent/state columns) with samples close enough to
+      both long sleeps above to estimate drain without a kernel-log gap:
+      ~79%→51% over the ~15h sleep (≈1.85%/hr) and ~75%→39% over the
+      ~17h40m sleep (≈2.0%/hr). At the pack's current reported
+      `energy-full` of 66.37 Wh (was 65.85 Wh when last recorded — battery
+      capacity estimates drift with calibration, not a discrepancy worth
+      chasing) that's **≈1.2–1.4 W average draw during s2idle**, i.e. ~15–17%
+      over a typical 8h night — matching the user's earlier eyeballed ~15%
+      almost exactly. Workable, on the higher side of what's typical for
+      s2idle (expected given this machine can't reach its deepest hardware
+      idle state — see bullet 6), but not alarming.
+      **Read on where this leaves things:** the patch (bullet 6) is doing
+      real work — hang rate roughly halved vs. no patch — but "12% overall,
+      0% for the last 2 days" is still too small an n to call it fixed, and
+      the last time a stretch looked clean (bullet 6's original 2026-08-16
+      validation, ~1.5h watched) it was followed immediately by 2/2
+      unattended overnight hangs. The difference this time: this is now 6
+      consecutive clean *unattended* cycles including two full overnight
+      sleeps, not just a short watched soak — a materially stronger signal
+      than what preceded either past reversal. Still recommend more runway
+      before revisiting bullet 2's dcdebugmask removal or calling this item
+      closed.
   7. **Hibernate resume crashes in TTM (found 2026-08-16, unfixed — root cause
      of the LZO/direct-hibernate-only constraints above).** The very first
      hibernation on the patched kernel restored its image successfully and
@@ -371,31 +420,30 @@ Last full scan: 2026-07-16.
   `custom.lid-undock-hibernate.enable` as described in item 4 above. Note the
   module's file and option name still say "hibernate"; it is the historical name
   and the action is whatever `sleepCommand` says.
-- **Status:** Reboot hang (undocked) = solved. Sleep hang = **not solved,
-  but the first unattended overnight cycle under the third retest woke
-  cleanly (2026-08-20, bullet 9)** — the kernel patch (bullet 6) reduces but
-  has not been shown to eliminate the hang (2/2 unattended hangs on the
-  prior post-patch attempt, 2026-08-17 → 08-18), and hibernate resume has its
-  own unresolved TTM crash (bullet 7). As of 2026-08-19 the host is on plain
-  suspend for a third data-gathering pass (bullet 8), user-requested, going
-  in with both prior failure modes known rather than expecting either bug to
-  be newly fixed. One clean overnight is a data point, not a resolution —
-  watch for more before calling it fixed. Standby drain on that one night was
-  ~15% of battery, which is workable but on the high side; not yet measured
-  precisely (see Action).
-- **Action:** Keep watching for the sleep hang recurring under bullet 8's
-  plain-suspend policy on unattended/overnight sleeps — both prior suspend
-  attempts failed there despite short watched cycles looking clean, so one
-  clean night (bullet 9) doesn't clear it yet. If it keeps holding up, also
-  get a precise standby-drain figure: note
-  `/sys/class/power_supply/BAT0/energy_now` before and after a ≥60-min
-  lid-shut suspend on battery (`energy_full` is 65.85 Wh) — the ~15% drop
-  seen on 2026-08-20 was eyeballed from the percentage, not measured this
-  way. Also drop `amdgpu.dcdebugmask=0x800` (bullet 2) once a clean week
-  confirms the patch isn't making things worse — it is already known to be
-  inert either way. Capture an STB trace (`amd_pmc.enable_stb=1` is already
-  on) if the hang recurs, before changing anything.
-- **Removal condition:** see bullets 6, 7 and 8 above.
+- **Status:** Reboot hang (undocked) = solved. Sleep hang = **improved but
+  not solved.** Full journal audit of the third retest, 2026-08-19 → 08-26
+  (bullet 10): **25 suspend attempts, 3 hangs (≈12%)** — roughly half the
+  pre-patch 22% rate (bullet 5) — but all 3 hangs landed in the first 5 days
+  (Aug 20, Aug 22, Aug 24) and the **most recent 2 days ran 6/6 clean,
+  including two full unattended overnight sleeps (~15h and ~17h40m)**.
+  Measured drain on those two clean nights: ≈1.85–2.0%/hr, ≈1.2–1.4 W
+  average, ≈15–17% over a typical 8h night — matches the user's earlier
+  eyeballed ~15% (bullet 9) almost exactly, workable if on the high side for
+  s2idle. The kernel patch (bullet 6) is doing real, measurable work; hibernate
+  resume still has its own unresolved TTM crash (bullet 7), so it stays off
+  every automatic path regardless. 6 consecutive clean unattended cycles is a
+  stronger signal than what preceded either prior reversal (those were short
+  watched soaks), but n is still small — **not yet ready to call this fixed.**
+- **Action:** Keep counting hangs vs. attempts under bullet 8's plain-suspend
+  policy — rerun the bullet-10-style journalctl audit periodically rather
+  than re-deriving it from scratch each time. If the current clean streak
+  extends through a full week (per the original threshold), drop
+  `amdgpu.dcdebugmask=0x800` (bullet 2, already confirmed inert either way)
+  as cleanup. Capture an STB trace (`amd_pmc.enable_stb=1` is already on) if
+  a hang recurs, before changing anything else. `energy-full` reads 66.37 Wh
+  as of 2026-08-26 (was 65.85 Wh when last recorded — normal calibration
+  drift, not worth chasing).
+- **Removal condition:** see bullets 6, 7, 8 and 10 above.
 
 ### 7b. Saruman: shutdown/reboot hangs (black screen, hard power-off required) when docked via USB-C
 - **Where:** `hosts/saruman/configuration.nix` — `pcie_ports=compat` in `boot.kernelParams`.
