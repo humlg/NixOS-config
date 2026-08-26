@@ -68,7 +68,10 @@ in
 
       services.tui-askpass = {
         description = "TUI disk-unlock password agent (whiptail)";
-        path = [ pkgs.newt ];
+        # `path` sets this unit's PATH outright (no fallback to the
+        # initrd's global /bin), so every coreutil the script calls has to
+        # be listed explicitly here.
+        path = [ pkgs.newt pkgs.coreutils pkgs.gnused ];
         unitConfig = {
           DefaultDependencies = false;
           ConditionPathExists = "!/run/plymouth/pid";
