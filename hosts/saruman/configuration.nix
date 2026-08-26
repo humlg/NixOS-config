@@ -26,6 +26,7 @@
     ../../modules/services/sunshine-moonlight.nix
     ../../modules/system/amdgpu-s2idle-patch.nix
     ../../modules/desktop/noctalia-system.nix
+    ../../modules/system/tui-askpass.nix
   ];
 
   networking.hostName = "saruman";
@@ -74,8 +75,10 @@
   # be restored without an initrd change. See maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
-  # Plymouth boot splash (shows * for LUKS password entry)
+  # systemd stage-1 initrd, required for both LUKS unlock and the whiptail
+  # ask-password agent below (see modules/system/tui-askpass.nix).
   boot.initrd.systemd.enable = true;
+  custom.tuiAskpass.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
   # the recurring s2idle wake hang (logging only, no behavior change).
   # No reboot= override: the kernel's default reset chain works on BIOS
@@ -96,20 +99,19 @@
   # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
   # Thunderbolt controller) is plugged in — confirmed by testing docked vs.
   # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
-  boot.kernelParams = [ "quiet" "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x800" "pcie_ports=compat" ];
+  # No "quiet": kept verbose so all boot/kernel output stays on screen (see
+  # custom.tuiAskpass above, which relies on Plymouth being off anyway).
+  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x800" "pcie_ports=compat" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.
   boot.extraModprobeConfig = ''
     options mt7921e disable_aspm=1
   '';
-  boot.plymouth = {
-    enable = true;
-    theme = "motion";
-    themePackages = [
-      (pkgs.adi1090x-plymouth-themes.override { selected_themes = [ "motion" ]; })
-    ];
-  };
+  # Plymouth dropped 2026-08-26 in favor of custom.tuiAskpass (see
+  # modules/system/tui-askpass.nix): full raw boot output plus a whiptail
+  # password box instead of a graphical splash hiding both.
+  boot.plymouth.enable = false;
 
   services.colord.enable = true;
 

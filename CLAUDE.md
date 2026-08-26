@@ -123,6 +123,7 @@ modules/
     ssh.nix                        # sshd + MOTD banner + /etc/hosts entries for sauron/saruman
     network-tools.nix              # Network troubleshooting tools bundle (nmap, wireshark, mtr, etc.)
     generation-cleanup.nix         # Scheduled NixOS generation pruning + bootloader entry limit
+    tui-askpass.nix                # Whiptail-based initrd disk-unlock prompt (custom.tuiAskpass.enable) — registers as a systemd password agent (systemd.io/PASSWORD_AGENTS), suppresses the stock systemd-ask-password-console unit, shows dots per keystroke instead of a blank line. Debug view (plain visible input, to catch stuck/dead keys) toggles per-boot via `tuiaskpass.debug=1` on the kernel command line, no rebuild needed — default hidden. Requires boot.initrd.systemd.enable and is mutually exclusive with Plymouth by design (ConditionPathExists=!/run/plymouth/pid) — saruman only, replacing its "motion" Plymouth theme 2026-08-26 so full verbose boot output stays visible (boot.plymouth.enable = false, "quiet" dropped from kernelParams). Escape hatch if the agent ever fails to start: the stock systemd-tty-ask-password-agent binary is still present in the initrd (systemd-tty-ask-password-agent --query from an emergency/rescue shell).
 overlays/
   davinci-resolve.nix               # Overrides pkgs.davinci-resolve to the v21.0b1 beta (see maintenance.md #1)
   davinci-resolve-package.nix       # Local davinci-resolve package.nix backing the overlay above
