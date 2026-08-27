@@ -778,6 +778,50 @@ Last full scan: 2026-07-16.
   driver turns out to fight the amdgpu s2idle patch (`custom.amdgpu-s2idle-
   patch`, item 7) in some way TLP didn't.
 
+### 21. `dwarfs` patched for GCC 15 + fmt 12.2.0 (2026-08-27)
+- **Where:** `overlays/dwarfs-nixpkgs-update-fix.nix`, registered in
+  `flake.nix`. Also required a fix to how overlays reach home-manager: see
+  the "home-manager overlay propagation" note below.
+- **What:** Two independent fixes bundled into one overlay on `pkgs.dwarfs`:
+  1. `postPatch` inserts `#include <cstring>` at the top of the vendored
+     folly submodule's `folly/lang/Exception.h`.
+  2. `.override { fmt = prev.fmt_11; }` — builds dwarfs against fmt 11.2.0
+     instead of nixpkgs' default `fmt`/`fmt_12` (12.2.0).
+- **Why:** `nix flake update` (2026-08-27) bumped nixpkgs to a revision where
+  GCC 15 is the default compiler and `fmt` moved from 12.1.0 to 12.2.0.
+  `dwarfs` (v0.14.0) vendors a folly + fbthrift snapshot via git submodule
+  that hasn't kept pace with either change:
+  - GCC 15's libstdc++ no longer transitively pulls `<cstring>` (and thus
+    `std::memcpy`/`std::memset`) in via other standard headers, and the
+    vendored `folly/lang/Exception.h` relies on that old transitive include,
+    so `dwarfs_folly_lite` failed to build
+    (`error: 'memcpy' is not a member of 'std'`).
+  - fmt 12.2.0 broke API the vendored fbthrift whisker compiler
+    (`thrift/compiler/whisker/{token,print_ast}.cc`) relies on
+    (`error: 'format' is not a member of 'fmt'`, plus an `fmt::join`
+    deprecation note). fmt 12.1.0 still built fine but nixpkgs doesn't expose
+    that exact point release as a named package, so dwarfs is pinned to the
+    next one down that nixpkgs does name, `fmt_11` (11.2.0).
+  Both failures cascaded into breaking the whole `home-manager-generation`
+  for saruman. `dwarfs` is a build dependency of `gearlever`
+  (`modules/bundles/general.nix`), used for AppImage extraction — that's what
+  pulled it into the update.
+- **Home-manager overlay propagation (found while fixing this):**
+  `home-manager.useGlobalPkgs` is off on all three hosts, so home-manager
+  instantiates its own separate `pkgs` and never saw `flake.nix`'s
+  `nixpkgs.overlays` at all — the first version of this fix had zero effect
+  because `gearlever` is a home-manager package. Fixed by also setting
+  `home-manager.sharedModules = [ { nixpkgs.overlays = overlays; } ]` in
+  `flake.nix`'s `overlayModule`. This means the two *pre-existing* overlays
+  (`rawtherapee-dev.nix`, `patool-no-check.nix`) were almost certainly
+  silently inert for home-manager-installed packages before this change —
+  worth double-checking `patool` (via `bottles`/`wine.nix`) actually behaves
+  now that its overlay can reach it.
+- **Removal condition:** nixpkgs bumps `dwarfs` past this folly/fbthrift
+  snapshot (i.e. upstream folly gains the missing `#include <cstring>` and
+  fbthrift's whisker compiler is fixed for fmt ≥ 12.2, or dwarfs updates its
+  vendored pins), or `dwarfs` stops vendoring folly/fbthrift as submodules.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
