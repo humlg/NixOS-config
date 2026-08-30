@@ -17,6 +17,7 @@ in
       spotify
       megasync
       appimage-run
+      fluent-reader
     ];
   };
 }
