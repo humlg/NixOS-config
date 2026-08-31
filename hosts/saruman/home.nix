@@ -93,6 +93,9 @@ in
       -- Toggle eDP-1 native/Full HD resolution (for TV mirroring)
       hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("resolution-toggle"))
     '';
+
+    # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
+    dynamicCursors.enable = true;
   };
 
   home.packages  = [

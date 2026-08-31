@@ -88,6 +88,7 @@ in
     ./hyprlock.nix
     ./hypridle.nix
     ./noctalia.nix
+    ./hypr-dynamic-cursors.nix
   ];
 
   options.desktop.hyprland-desktop = {

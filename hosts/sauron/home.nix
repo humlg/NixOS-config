@@ -56,6 +56,9 @@
     extraLuaConfig = ''
       hl.config({ misc = { vrr = 2 } })
     '';
+
+    # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
+    dynamicCursors.enable = true;
   };
 
   home.sessionVariables = {

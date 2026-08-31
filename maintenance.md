@@ -853,6 +853,32 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 22. `hypr-dynamic-cursors` plugin — third-party Hyprland plugin dependency (2026-08-31)
+- **Where:** `modules/desktop/hypr-dynamic-cursors.nix`
+  (`desktop.hyprland-desktop.dynamicCursors.enable`), enabled on sauron +
+  saruman. Loads `pkgs.hyprlandPlugins.hypr-dynamic-cursors` from nixpkgs.
+- **What:** "Shake to find" — enlarges the mouse cursor when wiggled, like KDE
+  Plasma's Shake Cursor effect. Runs the plugin shake-only (`mode = "none"`);
+  none of its cursor tilt/rotate/stretch behaviour is used.
+- **Why it's tech debt:** it's an out-of-tree Hyprland plugin, and Hyprland
+  breaks plugin ABI on essentially every release. The nixpkgs
+  `hyprlandPlugins` set is built against the same `pkgs.hyprland` Home Manager
+  loads, so a `nix flake update` bumps both together and they stay in sync —
+  *but* if nixpkgs' plugin lags behind its `hyprland` bump, Hyprland will
+  refuse to load the `.so` (version mismatch) and log an error at startup. The
+  `hl.plugin.dynamic_cursors` guard in the module keeps that from cascading
+  into a broken config, so the failure mode is just "cursor doesn't grow
+  anymore" — not a broken session.
+- **Watch for:** after a flake update, a `hyprctl plugin list` that doesn't
+  show `dynamic_cursors`, or a "failed to load plugin" line in the Hyprland
+  log — means nixpkgs shipped a stale plugin against a newer Hyprland; wait
+  for the nixpkgs catch-up or temporarily disable `dynamicCursors.enable`.
+- **Removal condition:** Hyprland gains a native shake-to-find / cursor-zoom
+  option (there have been upstream requests), at which point drop the plugin
+  and switch to the built-in `cursor:` setting.
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it
