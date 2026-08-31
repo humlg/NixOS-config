@@ -744,7 +744,21 @@ Last full scan: 2026-07-16.
   `gtk-theme-name`); non-libadwaita pure-GTK4 apps lose WhiteSur and use
   Adwaita — accepted, the user runs essentially none. A stale
   `~/.config/gtk-4.0/gtk.css.hm-bak` left by the old dance is harmless and
-  can be deleted by hand. **Removal condition:** revisit only if nixpkgs'
+  can be deleted by hand.
+
+  **Second half of the same fix (also 2026-08-31):** the gtk.css change alone
+  wasn't enough — `dark-theme.nix` also exported `GTK_THEME =
+  "WhiteSur-Dark-solid-purple"` via `home.sessionVariables`, and that env var
+  force-loads the named theme for *every* GTK toolkit version, bypassing
+  `settings.ini` entirely. For GTK4 that re-introduced the exact same broken
+  `gtk-4.0/gtk.css` stub → the `Failed to import: The resource at
+  "/org/gnome/theme/gtk.css" does not exist` warning kept firing (confirmed
+  from NewsFlash's own stderr) and libadwaita apps stayed unstyled. `GTK_THEME`
+  is removed from `home.sessionVariables` — GTK3 apps don't need it
+  (`~/.config/gtk-3.0/settings.ini` already selects WhiteSur). **Note:**
+  `home.sessionVariables` only applies to sessions started after the rebuild,
+  so a full logout/login (or `unset GTK_THEME` in the running session) is
+  needed before already-running or terminal-launched apps pick up the fix. **Removal condition:** revisit only if nixpkgs'
   `whitesur-gtk-theme` gains a real libadwaita/GTK4 stylesheet or the desktop
   moves off WhiteSur entirely.
 - **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,

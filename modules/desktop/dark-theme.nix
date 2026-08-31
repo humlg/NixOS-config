@@ -87,7 +87,16 @@ in
   };
 
   home.sessionVariables = {
-    GTK_THEME = gtkThemeName;
+    # No GTK_THEME here. It force-loads the named theme for *every* GTK
+    # toolkit version, bypassing settings.ini, and for GTK4 that means
+    # pulling in WhiteSur's gtk-4.0/gtk.css — the GTK3 resource stub
+    # (`@import url("resource:///org/gnome/theme/gtk.css")`) that only
+    # resolves when GTK loads the theme's gresource itself, which doesn't
+    # happen for an env-var override. The failed import leaves libadwaita
+    # apps unstyled (transparent window, white text). GTK3 apps still get
+    # WhiteSur via ~/.config/gtk-3.0/settings.ini; GTK4/libadwaita apps use
+    # Adwaita (dark via the color-scheme dconf key) plus, under Noctalia, the
+    # palette from ~/.config/gtk-4.0/noctalia.css.
     QT_QPA_PLATFORMTHEME_QT5 = "qt5ct";
     QT_STYLE_OVERRIDE = "kvantum";
   };
