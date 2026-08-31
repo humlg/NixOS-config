@@ -718,6 +718,35 @@ Last full scan: 2026-07-16.
   gtk.css` file at all (GTK3 theme selection goes through `settings.ini`
   instead), so Noctalia creating one fresh there has nothing to collide
   with.
+
+  **Update 2026-08-31 — `gtk-4.0/gtk.css` ownership moved from dark-theme.nix
+  to noctalia.nix, and its WhiteSur import dropped.** `dark-theme.nix` used
+  to write this file via `gtk.gtk4.theme = config.gtk.theme` (home-manager's
+  legacy pre-26.05 default, still active since `home.stateVersion` is
+  "25.11"), which emitted `@import url("file://…/WhiteSur-Dark-solid-purple/
+  gtk-4.0/gtk.css")`. That target is a **symlink to the GTK3 resource stub**
+  (`@import url("resource:///org/gnome/theme/gtk.css")`) — the nixpkgs
+  `whitesur-gtk-theme` build produces no standalone GTK4 stylesheet. That
+  `resource://` path is only registered when GTK loads the theme *by name*
+  via its `gtk.gresource`, never when home-manager `@import`s the CSS file
+  from `~/.config/gtk-4.0/gtk.css`, so the import failed with `Failed to
+  import: The resource at "/org/gnome/theme/gtk.css" does not exist` and left
+  **every libadwaita app unstyled** — transparent window, white text, no
+  rendered UI (reported for NewsFlash). Fix: `dark-theme.nix` now sets
+  `gtk.gtk4.theme = null` explicitly (an omitted attr keeps the legacy
+  default at this stateVersion), so it no longer writes `gtk-4.0/gtk.css` at
+  all; `noctalia.nix` now owns that file (`force = true` kept for the dance
+  above) with `text = ''@import url("noctalia.css");''` so libadwaita apps
+  get the wallpaper palette on top of the bundled Adwaita stylesheet (dark
+  via the `color-scheme` dconf key). On a non-Noctalia host the file simply
+  isn't created and libadwaita apps fall back to plain Adwaita dark. GTK3
+  apps still get full WhiteSur (unchanged, via `settings.ini`
+  `gtk-theme-name`); non-libadwaita pure-GTK4 apps lose WhiteSur and use
+  Adwaita — accepted, the user runs essentially none. A stale
+  `~/.config/gtk-4.0/gtk.css.hm-bak` left by the old dance is harmless and
+  can be deleted by hand. **Removal condition:** revisit only if nixpkgs'
+  `whitesur-gtk-theme` gains a real libadwaita/GTK4 stylesheet or the desktop
+  moves off WhiteSur entirely.
 - **Known gap from Phase C:** Disabling swaync also removed its buttons-grid,
   which was the only UI for the sleep-inhibit toggle (see CLAUDE.md's
   "sleep inhibit gates idle timeouts only" rule) -- `hypridle.nix`'s flag-file

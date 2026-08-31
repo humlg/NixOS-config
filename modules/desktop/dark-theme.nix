@@ -50,8 +50,22 @@ in
       gtk-application-prefer-dark-theme = 1;
     };
 
+    # Deliberately gtk4.theme = null. WhiteSur ships no real GTK4 stylesheet —
+    # its share/themes/*/gtk-4.0/gtk.css is a symlink to the GTK3 resource
+    # stub (`@import url("resource:///org/gnome/theme/gtk.css")`), which only
+    # resolves when GTK loads the theme by name via its gresource, never when
+    # home-manager @imports that file from ~/.config/gtk-4.0/gtk.css. The
+    # failed import left every libadwaita app unstyled — transparent window,
+    # white text, no rendered UI (diagnosed 2026-08-31). GTK4/libadwaita apps
+    # now fall back to their bundled Adwaita stylesheet, dark via the
+    # color-scheme dconf setting below; under Noctalia, noctalia.nix layers
+    # the wallpaper palette on top via ~/.config/gtk-4.0/noctalia.css.
+    #
+    # Explicit null, not just an omitted attr: home.stateVersion is "25.11"
+    # (< "26.05"), so home-manager's legacy default for gtk4.theme is still
+    # config.gtk.theme — the option has to be set to null to actually drop it.
     gtk4 = {
-      theme = config.gtk.theme;
+      theme = null;
       extraConfig = {
         gtk-application-prefer-dark-theme = 1;
       };

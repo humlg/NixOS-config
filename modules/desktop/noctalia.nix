@@ -54,20 +54,25 @@ in
       fi
     '';
 
+    # dark-theme.nix no longer writes ~/.config/gtk-4.0/gtk.css at all (its
+    # WhiteSur GTK4 import was broken — see the comment there), so this module
+    # owns the file under Noctalia. It imports noctalia.css, the wallpaper
+    # palette Noctalia's theming daemon regenerates in the same directory, so
+    # libadwaita apps track the bar's colours on top of the bundled Adwaita
+    # stylesheet.
+    #
     # Noctalia's own GTK4 live-theming (assets/templates/gtk/apply.sh in the
     # noctalia-shell source, run by its theming daemon on every start/theme
-    # change) detects that dark-theme.nix's home-manager-managed gtk-4.0/
-    # gtk.css is a read-only Nix-store symlink, deletes it, and replaces it
-    # with a plain file carrying its own `@import url("noctalia.css");`
-    # line. The next activation then finds a real file where it expects its
-    # symlink, backs it up to gtk.css.hm-bak, and re-symlinks — which then
-    # collects a stale .hm-bak that blocks the activation *after* that with
-    # "existing file ... would be clobbered", since nothing ever removes it.
-    # `force = true` makes home-manager skip the backup step and just
-    # overwrite unconditionally, breaking that cycle; Noctalia re-patches its
-    # import back in within moments of the service restarting, so this
-    # doesn't lose the live theming, just the doomed backup dance. See
-    # maintenance.md item 19.
-    xdg.configFile."gtk-4.0/gtk.css".force = true;
+    # change) rewrites this file at runtime to the same effect. When it does,
+    # the next activation finds a real file where it expects its symlink,
+    # backs it up to gtk.css.hm-bak, and re-symlinks — which then collects a
+    # stale .hm-bak that blocks the activation *after* that with "existing
+    # file ... would be clobbered", since nothing ever removes it. `force =
+    # true` makes home-manager skip the backup step and just overwrite
+    # unconditionally, breaking that cycle. See maintenance.md item 19.
+    xdg.configFile."gtk-4.0/gtk.css" = {
+      force = true;
+      text = ''@import url("noctalia.css");'';
+    };
   };
 }
