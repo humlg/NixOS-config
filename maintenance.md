@@ -853,29 +853,37 @@ Last full scan: 2026-07-16.
 
 ---
 
-### 22. `hypr-dynamic-cursors` plugin — third-party Hyprland plugin dependency (2026-08-31)
+### 22. `hypr-dynamic-cursors` plugin + src-pin overlay for Hyprland 0.56.2 (2026-08-31)
 - **Where:** `modules/desktop/hypr-dynamic-cursors.nix`
   (`desktop.hyprland-desktop.dynamicCursors.enable`), enabled on sauron +
-  saruman. Loads `pkgs.hyprlandPlugins.hypr-dynamic-cursors` from nixpkgs.
+  saruman. Loads `pkgs.hyprlandPlugins.hypr-dynamic-cursors`, with its `src`
+  bumped by `overlays/hypr-dynamic-cursors-hl-pin.nix` (registered in
+  `flake.nix`).
 - **What:** "Shake to find" — enlarges the mouse cursor when wiggled, like KDE
   Plasma's Shake Cursor effect. Runs the plugin shake-only (`mode = "none"`);
   none of its cursor tilt/rotate/stretch behaviour is used.
-- **Why it's tech debt:** it's an out-of-tree Hyprland plugin, and Hyprland
-  breaks plugin ABI on essentially every release. The nixpkgs
-  `hyprlandPlugins` set is built against the same `pkgs.hyprland` Home Manager
-  loads, so a `nix flake update` bumps both together and they stay in sync —
-  *but* if nixpkgs' plugin lags behind its `hyprland` bump, Hyprland will
-  refuse to load the `.so` (version mismatch) and log an error at startup. The
-  `hl.plugin.dynamic_cursors` guard in the module keeps that from cascading
-  into a broken config, so the failure mode is just "cursor doesn't grow
-  anymore" — not a broken session.
-- **Watch for:** after a flake update, a `hyprctl plugin list` that doesn't
-  show `dynamic_cursors`, or a "failed to load plugin" line in the Hyprland
-  log — means nixpkgs shipped a stale plugin against a newer Hyprland; wait
-  for the nixpkgs catch-up or temporarily disable `dynamicCursors.enable`.
-- **Removal condition:** Hyprland gains a native shake-to-find / cursor-zoom
-  option (there have been upstream requests), at which point drop the plugin
-  and switch to the built-in `cursor:` setting.
+- **Why the overlay is needed:** nixpkgs pins the plugin to commit `f5ba36c7`
+  (2026-07-21), whose `hyprpm.toml` only lists Hyprland up to v0.56.1. Our
+  Hyprland is v0.56.2 (released 2026-08-05, *after* that plugin commit). The
+  compositor/client hashes still matched (nixpkgs builds the plugin against
+  our exact `pkgs.hyprland`), so it wasn't the usual ABI check that tripped —
+  the old plugin *source* fails to hook 0.56.2's cursor-rendering path at
+  init (`[dynamic-cursors] could not hook, hooking failed`), so `PLUGIN_INIT`
+  throws and Hyprland pops a "failed to load plugin dynamic-cursors"
+  notification; the shake effect never activates. Upstream's `hyprpm.toml`
+  maps Hyprland v0.56.2 (`efb50993…`) to plugin commit
+  `5a224284872208b5324759d535d65061043725de`; the overlay points `src` there.
+- **Watch for:** after a `nix flake update`, a `hyprctl plugin list` that
+  doesn't show `dynamic-cursors`, or a "failed to load plugin" notification /
+  `[dynamic-cursors]` error in the Hyprland log. If the flake update bumps
+  `pkgs.hyprland` past 0.56.2, check upstream `hyprpm.toml` for the plugin
+  commit paired with the new Hyprland hash and update the overlay's `rev` +
+  `hash` (or drop the overlay if nixpkgs has caught up — compare
+  `pkgs.hyprlandPlugins.hypr-dynamic-cursors.src.rev` against the pin).
+- **Removal condition:** either nixpkgs' plugin catches up to a commit that
+  supports our Hyprland (then delete the overlay), or Hyprland gains a native
+  shake-to-find / cursor-zoom option (then drop the plugin entirely and use
+  the built-in `cursor:` setting).
 
 ---
 
