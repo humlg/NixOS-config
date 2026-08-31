@@ -18,6 +18,7 @@ in
       megasync
       appimage-run
       fluent-reader
+      newsflash
     ];
   };
 }
