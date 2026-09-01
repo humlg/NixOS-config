@@ -131,7 +131,6 @@ overlays/
   davinci-resolve-package.nix       # Local davinci-resolve package.nix backing the overlay above
   patool-no-check.nix               # Disables patool's sandboxed test suite (see maintenance.md #3)
   rawtherapee-dev.nix               # Rebuilds rawtherapee from a dev commit to fix a startup crash (see maintenance.md #2)
-  dwarfs-nixpkgs-update-fix.nix     # Patches dwarfs's vendored folly submodule for GCC 15's stricter libstdc++ headers (missing #include <cstring>) and pins its fmt build input to fmt_11 (12.2.0 broke the vendored fbthrift whisker compiler) (see maintenance.md #21)
   hypr-dynamic-cursors-hl-pin.nix   # Bumps hyprlandPlugins.hypr-dynamic-cursors src to commit 5a224284 (nixpkgs pins f5ba36c7, which only supports Hyprland ≤0.56.1 and fails to hook 0.56.2's cursor path at init) — commit taken from upstream hyprpm.toml's Hyprland-0.56.2 pin (see maintenance.md #22)
 patches/
   amdgpu-no-idle-opt-on-s2idle.patch # Kernel patch removing the two lines f6098641d3e1e4 added to amdgpu's dm_suspend() — applied by modules/system/amdgpu-s2idle-patch.nix (see maintenance.md #7)
