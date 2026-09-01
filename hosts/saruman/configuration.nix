@@ -26,6 +26,7 @@
     ../../modules/services/sunshine-moonlight.nix
     ../../modules/services/tailscale.nix
     ../../modules/system/amdgpu-s2idle-patch.nix
+    ../../modules/system/amdgpu-hdmi-scdc-fix.nix
     ../../modules/desktop/noctalia-system.nix
     ../../modules/system/tui-askpass.nix
   ];
@@ -171,6 +172,16 @@
   # backstop this is meant to protect.
   custom.amdgpu-s2idle-patch.enable = true;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
+
+  # Physical HDMI output regression on kernel 7.2 (worked on 7.1.5,
+  # generation 446). Upstream commit 3471b9a31ce3 gates all SCDC reads/writes
+  # on a dc_edid_caps.scdc_present flag whose setter ("Improve HDMI info
+  # retrieval") isn't in this kernel yet, so SCDC/TMDS_CONFIG is never
+  # programmed and HDMI links that need it (4K/high-refresh, and the dock's
+  # DP->HDMI PCON path) come up misconfigured — connector "connected", nothing
+  # displayed. The patch reverts just those two guards. See maintenance.md
+  # item 23. Drop once nixpkgs' kernel carries the scdc_present setter.
+  custom.amdgpu-hdmi-scdc-fix.enable = true;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

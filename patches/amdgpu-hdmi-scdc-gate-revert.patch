@@ -1,0 +1,53 @@
+Revert the scdc_present gating on HDMI SCDC reads/writes.
+
+Upstream commit 3471b9a31ce352ffb343cf02a991261880aac3a7
+("drm/amd/display: Rework HDMI data channel reads", kernel 7.2 / v6.18) added
+a new struct dc_edid_caps.scdc_present flag and made BOTH read_scdc_caps()
+(link_detection.c) and write_scdc_data() (link_ddc.c) return early whenever it
+is false.
+
+The commit that actually populates that flag from the parsed EDID —
+"drm/amd/display: Improve HDMI info retrieval", which adds
+populate_hdmi_info_from_connector() and does
+    edid_caps->scdc_present = hdmi->scdc.supported;
+in dm_helpers_parse_edid_caps() — is a SEPARATE later patch that is not in this
+kernel yet. So scdc_present is stuck at false for every sink, SCDC scrambling /
+TMDS_CONFIG is never programmed, and any HDMI link that needs it (>340 MHz TMDS
+character rate: 4K, high-refresh; and DP->HDMI PCON paths through a USB-C dock)
+comes up misconfigured. Symptom on saruman (Ryzen AI 9 365 / Radeon 880M,
+DCN 3.5): the connector reports "connected", HPD works, but nothing is ever
+displayed and the compositor never gets a usable output — on the physical HDMI
+port and on the dock's DP->HDMI output alike. No error is logged; it is a
+silent misconfiguration. Physical HDMI last worked on kernel 7.1.5
+(generation 446), which predates 3471b9a31ce3.
+
+This drops only the two guard hunks, restoring the unconditional pre-7.2
+behaviour (always read SCDC caps, always write SCDC data on HDMI signals — DP
+is unaffected, both call sites are HDMI-only). The scdc_present struct field is
+left in place so nothing else fails to build.
+
+Drop this patch once the kernel packaged in nixpkgs also carries the
+"Improve HDMI info retrieval" commit that sets edid_caps.scdc_present
+(grep the kernel source for `edid_caps->scdc_present =`). See maintenance.md.
+
+--- a/drivers/gpu/drm/amd/display/dc/link/link_detection.c
++++ b/drivers/gpu/drm/amd/display/dc/link/link_detection.c
+@@ -265,10 +265,6 @@ static void read_scdc_caps(struct ddc_service *ddc_service,
+ 	uint8_t slave_address = HDMI_SCDC_ADDRESS;
+ 	uint8_t offset = HDMI_SCDC_MANUFACTURER_OUI;
+ 
+-	if (ddc_service->link->local_sink &&
+-		!ddc_service->link->local_sink->edid_caps.scdc_present)
+-		return;
+-
+ 	link_query_ddc_data(ddc_service, slave_address, &offset,
+ 			sizeof(offset), sink->scdc_caps.manufacturer_OUI.byte,
+ 			sizeof(sink->scdc_caps.manufacturer_OUI.byte));
+--- a/drivers/gpu/drm/amd/display/dc/link/protocols/link_ddc.c
++++ b/drivers/gpu/drm/amd/display/dc/link/protocols/link_ddc.c
+@@ -582,4 +582,3 @@
+ 	if (ddc_service->link->local_sink &&
+-		(ddc_service->link->local_sink->edid_caps.panel_patch.skip_scdc_overwrite ||
+-		!ddc_service->link->local_sink->edid_caps.scdc_present))
++		ddc_service->link->local_sink->edid_caps.panel_patch.skip_scdc_overwrite)
+ 		return;

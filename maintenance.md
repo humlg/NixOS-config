@@ -853,6 +853,47 @@ Last full scan: 2026-07-16.
   shake-to-find / cursor-zoom option (then drop the plugin entirely and use
   the built-in `cursor:` setting).
 
+### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01)
+- **Where:** `patches/amdgpu-hdmi-scdc-gate-revert.patch`,
+  `modules/system/amdgpu-hdmi-scdc-fix.nix`
+  (`custom.amdgpu-hdmi-scdc-fix.enable`, set in `hosts/saruman/configuration.nix`).
+- **What:** Reverts the two guard hunks upstream commit `3471b9a31ce3`
+  ("drm/amd/display: Rework HDMI data channel reads") added to
+  `read_scdc_caps()` (`link_detection.c`) and `write_scdc_data()`
+  (`link_ddc.c`) — both now bail out early unless
+  `dc_edid_caps.scdc_present` is set. The `scdc_present` struct field is left
+  alone; only the behavioural guards are removed, restoring the unconditional
+  pre-7.2 behaviour (always read SCDC caps / write SCDC data on HDMI signals).
+- **Why:** `3471b9a31ce3` landed in kernel 7.2 (v6.18). The companion commit
+  that populates the flag — "drm/amd/display: Improve HDMI info retrieval",
+  which adds `populate_hdmi_info_from_connector()` and does
+  `edid_caps->scdc_present = hdmi->scdc.supported;` in
+  `dm_helpers_parse_edid_caps()` — is a *separate later patch* not yet in
+  nixpkgs' kernel. So `scdc_present` is stuck `false` for every sink, SCDC
+  scrambling / `TMDS_CONFIG` is never programmed, and any HDMI link needing it
+  (>340 MHz TMDS character rate: 4K / high-refresh, plus DP→HDMI PCON through
+  the USB-C dock) comes up misconfigured: the DRM connector reports
+  `connected`, HPD fires, but nothing is ever displayed and the compositor
+  never gets a usable output. No error is logged — silent misconfiguration.
+- **How it was found:** `nix flake update` (commit `c57fc41`, 2026-09-01)
+  bumped `pkgs.linuxPackages_latest` 7.1.5 → 7.2.0. Physical HDMI worked on
+  generation 446 (last 7.1.5), dead on every generation since. `hyprctl
+  monitors` doesn't list the HDMI output at all; the dock's DP→HDMI output
+  regressed the same way once exercised. Matches the LKML regression thread
+  ["Black screen on HDMI power-cycle after commit 3471b9a31ce3 (7900XTX + LG
+  C3)"](https://lkml.org/lkml/2025/12/8/285).
+- **Cost:** same as item 7 — the kernel builds locally on every version bump
+  (both patches feed `boot.kernelPatches`, so this adds nothing on top of what
+  item 7 already forces).
+- **Removal condition:** nixpkgs' kernel picks up the "Improve HDMI info
+  retrieval" commit (check with
+  `grep -rn 'edid_caps->scdc_present =' <kernel-source>` — once that
+  assignment exists, delete the patch, the module, and the
+  `custom.amdgpu-hdmi-scdc-fix` lines in `hosts/saruman/configuration.nix`).
+  If HDMI is *still* broken after this patch, the fallback is pinning
+  `boot.kernelPackages = lib.mkForce pkgs.linuxPackages_7_1` on saruman until
+  upstream is sorted.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
