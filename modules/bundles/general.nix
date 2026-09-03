@@ -16,6 +16,13 @@ in
     enable = lib.mkEnableOption "General always-installed user packages bundle";
   };
 
+  nix.optimise.automatic = true;
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d"
+  };
+
   config = lib.mkIf cfg.enable {
     services.udiskie.enable = true;
     programs.git.enable = true;
