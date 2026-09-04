@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 
 {
+  imports = [ ./mkrepo.nix ];
   programs.zsh = {
     enable = true;
     autosuggestions.enable = true;
