@@ -179,15 +179,18 @@
   custom.amdgpu-s2idle-patch.enable = false;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
-  # Physical HDMI output regression on kernel 7.2 (worked on 7.1.5,
-  # generation 446). Upstream commit 3471b9a31ce3 gates all SCDC reads/writes
-  # on a dc_edid_caps.scdc_present flag whose setter ("Improve HDMI info
-  # retrieval") isn't in this kernel yet, so SCDC/TMDS_CONFIG is never
-  # programmed and HDMI links that need it (4K/high-refresh, and the dock's
-  # DP->HDMI PCON path) come up misconfigured — connector "connected", nothing
-  # displayed. The patch reverts just those two guards. See maintenance.md
-  # item 23. Drop once nixpkgs' kernel carries the scdc_present setter.
-  custom.amdgpu-hdmi-scdc-fix.enable = true;
+  # DISABLED 2026-09-09: the removal condition in maintenance.md item 23 is
+  # now confirmed met. Extracting the actual linux-7.2.2.tar.xz nixpkgs
+  # fetches for this build (not just checking upstream in the abstract) shows
+  # populate_hdmi_info_from_connector() already does
+  # `edid_caps->scdc_present = hdmi->scdc.supported;` at line 1136 of
+  # amdgpu_dm_helpers.c — the "Improve HDMI info retrieval" commit has been
+  # an ancestor of the v7.2 tag since its first release, so this host's
+  # kernel was never actually missing the setter the way the original
+  # 2026-09-01 diagnosis assumed. Not yet physically tested — verify HDMI and
+  # the dock's DP->HDMI output both still work after rebuilding; re-enable if
+  # either regresses. See maintenance.md item 23.
+  custom.amdgpu-hdmi-scdc-fix.enable = false;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
   # Conservation mode caps charge at ~80% via ideapad_laptop kernel module

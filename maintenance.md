@@ -905,7 +905,7 @@ Last full scan: 2026-07-16.
   shake-to-find / cursor-zoom option (then drop the plugin entirely and use
   the built-in `cursor:` setting).
 
-### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01)
+### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, disabled 2026-09-09 — removal condition met)
 - **Where:** `patches/amdgpu-hdmi-scdc-gate-revert.patch`,
   `modules/system/amdgpu-hdmi-scdc-fix.nix`
   (`custom.amdgpu-hdmi-scdc-fix.enable`, set in `hosts/saruman/configuration.nix`).
@@ -945,6 +945,35 @@ Last full scan: 2026-07-16.
   If HDMI is *still* broken after this patch, the fallback is pinning
   `boot.kernelPackages = lib.mkForce pkgs.linuxPackages_7_1` on saruman until
   upstream is sorted.
+- **UPDATE (2026-09-09): condition confirmed met — disabled, not yet
+  physically tested.** While investigating why saruman's kernel was still
+  compiling locally after item 7's patch was disabled, went to verify this
+  item's removal condition directly instead of assuming it still held.
+  Extracted the *actual* kernel tarball nixpkgs fetches for this build
+  (`nix build nixpkgs#linuxPackages_latest.kernel.src`, currently
+  `linux-7.2.2.tar.xz`) and grepped it — `amdgpu_dm_helpers.c` line 1136,
+  inside `populate_hdmi_info_from_connector()`, already reads
+  `edid_caps->scdc_present = hdmi->scdc.supported;`. Cross-checked against
+  GitHub's `torvalds/linux` mirror: the fix commit
+  (`c78e31bcf586f1c910a2636650840f5ce1cb1c63`, "drm/amd/display: Improve HDMI
+  info retrieval", authored by Ivan Lipski, merged into mainline alongside
+  the regressing commit in the same Dec 2025 `drm-next` pull) is an ancestor
+  of the `v7.2` tag itself — confirmed present even at `v7.2` (before any
+  `.1`/`.2` stable point release), so **this host's kernel was never
+  actually missing the setter** the way the 2026-09-01 diagnosis (right
+  above, "Why") assumed. That diagnosis wasn't backed by the same kind of
+  direct empirical check used for item 7's kernel patch (disassembling the
+  shipped `.ko`) — it looks like it was reasoned from checking mainline
+  source at some point without re-verifying against the specific tarball
+  nixpkgs actually pins, and the assumption was never revisited. Disabled
+  `custom.amdgpu-hdmi-scdc-fix.enable` (`hosts/saruman/configuration.nix`).
+  **Not yet physically tested** — the patch's guard-removal is likely
+  harmless/redundant now that `scdc_present` is genuinely populated upstream,
+  but this needs a real rebuild + reboot + HDMI/dock-DP→HDMI check before
+  calling it closed. If either regresses, re-enable the module (one line)
+  and investigate further — the setter being present doesn't guarantee
+  `hdmi->scdc.supported` itself evaluates true for this exact sink/dock in
+  every case.
 
 ---
 
