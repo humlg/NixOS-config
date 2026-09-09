@@ -264,7 +264,12 @@ in
     # ── Silent-autostart baseline (see silentApps option above) ───────
     desktop.hyprland-desktop.silentApps = [
       { name = "thunderbird"; command = "thunderbird"; class = "^(thunderbird)$"; matchInitial = true;  workspace = "mail";  key = "T"; delay = 3; }
-      { name = "obsidian";    command = "obsidian";    class = "^obsidian$";      matchInitial = false; workspace = "notes"; key = "S"; delay = 4; }
+      # Obsidian's Wayland app-id has changed across versions ("obsidian" ->
+      # "md.Obsidian" as of 1.13.7, confirmed live via `hyprctl clients -j`
+      # 2026-09-09) — re-check if this rule ever stops matching again
+      # (symptom: Obsidian briefly flashes on screen and steals focus at
+      # boot instead of launching straight into special:notes).
+      { name = "obsidian";    command = "obsidian";    class = "^md.Obsidian$";   matchInitial = false; workspace = "notes"; key = "S"; delay = 4; }
     ];
 
     # ── Packages ────────────────────────────────────────────────────
