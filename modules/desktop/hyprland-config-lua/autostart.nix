@@ -11,12 +11,30 @@ let
 
   maxDelay = lib.foldl' lib.max 0 (map (a: a.delay) cfg.silentApps);
 
+  # State-checked cleanup: find whichever special workspaces are actually
+  # shown right now (per-monitor, via `hyprctl monitors -j`) and toggle
+  # exactly those closed. Safe to run repeatedly / when nothing is shown —
+  # unlike blindly toggling every silentApps workspace, which would
+  # incorrectly *open* any that were never revealed.
+  cleanupShownSpecials = ''hyprctl monitors -j | jq -r '.[].specialWorkspace.name | select(. != "")' | sed 's/^special://' | xargs -r -n1 hyprctl dispatch togglespecialworkspace'';
+
   focusBack = lib.optionalString (cfg.silentApps != [ ]) ''
     -- no_initial_focus (window-rules.nix) only stops these from stealing focus
     -- from an ALREADY-focused window; at boot there's nothing else focused
-    -- yet, so Hyprland falls back to focusing them anyway. Force focus back
-    -- to the default workspace once all silent apps have had time to map.
-    hl.exec_cmd([[sleep ${toString (maxDelay + 2)} && hyprctl dispatch 'hl.dsp.focus({ workspace = 1 })']])
+    -- yet, so Hyprland falls back to focusing them anyway — and focusing a
+    -- window on a hidden special workspace reveals that workspace as an
+    -- on-screen overlay. Switching the active regular workspace back to 1
+    -- does NOT auto-close an already-revealed special workspace overlay —
+    -- that's a known Hyprland limitation (hyprwm/Hyprland#4400, #7662),
+    -- there's no "hide" dispatcher, only a stateful toggle — so after
+    -- refocusing, run the state-checked cleanup above.
+    hl.exec_cmd([[sleep ${toString (maxDelay + 2)} && hyprctl dispatch 'hl.dsp.focus({ workspace = 1 })'; ${cleanupShownSpecials}]])
+    -- Slow-starting apps (Thunderbird's account/OAuth handshake in
+    -- particular) can map and get focus-revealed well after the pass above
+    -- already ran. Re-run the same idempotent cleanup a couple more times
+    -- as a cheap catch-all instead of guessing a single "safe enough" delay.
+    hl.exec_cmd([[sleep ${toString (maxDelay + 5)}  && ${cleanupShownSpecials}]])
+    hl.exec_cmd([[sleep ${toString (maxDelay + 12)} && ${cleanupShownSpecials}]])
   '';
 in
 ''
