@@ -1,4 +1,10 @@
-{ reloadDesktop, cfg, ... }:
+{ reloadDesktop, cfg, lib, ... }:
+let
+  silentAppBinds = lib.concatMapStrings (a: lib.optionalString (a.key != null) ''
+    hl.bind(mainMod .. " + ${a.key}",         hl.dsp.workspace.toggle_special("${a.workspace}"))
+    hl.bind(mainMod .. " + SHIFT + ${a.key}", hl.dsp.window.move({ workspace = "special:${a.workspace}" }))
+  '') cfg.silentApps;
+in
 ''
   -- ── Keybinds ────────────────────────────────────────────────────
   -- Flag reference: { locked=true } = bindl, { repeating=true } = binde,
@@ -108,12 +114,8 @@
   hl.bind(mainMod .. " + CTRL + SHIFT + right", hl.dsp.workspace.move({ monitor = "r" }))
 
   -- Special workspaces
-  hl.bind(mainMod .. " + S",         hl.dsp.workspace.toggle_special("notes"))
-  hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:notes" }))
-  hl.bind(mainMod .. " + X",         hl.dsp.workspace.toggle_special("dashboard"))
+${silentAppBinds}  hl.bind(mainMod .. " + X",         hl.dsp.workspace.toggle_special("dashboard"))
   hl.bind(mainMod .. " + SHIFT + X", hl.dsp.window.move({ workspace = "special:dashboard" }))
-  hl.bind(mainMod .. " + T",         hl.dsp.workspace.toggle_special("mail"))
-  hl.bind(mainMod .. " + SHIFT + T", hl.dsp.window.move({ workspace = "special:mail" }))
 
   -- Scroll / Ctrl+arrow workspace navigation
   hl.bind(mainMod .. " + mouse_down",   hl.dsp.focus({ workspace = "e+1" }))

@@ -71,7 +71,7 @@ let
   hyprLayouts   = import ./hyprland-config/layouts.nix args;
 
   # Import Hyprland config fragments (Lua — Hyprland 0.55+)
-  luaArgs        = { inherit cfg home pkgs reloadDesktop; };
+  luaArgs        = { inherit cfg home pkgs reloadDesktop lib; };
   luaVars        = import ./hyprland-config-lua/variables.nix luaArgs;
   luaAutostart   = import ./hyprland-config-lua/autostart.nix luaArgs;
   luaInput       = import ./hyprland-config-lua/input.nix luaArgs;
@@ -173,9 +173,99 @@ in
         loses the session.
       '';
     };
+
+    # Used only when useLuaConfig = true (hyprland-config-lua/{variables,
+    # autostart,window-rules,keybinds}.nix). Not wired up for the legacy
+    # hyprlang fragments — see hyprland-config/ in the repo tree note: frozen,
+    # no longer kept in sync.
+    silentApps = lib.mkOption {
+      type = lib.types.listOf (lib.types.submodule {
+        options = {
+          name = lib.mkOption {
+            type = lib.types.str;
+            description = ''
+              Lua variable name this app's launch command is bound to in
+              variables.nix (e.g. "rssReader"), mirroring webBrowser/terminal/
+              fileManager — usable from any later Lua fragment in the same
+              config (e.g. a manual-launch keybind), though the silent
+              autostart launch itself embeds the command as a literal, since
+              it runs inside a nested `hyprctl dispatch` shelled out to a
+              separate process that doesn't share this Lua file's scope.
+            '';
+          };
+          command = lib.mkOption {
+            type = lib.types.str;
+            description = "Shell command used to launch the app.";
+          };
+          class = lib.mkOption {
+            type = lib.types.str;
+            description = ''
+              Regex matched against the window's class (or initial_class,
+              see matchInitial) to route it into its special workspace as a
+              backstop, and to exempt it from focus-stealing at boot.
+            '';
+          };
+          matchInitial = lib.mkOption {
+            type = lib.types.bool;
+            default = false;
+            description = ''
+              Match against initial_class instead of class. Needed for apps
+              (e.g. Thunderbird) whose class isn't set until after the window
+              rule would otherwise need to match it.
+            '';
+          };
+          workspace = lib.mkOption {
+            type = lib.types.str;
+            description = ''Special workspace name (without the "special:" prefix) this app launches into.'';
+          };
+          key = lib.mkOption {
+            type = lib.types.nullOr lib.types.str;
+            default = null;
+            description = ''
+              Single key for a mainMod+key bind toggling this app's special
+              workspace (mainMod+SHIFT+key moves the focused window there).
+              Null skips the keybind.
+            '';
+          };
+          delay = lib.mkOption {
+            type = lib.types.int;
+            description = ''
+              Seconds to wait after Hyprland starts before launching this
+              app — staggers autostart so the nested dispatch calls don't
+              all fire in the same instant.
+            '';
+          };
+        };
+      });
+      # No `default` here on purpose: mkOption's default is a low-priority
+      # contribution that gets fully discarded (not merged) the moment any
+      # module assigns this option in `config`, so the Thunderbird/Obsidian
+      # baseline is instead set below in `config.desktop.hyprland-desktop.
+      # silentApps`, where cross-module list assignments genuinely
+      # concatenate (the same mechanism home.packages relies on) — a host
+      # can then just add its own entries without losing the baseline.
+      default = [ ];
+      description = ''
+        Apps launched silently into a special workspace at boot: the window
+        is assigned its special workspace via the launch dispatch itself
+        (before the window ever maps, so there's no flash), a matching
+        window rule with no_initial_focus is registered as a backstop, and
+        a forced refocus to workspace 1 runs once all of them have had time
+        to map (no_initial_focus alone only stops focus-stealing from an
+        *already-focused* window, and at cold boot nothing is focused yet).
+        See maintenance.md and the obsidian-thunderbird-silent-autostart
+        memory for the debugging history behind this mechanism.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
+
+    # ── Silent-autostart baseline (see silentApps option above) ───────
+    desktop.hyprland-desktop.silentApps = [
+      { name = "thunderbird"; command = "thunderbird"; class = "^(thunderbird)$"; matchInitial = true;  workspace = "mail";  key = "T"; delay = 3; }
+      { name = "obsidian";    command = "obsidian";    class = "^obsidian$";      matchInitial = false; workspace = "notes"; key = "S"; delay = 4; }
+    ];
 
     # ── Packages ────────────────────────────────────────────────────
     home.packages = [

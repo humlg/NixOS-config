@@ -1,16 +1,16 @@
-{ ... }:
+{ cfg, lib, ... }:
+let
+  silentAppRules = lib.concatMapStrings (a: ''
+    hl.window_rule({
+      match            = { ${if a.matchInitial then "initial_class" else "class"} = "${a.class}" },
+      workspace        = "special:${a.workspace} silent",
+      no_initial_focus = true,
+    })
+  '') cfg.silentApps;
+in
 ''
   -- ── Window rules ────────────────────────────────────────────────
-  hl.window_rule({
-    match            = { initial_class = "^(thunderbird)$" },
-    workspace        = "special:mail silent",
-    no_initial_focus = true,
-  })
-  hl.window_rule({
-    match            = { class = "^obsidian$" },
-    workspace        = "special:notes silent",
-    no_initial_focus = true,
-  })
+${silentAppRules}
   hl.window_rule({
     match  = { title = "File Operation Progress" },
     float  = true,

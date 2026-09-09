@@ -96,6 +96,20 @@ in
 
     # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
     dynamicCursors.enable = true;
+
+    # Silently autostart NewsFlash into special:rss, same mechanism as
+    # Thunderbird/Obsidian above (merges with the module's default list).
+    silentApps = [
+      {
+        name         = "rssReader";
+        command      = "io.gitlab.news_flash.NewsFlash";
+        class        = "^io\\.gitlab\\.news_flash\\.NewsFlash$";
+        matchInitial = false;
+        workspace    = "rss";
+        key          = "U";
+        delay        = 5;
+      }
+    ];
   };
 
   home.packages  = [
