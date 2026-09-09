@@ -9,7 +9,20 @@
       new_status = "master",
     },
     misc = {
-      focus_on_activate       = true,
+      -- false 2026-09-09 (was true): stops Hyprland honoring an app's own
+      -- xdg-activation "focus me" request. This is a separate mechanism
+      -- from the no_initial_focus window rule (which only covers
+      -- Hyprland's own default new-window-focus behavior) — it's the
+      -- likely actual cause of silentApps windows (desktop.hyprland-
+      -- desktop.silentApps, see hyprland-config-lua/{autostart,window-
+      -- rules}.nix) still revealing their special workspace at boot even
+      -- with no_initial_focus set and the post-launch cleanup toggle in
+      -- place. Global, so it also affects apps elsewhere that rely on
+      -- activation to raise/refocus an already-running window (e.g.
+      -- clicking a dock/taskbar icon a second time, or a notification
+      -- raising its app) — watch for that regressing if this doesn't
+      -- fully fix the boot flash either.
+      focus_on_activate       = false,
       force_default_wallpaper = 0,
       disable_hyprland_logo   = true,
     },
