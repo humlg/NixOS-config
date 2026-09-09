@@ -86,16 +86,12 @@
   # No reboot= override: the kernel's default reset chain works on BIOS
   # PSCN23WW, while forcing reboot=acpi (old-BIOS workaround) or reboot=efi
   # hangs at the firmware reset step.
-  # amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS): disables Idle Power States on
-  # the iGPU. Targeted kernel bugzilla #219445 (this exact laptop model),
-  # bisected to commit f6098641d3e1e4 ("drm/amd/display: fix s2idle entry for
-  # DCN3.5+"). Confirmed 2026-07-22 NOT to fix the sleep hang, and we now know
-  # why it never could: the offending call in dm_suspend() is guarded by
-  # dc->caps.ips_support (a hardware capability bit), while DC_DISABLE_IPS sets
-  # the separate dc->config.disable_ips mode field. The actual fix is the kernel
-  # patch enabled via custom.amdgpu-s2idle-patch below. Kept for now only so the
-  # s2idle validation soak changes one variable at a time — drop it once the
-  # patched kernel has a clean week. See maintenance.md item 7.
+  # amdgpu.dcdebugmask=0x800 (DC_DISABLE_IPS) DROPPED 2026-09-09: confirmed
+  # inert since 2026-08-16 (it sets dc->config.disable_ips, a mode field
+  # unrelated to the dc->caps.ips_support hardware-capability guard on the
+  # actual offending call) and was only being kept as a soak-test control
+  # variable for the kernel patch below, which is now also disabled — no
+  # reason left to carry a proven-no-op param. See maintenance.md item 7.
   # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
   # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
   # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
@@ -103,7 +99,7 @@
   # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
   # No "quiet": kept verbose so all boot/kernel output stays on screen (see
   # custom.tuiAskpass above, which relies on Plymouth being off anyway).
-  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x800" "pcie_ports=compat" ];
+  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "pcie_ports=compat" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.
@@ -136,10 +132,17 @@
   # 22% hang rate over ~36 attempts pre-patch (2026-08-02 -> 08-14), then 2/2
   # unattended overnight hangs even with the amdgpu kernel patch applied
   # (2026-08-17 -> 08-18), which is why hibernate was restored on every path
-  # the very next day. The kernel patch (custom.amdgpu-s2idle-patch.enable)
-  # stays on below since it may still reduce the hang rate even though it
-  # didn't eliminate it. If this recurs, revert these three lines and
-  # custom.lid-undock-hibernate.sleepCommand back to hibernate, matching the
+  # the very next day. A 2026-09-09 audit of this third retest (Aug 26 -> Sep
+  # 9) found the hang rate hadn't converged either: 48 attempts, 8 hangs
+  # (~17%), back in line with the pre-patch rate. Since the kernel patch
+  # wasn't clearly helping, it's now disabled too (see
+  # custom.amdgpu-s2idle-patch.enable below) — this is a stock-kernel retest
+  # of plain suspend, not just a policy retest. If hangs continue at this
+  # rate, hibernate (never actually soaked under the current LZO settings —
+  # see maintenance.md item 7 bullet 8) is the recommended next step, since
+  # it would also fix the standby-drain cost the patch traded for hang
+  # mitigation. If reverting to hibernate, restore these three lines and
+  # custom.lid-undock-hibernate.sleepCommand to hibernate, matching the
   # 2026-08-18 decision, and update maintenance.md item 7 with the result.
   services.logind.settings.Login.HandlePowerKey = "suspend";
   services.logind.settings.Login.HandleLidSwitch = "suspend";
@@ -162,15 +165,18 @@
   custom.lid-undock-hibernate.enable = true;
   custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend";
 
-  # Reduces the s2idle hang rate (see the logind block above for why it's no
-  # longer trusted as the sole fix) and is kept in case anything still ends up
-  # going through plain suspend. fasterHibernateCompression is off: LZ4 is one
-  # of the two named suspects for the hibernate-resume TTM crash in
-  # maintenance.md item 7 and was never exercised during the proven-good
-  # direct-hibernate window, so pin back to LZO (the option this repo used
-  # before LZ4 existed) rather than carry an unproven variable into the
-  # backstop this is meant to protect.
-  custom.amdgpu-s2idle-patch.enable = true;
+  # DISABLED 2026-09-09, user-requested stock-kernel retest: a fresh audit
+  # (Aug 26 -> Sep 9, see maintenance.md item 7 bullet 11) found the hang
+  # rate hadn't improved with this patch in ~2.5 weeks of real use (~17%,
+  # against a 22% pre-patch baseline) — not a convincing enough win to keep
+  # paying for it (local kernel builds on every bump, and the deliberately
+  # higher standby drain from giving up the iGPU's deepest idle state). Also
+  # drops the local kernel build — this host goes back to nixpkgs' stock
+  # kernel while this is off. fasterHibernateCompression is left at its
+  # LZO-pinning value so flipping enable back on doesn't silently reintroduce
+  # LZ4 (still an unproven variable for the separate hibernate-resume TTM
+  # crash, see maintenance.md item 7 bullet 7).
+  custom.amdgpu-s2idle-patch.enable = false;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
   # Physical HDMI output regression on kernel 7.2 (worked on 7.1.5,
