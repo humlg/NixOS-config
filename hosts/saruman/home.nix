@@ -24,6 +24,7 @@ in
     ../../modules/programs/ssh-keys.nix
     ../../modules/bundles/yg-work.nix
     ../../modules/programs/webapps.nix
+    ../../modules/programs/newsboat.nix
     ../../modules/programs/transmission.nix
     ../../modules/bundles/desktop-apps.nix
   ];
@@ -97,8 +98,13 @@ in
     # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
     dynamicCursors.enable = true;
 
-    # Silently autostart NewsFlash into special:rss, same mechanism as
-    # Thunderbird/Obsidian above (merges with the module's default list).
+    # Silently autostart NewsFlash into special:rss, and newsboat (terminal
+    # RSS reader, modules/programs/newsboat.nix) into special:dashboard, same
+    # mechanism as Thunderbird/Obsidian above (merges with the module's
+    # default list). newsboat's own toggle key is left null since
+    # mainMod+X/SHIFT+X already toggle special:dashboard unconditionally
+    # (keybinds.nix) — a second silentApps-generated bind on the same key
+    # would just double the same dispatch.
     silentApps = [
       {
         name         = "rssReader";
@@ -108,6 +114,15 @@ in
         workspace    = "rss";
         key          = "U";
         delay        = 5;
+      }
+      {
+        name         = "newsboatReader";
+        command      = "kitty --class newsboat -e newsboat";
+        class        = "^newsboat$";
+        matchInitial = false;
+        workspace    = "dashboard";
+        key          = null;
+        delay        = 6;
       }
     ];
   };

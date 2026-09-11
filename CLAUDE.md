@@ -97,6 +97,7 @@ modules/
     btop.nix                       # btop with wallust-generated theme
     cava.nix                       # cava audio visualizer with wallust-generated theme
     fastfetch.nix                  # fastfetch system-info banner
+    newsboat.nix                   # newsboat TUI RSS reader — native programs.newsboat with a declarative feed list (world/Europe/Czechia news, Linux/AI tech, gaming) + tag-based queries; used by sauron + saruman, silently autostarted into special:dashboard (see hosts/*/home.nix silentApps) alongside NewsFlash's special:rss
     claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
     ssh-keys.nix                   # SSH client config (github-huml-yg host alias)
     mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
