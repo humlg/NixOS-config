@@ -14,5 +14,12 @@
       owner = "david";
       mode  = "0600";
     };
+
+    homelab = {
+      file  = ../../secrets/homelab.age;
+      path  = "/home/david/.ssh/homelab";
+      owner = "david";
+      mode  = "0600";
+    };
   };
 }
