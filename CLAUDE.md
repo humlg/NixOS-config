@@ -97,7 +97,7 @@ modules/
     cava.nix                       # cava audio visualizer with wallust-generated theme
     fastfetch.nix                  # fastfetch system-info banner
     claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
-    ssh-keys.nix                   # SSH client config (github-huml-yg host alias)
+    ssh-keys.nix                   # SSH client config (github-huml-yg and homelab host aliases)
     mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
     transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
     webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
@@ -239,10 +239,14 @@ sudo nixos-rebuild switch --flake .#newhost
 |------|---------|
 | `secrets/secrets.nix` | Recipient key map — edit when adding/removing hosts |
 | `secrets/shell-env.age` | Shell environment variables (API tokens, etc.) |
+| `secrets/github-huml-yg.age` | GitHub SSH deploy key (`github-huml-yg` host alias) — desktops (sauron, saruman, david) |
+| `secrets/homelab.age` | SSH private key for the homelab server (192.168.5.1, `homelab` host alias, user `david`) — desktops (sauron, saruman, david) |
 | `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
 | `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
 | `modules/system/secrets.nix` | NixOS declarations for secrets shared/common across hosts |
 | `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
+
+**Encrypting a secret outside `agenix -e` (e.g. scripting it, or a generated key):** recipients passed to `age -r` must be the raw `ssh-ed25519 AAAA...` public key strings from `secrets/secrets.nix`, not the `age1...` X25519 form from `ssh-to-age`. The two produce different stanza types in the ciphertext header (`ssh-ed25519` vs `X25519`) — the NixOS activation script decrypts using the raw SSH host key files (`-i /etc/ssh/ssh_host_ed25519_key`), which only understands `ssh-ed25519` stanzas, so an `X25519`-recipient file fails at activation with "no identity matched any of the recipients" even though it encrypted without error. Verify a manually-encrypted secret decrypts before committing: add a throwaway `age-keygen` identity as an extra recipient, decrypt with it locally, diff against the plaintext, then re-encrypt with only the real recipients. Also run `agenix -e`/`-r` from inside the `secrets/` directory — it resolves `./secrets.nix` relative to cwd.
 
 Not all `age.secrets` live in `modules/system/secrets.nix` — a host- or bundle-specific secret (like the 1NCE VPN's) can be declared directly inside its own opt-in module (see `modules/bundles/yg-work-system.nix`) so it's only decrypted on hosts that enable that module.
 
