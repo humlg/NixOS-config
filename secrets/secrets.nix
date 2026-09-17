@@ -14,6 +14,7 @@ in
 {
   "shell-env.age".publicKeys = desktops;
   "github-huml-yg.age".publicKeys = desktops;
+  "homelab.age".publicKeys = desktops;
   "1nce-vpn.ovpn.age".publicKeys = sarumanOnly;
   "1nce-vpn-credentials.age".publicKeys = sarumanOnly;
 }
