@@ -208,8 +208,11 @@
     };
   };
 
-  # Saruman mainly connects out to other machines — no need to run the
-  # Sunshine server here, just the Moonlight client.
+  # Saruman mainly connects out to other machines, but can also serve as a
+  # Sunshine host on demand — installed but not auto-started (systemctl --user
+  # start sunshine), since it's not needed 99% of the time.
+  custom.sunshine-moonlight.enable = true;
+  custom.sunshine-moonlight.autoStart = false;
   custom.sunshine-moonlight.enableMoonlight = true;
 
   programs.kdeconnect.enable = true;
