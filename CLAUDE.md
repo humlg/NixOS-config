@@ -115,6 +115,7 @@ modules/
     sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
     wivrn.nix                      # WiVRn wireless VR streaming server (Meta Quest 2), custom.wivrn.enable — used by sauron
     tailscale.nix                  # Tailscale VPN mesh networking (services.tailscale + firewall trust for tailscale0), custom.tailscale.enable — used by all three hosts
+    wireguard-saruman.nix          # Personal WireGuard VPN tunnel (networking.wg-quick.interfaces.wg-saruman), configFile sourced from the whole wg-saruman.age secret rather than split into individual options — full-tunnel (0.0.0.0/0), so autostart = false; bring up manually with `sudo wg-quick up wg-saruman`. custom.wireguard-saruman.enable — saruman only
   system/
     amdgpu-s2idle-patch.nix        # Builds a locally-patched kernel dropping amdgpu's DCN3.5+ "IPS before D3cold" s2idle step (the actual fix for the saruman resume hang) + optional LZ4 hibernate compression — opt-in via custom.amdgpu-s2idle-patch.enable — saruman only (see maintenance.md #7)
     amdgpu-hdmi-scdc-fix.nix       # Kernel patch reverting the HDMI SCDC scdc_present gate (upstream 3471b9a31ce3, kernel 7.2) — DISABLED 2026-09-09, the companion setter ("Improve HDMI info retrieval") turned out to already be in nixpkgs' 7.2.2 kernel all along (removal condition confirmed met by extracting the actual tarball), not yet physically retested. opt-in via custom.amdgpu-hdmi-scdc-fix.enable — saruman only (see maintenance.md #23)
@@ -250,6 +251,7 @@ sudo nixos-rebuild switch --flake .#newhost
 | `secrets/homelab.age` | SSH private key for the homelab server (192.168.5.1, `homelab` host alias, user `david`) — desktops (sauron, saruman, david) |
 | `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
 | `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
+| `secrets/wg-saruman.age` | Personal WireGuard VPN — full wg-quick config file (private key, peer, full-tunnel AllowedIPs) — saruman only |
 | `modules/system/secrets.nix` | NixOS declarations for secrets shared/common across hosts |
 | `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
 
