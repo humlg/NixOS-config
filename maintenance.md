@@ -1009,6 +1009,50 @@ Last full scan: 2026-07-16.
   `hdmi->scdc.supported` itself evaluates true for this exact sink/dock in
   every case.
 
+### 24. Saruman: top USB-C port carries no DisplayPort video to the Iiyama dock (2026-09-21, open — living with it)
+- **Where:** Hardware/kernel-level, not a Nix config option — no file to point
+  at. Related suspects ruled out: `pcie_ports=compat` (item 7b) and kernel
+  version (7.2.2 vs 7.2.6) — see the two 2026-09-21 follow-ups under item 7b.
+- **What:** Plugging the Iiyama dock into saruman's top USB-C port never
+  produces video, while the bottom port works normally (after the unrelated
+  EDID desc-string fix in `hosts/saruman/home.nix`). The dock's USB hub
+  (keyboard etc.) works fine through the top port either way.
+- **Diagnosis (2026-09-21):** With the dock in the top port, `hyprctl
+  monitors -j` shows it as connector `DP-2` (bottom port uses `DP-1`),
+  correctly positioned per config and *not* mirrored — so Hyprland's config
+  match works fine. `/sys/class/drm/card1-DP-2/edid` reads a full valid
+  256-byte EDID and `.../modes` lists the monitor's complete mode set,
+  proving the AUX/DDC channel works over this port. But
+  `/sys/class/drm/card1-DP-2/enabled` = `disabled`, `dpms` = `Off`, and
+  Hyprland's tracked mode stays `0x0` — no video ever gets applied. Zero
+  kernel/amdgpu log lines appear during the whole hotplug (checked
+  unfiltered `journalctl -k` for the window) — not even a warning.
+- **Leading hypothesis, untested:** EDID/AUX succeeding while the main video
+  link silently never activates, with no kernel error at all, most likely
+  means the top port's USB-C pins simply aren't wired with enough DisplayPort
+  lanes to the GPU (a common laptop design: one "full" USB4/Thunderbolt port
+  with full DP alt-mode lanes, one "USB-only" port that still exposes AUX/EDID
+  but has no video lanes) — i.e. hardware, not fixable in software.
+- **Real alternative lead, not yet tested:** this exact silent-misconfiguration
+  signature (`connected`, HPD/EDID fine, nothing displayed, no kernel log) is
+  also the documented symptom of item 23's SCDC bug, which explicitly affects
+  "DP→HDMI PCON through the USB-C dock" — i.e. this same Iiyama dock — and
+  which item 23 left **disabled and never physically retested** as of
+  2026-09-09. If the top port's video path happens to route through DP→HDMI
+  PCON conversion inside the dock (rather than native DP alt-mode straight
+  through), re-enabling `custom.amdgpu-hdmi-scdc-fix.enable` could plausibly
+  fix it. Not tested 2026-09-21 — user opted to keep the bottom-port
+  workaround rather than spend a ~15–25 min local kernel compile testing it.
+- **Current resolution:** none — living with it. Use the bottom port for the
+  dock; the top port still works fine for USB (keyboard, storage, etc.), just
+  not video.
+- **Removal condition:** either (a) someone tests
+  `custom.amdgpu-hdmi-scdc-fix.enable = true` on saruman and it fixes the top
+  port (would also finally satisfy item 23's "not yet physically tested"
+  condition in one shot), or (b) it's confirmed as genuine hardware wiring
+  (e.g. by testing a different cable/device with video on the top port) and
+  this item gets closed as "won't fix, hardware limitation" instead.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
