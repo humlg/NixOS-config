@@ -19,7 +19,7 @@ in
       mqttx
       slack
       teams-for-linux
-      libreoffice-qt-fresh
+      libreoffice-qt
       todoist-electron
       mqttui
       dm-sans
