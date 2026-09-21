@@ -542,14 +542,19 @@ Last full scan: 2026-07-16.
   removed, the bottom port now extends correctly (that fix was actually the
   unrelated EDID desc-string match above, in `hosts/saruman/home.nix`) but
   the **top port is still completely dead** — so `pcie_ports=compat` is
-  *not* the cause of the top-port regression; something else is. It remains
-  disabled for now (not yet restored) because the original docked
-  shutdown/reboot hang it was meant to prevent hasn't been retested yet —
-  user hasn't done a docked shutdown/reboot since disabling it. Until that
-  test happens (and a decision is made to restore or drop the param), the
-  hang risk is open. Top-port cause is still unknown; next step is probably
-  `netconsole`-style capture or closer inspection of that specific port/cable
-  rather than more kernel-param guessing.
+  *not* the cause of the top-port regression; something else is. Top-port
+  cause is still unknown; next step is probably `netconsole`-style capture
+  or closer inspection of that specific port/cable rather than more
+  kernel-param guessing.
+- **2026-09-21 second follow-up — first docked shutdown/reboot test clean:**
+  With `pcie_ports=compat` still disabled, a docked shutdown/reboot
+  completed without the black-screen hang it was added for. One clean run
+  isn't "stable for a while" yet (the removal condition above), but combined
+  with it never having been confirmed to fix the hang even once while it
+  *was* enabled, this leans further toward dropping it for good rather than
+  restoring it. Leaving it disabled and gathering a few more docked
+  shutdown/reboot cycles before updating the removal condition to "confirmed
+  not needed" and dropping the EXPERIMENTAL param/comment entirely.
 
 ### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
 - **Where:** `hosts/saruman/home.nix:60-71`
