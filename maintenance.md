@@ -536,9 +536,20 @@ Last full scan: 2026-07-16.
   (`boot.kernelParams` in `hosts/saruman/configuration.nix`) to test whether
   the top port comes back. This reopens the original unconfirmed
   shutdown/reboot hang risk while testing — watch docked shutdowns/reboots
-  for it. Outcome not yet recorded — update this entry (and the Hardware
-  Quick Reference row in `CLAUDE.md`) once both the top-port video and the
-  shutdown-hang risk have been retested.
+  for it.
+- **2026-09-21 follow-up — ruled out as the top-port cause, still disabled
+  pending shutdown/reboot retest:** After rebuilding with `pcie_ports=compat`
+  removed, the bottom port now extends correctly (that fix was actually the
+  unrelated EDID desc-string match above, in `hosts/saruman/home.nix`) but
+  the **top port is still completely dead** — so `pcie_ports=compat` is
+  *not* the cause of the top-port regression; something else is. It remains
+  disabled for now (not yet restored) because the original docked
+  shutdown/reboot hang it was meant to prevent hasn't been retested yet —
+  user hasn't done a docked shutdown/reboot since disabling it. Until that
+  test happens (and a decision is made to restore or drop the param), the
+  hang risk is open. Top-port cause is still unknown; next step is probably
+  `netconsole`-style capture or closer inspection of that specific port/cable
+  rather than more kernel-param guessing.
 
 ### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
 - **Where:** `hosts/saruman/home.nix:60-71`
