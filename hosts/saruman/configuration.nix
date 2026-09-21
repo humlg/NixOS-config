@@ -93,14 +93,19 @@
   # actual offending call) and was only being kept as a soak-test control
   # variable for the kernel patch below, which is now also disabled — no
   # reason left to carry a proven-no-op param. See maintenance.md item 7.
-  # pcie_ports=compat: forces ACPI-based PCIe hotplug instead of native
-  # hotplug/AER, to work around a shutdown/reboot hang that occurs only when
-  # a USB-C dock (monitor with built-in dock, connected via the AMD USB4/
-  # Thunderbolt controller) is plugged in — confirmed by testing docked vs.
-  # unplugged. EXPERIMENTAL, not yet confirmed to fix it (see maintenance.md).
+  # pcie_ports=compat DISABLED 2026-09-21 for testing: added 2026-07-16 as an
+  # EXPERIMENTAL, never-confirmed workaround for a docked shutdown/reboot hang
+  # (see maintenance.md item 7b) — forces ACPI-based PCIe hotplug instead of
+  # native hotplug/AER for the dock's USB4/Thunderbolt tunnel. Now suspected of
+  # being the actual cause of a *different* regression: the Iiyama dock's top
+  # USB-C port stopped carrying DP altmode video (bottom port still works,
+  # keyboard passthrough via the dock's hub still works on the dead port).
+  # Testing removal to confirm; if the top port starts working again, this
+  # trades back to the original unconfirmed shutdown-hang risk — watch for
+  # that regressing docked shutdowns/reboots. See maintenance.md item 7b.
   # No "quiet": kept verbose so all boot/kernel output stays on screen (see
   # custom.tuiAskpass above, which relies on Plymouth being off anyway).
-  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "pcie_ports=compat" ];
+  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.

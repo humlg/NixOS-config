@@ -521,6 +521,24 @@ Last full scan: 2026-07-16.
   permanently (update status to solved, drop "EXPERIMENTAL" language in the
   code comment). Confirmed *not* fixed → revert the kernel param and pursue
   netconsole-based diagnosis instead.
+- **2026-09-21 update — disabled for testing, suspected of a second
+  regression:** After a flake update, the Iiyama dock's top USB-C port
+  stopped carrying DP altmode video entirely (bottom port kept working;
+  hyprctl never lists a monitor on the dead port; the dock's USB hub/keyboard
+  still works through it). Initially assumed to be a kernel regression
+  (7.2.2 → 7.2.6), but the top port failed identically when test-booting back
+  to 7.2.2 — however, that only reaches back to 2026-09-11 (oldest surviving
+  generation; `generation-cleanup.nix` prunes further history), and this
+  param has been in place since 2026-07-16, so kernel testing couldn't rule
+  it out. Since it was never confirmed to fix the shutdown hang either, and
+  forcing ACPI-based PCIe hotplug is a plausible way to break one port's
+  PCIe-tunneled video while leaving the other alone, disabled it
+  (`boot.kernelParams` in `hosts/saruman/configuration.nix`) to test whether
+  the top port comes back. This reopens the original unconfirmed
+  shutdown/reboot hang risk while testing — watch docked shutdowns/reboots
+  for it. Outcome not yet recorded — update this entry (and the Hardware
+  Quick Reference row in `CLAUDE.md`) once both the top-port video and the
+  shutdown-hang risk have been retested.
 
 ### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
 - **Where:** `hosts/saruman/home.nix:60-71`
