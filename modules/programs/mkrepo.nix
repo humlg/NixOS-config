@@ -17,7 +17,7 @@
 
       git init -b main && \
         git add -A && \
-        git commit -m "Initial commit" && \
+        git commit --allow-empty -m "Initial commit" && \
         gh repo create "$(basename "$PWD")" --"$visibility" --source=. --remote=origin --push
     }
   '';
