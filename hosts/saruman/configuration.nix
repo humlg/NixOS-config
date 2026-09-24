@@ -105,7 +105,15 @@
   # that regressing docked shutdowns/reboots. See maintenance.md item 7b.
   # No "quiet": kept verbose so all boot/kernel output stays on screen (see
   # custom.tuiAskpass above, which relies on Plymouth being off anyway).
-  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" ];
+  # amdgpu.dcdebugmask=0x40000 (DC_DISABLE_CUSTOM_BRIGHTNESS_CURVE, added
+  # 2026-09-24): amdgpu_bl1's sysfs brightness/actual_brightness tracked each
+  # other proportionally on writes, but the panel showed zero visible change
+  # across the full 5%-95% range — the OEM ATIF firmware brightness curve
+  # amdgpu applies on top of the raw PWM value is broken on this kernel
+  # (matches multiple upstream reports against 7.1.6+/DCN3.5, still being
+  # patched in amd-gfx as of Sept 2026). This debug-mask bit skips the curve
+  # entirely and restores linear PWM control. See maintenance.md item 25.
+  boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x40000" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
   # step of reboot. Keeping the link out of ASPM avoids both.

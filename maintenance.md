@@ -1055,6 +1055,44 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 25. Saruman: internal panel backlight writes had no visible effect (2026-09-24, fixed via kernel param)
+- **Where:** `hosts/saruman/configuration.nix` — `boot.kernelParams`, added
+  `amdgpu.dcdebugmask=0x40000`.
+- **What:** `brightnessctl set <N>%` (and the `XF86MonBrightnessUp/Down`
+  keybinds that call it, `modules/desktop/hyprland-config-lua/keybinds.nix`)
+  updated `/sys/class/backlight/amdgpu_bl1/brightness` and
+  `actual_brightness` tracked it proportionally (confirmed via direct sysfs
+  writes: 5%/95%/42% all produced distinct `actual_brightness` values), but
+  the physical panel showed **zero** visible brightness change across the
+  whole range. `amdgpu_bl1`'s `scale` attribute reads `non-linear`.
+- **Diagnosis:** matches a known, still-active upstream regression in
+  amdgpu's OEM ATIF firmware brightness-curve handling
+  (`convert_custom_brightness()` in `amdgpu_dm.c`), affecting DCN3.5+ laptops
+  on kernel 7.1.6+ — multiple dri-devel/amd-gfx bug reports through
+  2026-08/09 (backlight regression with 7.1.6, max-brightness-broken, 100%
+  blackout on Phoenix), and a "fix brightness ownership through power
+  module" patch series still in flux on amd-gfx as of 2026-09-02. AMD added
+  `DC_DISABLE_CUSTOM_BRIGHTNESS_CURVE` (`amdgpu.dcdebugmask=0x40000`)
+  specifically as an escape hatch for systems where the curve is broken —
+  it's a documented upstream debug-mask bit, not a guess.
+- **Fix:** `amdgpu.dcdebugmask=0x40000` on the kernel command line, which
+  skips the firmware curve and restores linear PWM control. This is a boot
+  parameter only — no source patch, no local kernel compile (unlike items 7
+  and 23's `custom.*` kernel-patch modules).
+- **Not yet confirmed:** added but not yet rebuilt/rebooted/tested on the
+  physical panel — verify brightness keys and the Noctalia slider actually
+  dim/brighten the screen after a reboot with this param active, and that
+  brightness still isn't clipped or non-linear (e.g. seemingly identical
+  near 0% or 100%) once the curve is disabled.
+- **Removal condition:** an upstream kernel release ships a real fix for the
+  ATIF curve conversion (the amd-gfx patch series above, once it lands and
+  reaches nixpkgs' kernel) — confirm the curve now behaves correctly with
+  the param removed before deleting this line. Unlike item 7/23's `custom.*`
+  toggles, this one has no Nix option gating it — just remove the string
+  from `boot.kernelParams` once no longer needed.
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it
