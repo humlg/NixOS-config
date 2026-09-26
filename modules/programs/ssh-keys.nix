@@ -9,6 +9,14 @@
         Hostname = "github.com";
         User = "git";
         IdentityFile = "/home/david/.ssh/github_huml_yg";
+        IdentitiesOnly = true;
+      };
+
+      "Host github-humlg" = {
+        Hostname = "github.com";
+        User = "git";
+        IdentityFile = "/home/david/.ssh/id_ed25519";
+        IdentitiesOnly = true;
       };
 
       "Host homelab" = {

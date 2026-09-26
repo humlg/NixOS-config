@@ -99,7 +99,7 @@ modules/
     fastfetch.nix                  # fastfetch system-info banner
     newsboat.nix                   # newsboat TUI RSS reader — native programs.newsboat with a declarative feed list (world/Europe/Czechia news, Linux/AI tech, gaming) + tag-based queries; used by sauron + saruman, silently autostarted into special:dashboard (see hosts/*/home.nix silentApps) alongside NewsFlash's special:rss
     claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
-    ssh-keys.nix                   # SSH client config (github-huml-yg and homelab host aliases)
+    ssh-keys.nix                   # SSH client config (github-huml-yg, github-humlg, and homelab host aliases)
     mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
     transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
     webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
