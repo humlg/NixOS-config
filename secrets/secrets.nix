@@ -18,4 +18,5 @@ in
   "1nce-vpn.ovpn.age".publicKeys = sarumanOnly;
   "1nce-vpn-credentials.age".publicKeys = sarumanOnly;
   "wg-homelab.age".publicKeys = sarumanOnly;
+  "surface.age".publicKeys = desktops;
 }

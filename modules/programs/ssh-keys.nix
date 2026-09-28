@@ -24,6 +24,12 @@
         User = "david";
         IdentityFile = "/home/david/.ssh/homelab";
       };
+
+      "Host surface" = {
+        Hostname = "192.168.4.148";
+        User = "david";
+        IdentityFile = "/home/david/.ssh/surface";
+      };
     };
   };
 }

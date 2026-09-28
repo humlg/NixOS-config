@@ -249,6 +249,7 @@ sudo nixos-rebuild switch --flake .#newhost
 | `secrets/shell-env.age` | Shell environment variables (API tokens, etc.) |
 | `secrets/github-huml-yg.age` | GitHub SSH deploy key (`github-huml-yg` host alias) — desktops (sauron, saruman, david) |
 | `secrets/homelab.age` | SSH private key for the homelab server (192.168.5.1, `homelab` host alias, user `david`) — desktops (sauron, saruman, david) |
+| `secrets/surface.age` | SSH private key for passwordless access to 192.168.4.148 (`surface` host alias, user `david`) — desktops (sauron, saruman, david) |
 | `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
 | `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
 | `secrets/wg-homelab.age` | Personal WireGuard VPN — full wg-quick config file (private key, peer, full-tunnel AllowedIPs) — saruman only |
