@@ -1093,6 +1093,48 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 26. `openrgb` patched locally with a Dark Project Bushido 87 controller (2026-09-29)
+- **Where:** `overlays/openrgb-darkproject-bushido.nix` +
+  `overlays/openrgb-darkproject-bushido/` (5 files: `DarkProjectBushidoController.{h,cpp}`,
+  `RGBController_DarkProjectBushido.{h,cpp}`, `DarkProjectBushidoControllerDetect.cpp`),
+  wired into `flake.nix`'s `overlays` list. `pkgs.openrgb` is installed on both `sauron`
+  (already had it) and `saruman` (added here — the Bushido lives there).
+- **What:** OpenRGB has no support at all for this keyboard's PCB generation. Its existing
+  `Controllers/DarkProject/` driver only covers the older KD3B V2 board (VID `0x195D`, a
+  totally different protocol) — this one is a newer GSKY-branded PCB, VID `0x342D` / PID
+  `0xE40F`. The overlay `overrideAttrs`s `postPatch` to copy the 5 new files into
+  `Controllers/DarkProjectBushido/` before `qmake` runs; OpenRGB's build glob-discovers
+  every `Controllers/*/*.{h,cpp}` and its include path automatically, so no `.pro` edit
+  was needed.
+- **Protocol (reverse-engineered, not from any vendor documentation):** solid-color "Direct"
+  mode is two consecutive HID `SET_REPORT` (Feature) writes, report ID 7, on the keyboard's
+  third HID interface (usage page `0xFF01`, usage `0x01` — a clean vendor-only interface,
+  distinct from the boot-keyboard and mixed keyboard/mouse/vendor interfaces the browser's
+  WebHID can't fully use, see the WEB LAB webapp fix above): a fixed 257-byte "prime" packet,
+  then a 257-byte packet whose R/G/B bytes sit at fixed offsets (59/67/75) in an otherwise
+  constant template. Found by capturing real USB traffic (`usbmon`/Wireshark) between the
+  vendor's own web configurator (`https://software.darkproject.eu/`) and the keyboard across
+  several isolated single-action captures (solid red, green, blue, brightness-only), then
+  confirmed independent of the browser by replaying the bytes directly against `/dev/hidraw2`
+  via a raw Python `HIDIOCSFEATURE` ioctl call, and again through the actual built OpenRGB
+  binary (`openrgb --device 0 --mode direct --color <hex>`) — both changed the keyboard's
+  lighting live. Only this one "Direct" command is understood; the board's other lighting
+  effects (a 15-entry effect-mode list exists in the webapp's config, byte offset 15 also
+  looked like brightness) were not decoded, and the vendor tool doesn't expose per-key
+  addressing on this board either, so no per-key `RGBController` zone was attempted — the
+  driver models it as a single "Whole Keyboard" zone/LED.
+- **Not upstreamed:** this only lives in this repo's overlay. Requires a local OpenRGB
+  build from source (`nixos-rebuild dry-build` will show a real `openrgb-1.0.drv` — not a
+  kernel compile, but a genuine multi-minute Qt6 app build, unlike this repo's usual
+  cached binaries) whenever the overlay or nixpkgs' pinned OpenRGB version changes.
+- **Removal condition:** delete `overlays/openrgb-darkproject-bushido.nix` (and its
+  directory) and drop the import from `flake.nix` once this lands in upstream OpenRGB
+  (check `Controllers/` for a `DarkProjectBushido` or similarly-named driver covering VID
+  `0x342D`/PID `0xE40F` before assuming it's redundant — the upstream implementation may
+  use different file/class names).
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it

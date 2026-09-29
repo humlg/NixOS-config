@@ -51,6 +51,7 @@
       (import ./overlays/rawtherapee-dev.nix)
       (import ./overlays/patool-no-check.nix)
       (import ./overlays/hypr-dynamic-cursors-hl-pin.nix)
+      (import ./overlays/openrgb-darkproject-bushido.nix)
     ];
     overlayModule = {
       nixpkgs.overlays = overlays;

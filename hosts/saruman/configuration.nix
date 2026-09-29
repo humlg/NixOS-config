@@ -271,7 +271,12 @@
     codex
     clinfo
     openttd
+    openrgb
   ];
+
+  # Also carries the local Dark Project Bushido 87 controller — see
+  # overlays/openrgb-darkproject-bushido.nix and maintenance.md.
+  services.udev.packages = [ pkgs.openrgb ];
 
   programs.zen-browser-custom.enable = true;
 

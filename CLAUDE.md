@@ -135,6 +135,8 @@ overlays/
   patool-no-check.nix               # Disables patool's sandboxed test suite (see maintenance.md #3)
   rawtherapee-dev.nix               # Rebuilds rawtherapee from a dev commit to fix a startup crash (see maintenance.md #2)
   hypr-dynamic-cursors-hl-pin.nix   # Bumps hyprlandPlugins.hypr-dynamic-cursors src to commit 5a224284 (nixpkgs pins f5ba36c7, which only supports Hyprland ≤0.56.1 and fails to hook 0.56.2's cursor path at init) — commit taken from upstream hyprpm.toml's Hyprland-0.56.2 pin (see maintenance.md #22)
+  openrgb-darkproject-bushido.nix   # Patches pkgs.openrgb with a locally-written, reverse-engineered controller for the Dark Project Bushido 87 keyboard (GSKY PCB, VID 0x342D/PID 0xE40F) — not upstream, OpenRGB's existing DarkProject driver only covers the older KD3B V2 board. Solid-color only (see maintenance.md #26)
+  openrgb-darkproject-bushido/      # The 5 controller source files (DarkProjectBushidoController.{h,cpp}, RGBController_DarkProjectBushido.{h,cpp}, DarkProjectBushidoControllerDetect.cpp) copied into openrgb's Controllers/ tree by the overlay above
 patches/
   amdgpu-no-idle-opt-on-s2idle.patch # Kernel patch removing the two lines f6098641d3e1e4 added to amdgpu's dm_suspend() — applied by modules/system/amdgpu-s2idle-patch.nix (see maintenance.md #7)
   amdgpu-hdmi-scdc-gate-revert.patch # Kernel patch reverting the two scdc_present guard hunks from upstream 3471b9a31ce3 — applied by modules/system/amdgpu-hdmi-scdc-fix.nix (see maintenance.md #23)
