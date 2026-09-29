@@ -43,6 +43,9 @@ in
 
     # Allow wireshark to capture packets without root
     programs.wireshark.enable = true;
+    # Also grant the wireshark group read access to usbmon devices, so USB HID traffic
+    # (e.g. reverse-engineering a keyboard's vendor protocol) can be captured without root too
+    programs.wireshark.usbmon.enable = true;
     users.users.david.extraGroups = [ "wireshark" ];
   };
 }
