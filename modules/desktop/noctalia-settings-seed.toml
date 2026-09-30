@@ -290,7 +290,7 @@ background_opacity = 0.69999998435378075
 battery-panel_placement = "attached"
 
 [plugins]
-enabled = [ "gustav0ar/drive-health", "yocraft/battery-widget", "kenn/keybind-cheatsheet" ]
+enabled = [ "gustav0ar/drive-health", "yocraft/battery-widget", "kenn/keybind-cheatsheet", "noctalia/screen_recorder" ]
 
 [shell]
 external_ip_enabled = true

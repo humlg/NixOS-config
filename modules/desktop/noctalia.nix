@@ -34,6 +34,14 @@ in
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';
     };
 
+    # Backing binary for Noctalia's official "Screen Recorder" plugin
+    # (noctalia/screen_recorder — screen recording + replay buffer via
+    # hardware-accelerated encode). The plugin itself is enabled through
+    # Noctalia's own settings.toml [plugins] list (see the seed file below),
+    # not a Nix option — this just makes sure the binary it shells out to is
+    # present on every host running this DE.
+    home.packages = [ pkgs.gpu-screen-recorder ];
+
     # One-shot seed of the tuned look-and-feel (bar layout, theme, lockscreen
     # widgets, plugin list, idle behavior, etc.) from saruman's live-tuned
     # config, captured 2026-08-21 into noctalia-settings-seed.toml. This file
