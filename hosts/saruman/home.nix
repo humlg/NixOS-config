@@ -35,6 +35,7 @@ in
   bundles.yg-work.enable = true;
   custom.transmission-vpn.enable = true;
   programs.yg-discover.enable = true;
+  programs.yg-discover.netio.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;
