@@ -246,6 +246,14 @@
   bundles.yg-work.enable = true;
   bundles.ham-radio.enable = true;
 
+  # YG Discover / Netio Discover (modules/programs/yg-discover.nix) send a UDP
+  # broadcast on 62387 and devices reply via UDP broadcast on 62386 (NETIO's
+  # discovery protocol — https://wiki.netio-products.com/index.php?title=NETIO_UDP_Discover).
+  # Firewall default-deny blocks the replies: they come back as a *broadcast*,
+  # not unicast to our IP, so stateful established/related tracking never
+  # matches them — needs an explicit inbound allow.
+  networking.firewall.allowedUDPPorts = [ 62386 ];
+
   home-manager = {
     backupFileExtension = "hm-bak";
     extraSpecialArgs = { inherit inputs; nur = inputs.nur; };
