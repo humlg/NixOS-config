@@ -1133,6 +1133,24 @@ Last full scan: 2026-07-16.
   `0x342D`/PID `0xE40F` before assuming it's redundant — the upstream implementation may
   use different file/class names).
 
+### 27. Netio Discover pinned to an older release — no Linux build exists under the current tag (2026-10-01)
+- **Where:** `modules/programs/yg-discover.nix` (`netioDiscoverSrc`).
+- **What:** Both YG Discover and Netio Discover are fetched declaratively via `fetchzip`
+  from release assets on the private `davidsebesta1/NetioDiscover` GitHub repo, pinned by
+  asset id + sha256 (see `modules/programs/yg-discover-system.nix` for the token plumbing
+  that makes this possible). YG Discover is pinned to the latest tag, `v2.0.0.5-yg`. Netio
+  Discover is pinned to the much older `v2.0.0.4beta` instead — the newer `v2.0.0.5-netio`
+  release exists but was never published with a Linux asset, only a Windows x64 zip.
+  `v2.0.0.4beta`'s `NetioDiscover-Linux.zip` was confirmed (byte-for-byte sha256 match) to
+  be exactly what was already being run manually before this was made declarative, so this
+  pin doesn't change behavior — it just can't track the "latest" Netio-branded release the
+  way YG Discover's pin does.
+- **Removal condition:** once a Linux build is published under `v2.0.0.5-netio` (or any
+  later Netio-branded tag), update `netioDiscoverSrc`'s `assetId`/`sha256` in
+  `modules/programs/yg-discover.nix` to match (`gh api
+  repos/davidsebesta1/NetioDiscover/releases/tags/<tag> --jq '.assets[]'` for the id/digest,
+  `nix hash convert --hash-algo sha256 --to sri <hex digest>` for the Nix hash format).
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
