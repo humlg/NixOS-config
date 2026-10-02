@@ -102,6 +102,7 @@ modules/
     ssh-keys.nix                   # SSH client config (github-huml-yg, github-humlg, and homelab host aliases)
     mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
     transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
+    jellyfin-media-player.nix      # Native Qt/mpv Jellyfin desktop client (pkgs.jellyfin-media-player) — opt-in via programs.jellyfin-media-player.enable; used by sauron + saruman
     webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
     zen-browser.nix                # Zen Browser + DuckDuckGo default search policy
     winboat.nix                    # Windows-in-a-box via winboat — orphaned, Docker wiring incomplete (see maintenance.md #13)

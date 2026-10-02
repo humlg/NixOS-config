@@ -26,6 +26,7 @@ in
     ../../modules/programs/webapps.nix
     ../../modules/programs/newsboat.nix
     ../../modules/programs/transmission.nix
+    ../../modules/programs/jellyfin-media-player.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
@@ -33,6 +34,7 @@ in
   bundles.desktop-apps.enable = true;
   bundles.yg-work.enable = true;
   custom.transmission-vpn.enable = true;
+  programs.jellyfin-media-player.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;
