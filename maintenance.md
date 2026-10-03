@@ -1133,24 +1133,6 @@ Last full scan: 2026-07-16.
   `0x342D`/PID `0xE40F` before assuming it's redundant — the upstream implementation may
   use different file/class names).
 
-### 27. Netio Discover pinned to an older release — no Linux build exists under the current tag (2026-10-01)
-- **Where:** `modules/programs/yg-discover.nix` (`netioDiscoverSrc`).
-- **What:** Both YG Discover and Netio Discover are fetched declaratively via `fetchzip`
-  from release assets on the private `davidsebesta1/NetioDiscover` GitHub repo, pinned by
-  asset id + sha256 (see `modules/programs/yg-discover-system.nix` for the token plumbing
-  that makes this possible). YG Discover is pinned to the latest tag, `v2.0.0.5-yg`. Netio
-  Discover is pinned to the much older `v2.0.0.4beta` instead — the newer `v2.0.0.5-netio`
-  release exists but was never published with a Linux asset, only a Windows x64 zip.
-  `v2.0.0.4beta`'s `NetioDiscover-Linux.zip` was confirmed (byte-for-byte sha256 match) to
-  be exactly what was already being run manually before this was made declarative, so this
-  pin doesn't change behavior — it just can't track the "latest" Netio-branded release the
-  way YG Discover's pin does.
-- **Removal condition:** once a Linux build is published under `v2.0.0.5-netio` (or any
-  later Netio-branded tag), update `netioDiscoverSrc`'s `assetId`/`sha256` in
-  `modules/programs/yg-discover.nix` to match (`gh api
-  repos/davidsebesta1/NetioDiscover/releases/tags/<tag> --jq '.assets[]'` for the id/digest,
-  `nix hash convert --hash-algo sha256 --to sri <hex digest>` for the Nix hash format).
-
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
@@ -1171,6 +1153,24 @@ does, so nobody "fixes" a fix:
   (item #8 above). Captured in memory `feedback_saruman-display-mirror.md` —
   don't reintroduce it.
 - **Sauron NVIDIA → AMD GPU swap.** See item #4.
+- **YG/Netio Discover declarative GitHub-release fetch (was item #27).** Tried
+  2026-10-01 → reverted 2026-10-03. `modules/programs/yg-discover.nix` briefly
+  fetched both binaries via `fetchzip` pinned by release asset id + sha256
+  from the private `davidsebesta1/NetioDiscover` repo, with
+  `modules/programs/yg-discover-system.nix` plumbing a GitHub PAT
+  (`secrets/github-netrc.age`) into nix-daemon's environment so the
+  fixed-output derivation could authenticate. That secret file was declared
+  but never actually created via `agenix -e`, which broke evaluation on
+  saruman (`age.secrets.github-netrc` pointed at a `.age` file that didn't
+  exist in git) — and on reflection the added complexity (private-repo auth,
+  asset-id pinning, a dedicated secret) wasn't worth it for two manually
+  downloaded colleague binaries. Reverted back to the original
+  manually-placed-binary approach: `programs.yg-discover.binaryPath` /
+  `programs.yg-discover.netio.binaryPath` point at
+  `~/YellowGrid/discover/...` by default, no fetch, no secret.
+  `yg-discover-system.nix` deleted, `custom.yg-discover-fetch.enable` dropped
+  from `hosts/saruman/configuration.nix`, `github-netrc.age` removed from
+  `secrets/secrets.nix`.
 - **`dwarfs` GCC 15 / fmt 12.2.0 overlay (was item #21).** `nix flake update`
   on 2026-08-27 bumped nixpkgs to GCC 15 + fmt 12.2.0, and the then-current
   `dwarfs` v0.14.0 vendored a folly/fbthrift snapshot that broke against both

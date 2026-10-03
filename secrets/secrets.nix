@@ -18,5 +18,4 @@ in
   "1nce-vpn.ovpn.age".publicKeys = sarumanOnly;
   "1nce-vpn-credentials.age".publicKeys = sarumanOnly;
   "wg-homelab.age".publicKeys = sarumanOnly;
-  "github-netrc.age".publicKeys = sarumanOnly;
 }

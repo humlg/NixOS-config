@@ -20,7 +20,6 @@
     ../../modules/services/ollama.nix
     ../../modules/bundles/gaming.nix
     ../../modules/bundles/yg-work-system.nix
-    ../../modules/programs/yg-discover-system.nix
     ../../modules/bundles/ham-radio.nix
     ../../modules/programs/zen-browser.nix
     ../../modules/system/secrets.nix
@@ -245,7 +244,6 @@
   bundles.wine.enable = true;
   bundles.gaming.enable = true;
   bundles.yg-work.enable = true;
-  custom.yg-discover-fetch.enable = true;
   bundles.ham-radio.enable = true;
 
   # YG Discover / Netio Discover (modules/programs/yg-discover.nix) send a UDP
