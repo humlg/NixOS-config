@@ -27,6 +27,7 @@ in
     ../../modules/programs/newsboat.nix
     ../../modules/programs/transmission.nix
     ../../modules/programs/yg-discover.nix
+    ../../modules/programs/jellyfin-media-player.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
@@ -36,6 +37,7 @@ in
   custom.transmission-vpn.enable = true;
   programs.yg-discover.enable = true;
   programs.yg-discover.netio.enable = true;
+  programs.jellyfin-media-player.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;

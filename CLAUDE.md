@@ -84,7 +84,7 @@ modules/
     photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2, DaVinci Resolve)
     3d-printing.nix                # 3D printing/CAD (prusa-slicer)
     gaming.nix                     # Gaming (Steam, gamemode, mangohud, lsfg-vk)
-    ham-radio.nix                  # Amateur radio: sdrpp, wsjtx, hamlib + RTL-SDR udev rules (plugdev/dialout groups) — saruman only
+    ham-radio.nix                  # Amateur radio: sdrpp, wsjtx, hamlib + RTL-SDR udev rules (plugdev/dialout groups) — sauron + saruman
     wine.nix                       # Wine support
     yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — Home Manager half of the yg-work bundle — saruman only
     yg-work-system.nix             # System (NixOS) half of the yg-work bundle: NetworkManager-openvpn plugin + agenix secrets for the 1NCE cellular IoT VPN — shares the bundles.yg-work.enable option name with yg-work.nix by convention but is a separate NixOS-tree option, toggled independently in configuration.nix — saruman only
@@ -102,6 +102,7 @@ modules/
     ssh-keys.nix                   # SSH client config (github-huml-yg, github-humlg, and homelab host aliases)
     mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
     transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
+    jellyfin-media-player.nix      # Native Qt/mpv Jellyfin desktop client (pkgs.jellyfin-media-player) — opt-in via programs.jellyfin-media-player.enable; used by sauron + saruman
     webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
     yg-discover.nix                # YG Discover and Netio Discover — same colleague-built .NET/Avalonia network-discovery app for YellowGrid products, shipped under two brand names/binaries, both dropped at ~/YellowGrid/discover/ outside Nix (colleague-provided download, not packaged in nixpkgs or built from source here — reverted off the declarative-fetch-from-GitHub approach 2026-10-03, see maintenance.md #27). Wrapped (writeShellScriptBin + desktop entry) to run via steam-run (its FHS env covers everything except libICE/libSM, the X11 session-management libs Avalonia's X11 backend needs, added via LD_LIBRARY_PATH) — opt-in via programs.yg-discover.enable (YG Discover) and programs.yg-discover.netio.enable (Netio Discover); binaryPath option on each points at the manually-placed local binary (required, no default fetch). saruman only
     zen-browser.nix                # Zen Browser + DuckDuckGo default search policy
@@ -252,6 +253,7 @@ sudo nixos-rebuild switch --flake .#newhost
 | `secrets/shell-env.age` | Shell environment variables (API tokens, etc.) |
 | `secrets/github-huml-yg.age` | GitHub SSH deploy key (`github-huml-yg` host alias) — desktops (sauron, saruman, david) |
 | `secrets/homelab.age` | SSH private key for the homelab server (192.168.5.1, `homelab` host alias, user `david`) — desktops (sauron, saruman, david) |
+| `secrets/surface.age` | SSH private key for passwordless access to 192.168.4.148 (`surface` host alias, user `david`) — desktops (sauron, saruman, david) |
 | `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
 | `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
 | `secrets/wg-homelab.age` | Personal WireGuard VPN — full wg-quick config file (private key, peer, full-tunnel AllowedIPs) — saruman only |

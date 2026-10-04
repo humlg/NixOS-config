@@ -10,12 +10,14 @@
     ../../modules/programs/cava.nix
     ../../modules/programs/newsboat.nix
     ../../modules/programs/transmission.nix
+    ../../modules/programs/jellyfin-media-player.nix
     ../../modules/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
   bundles.desktop-apps.enable = true;
   custom.transmission-vpn.enable = true;
+  programs.jellyfin-media-player.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;

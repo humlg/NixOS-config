@@ -21,5 +21,12 @@
       owner = "david";
       mode  = "0600";
     };
+
+    surface = {
+      file  = ../../secrets/surface.age;
+      path  = "/home/david/.ssh/surface";
+      owner = "david";
+      mode  = "0600";
+    };
   };
 }
