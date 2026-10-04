@@ -143,7 +143,7 @@ in
         Pilot the Noctalia desktop shell (see noctalia.nix) alongside the
         existing AGS/swaync/hyprlock/waypaper stack, none of which are
         disabled by this flag — it only enables Noctalia in parallel. Pair
-        with custom.noctalia.enable (noctalia-system.nix) at the host's
+        with custom.noctalia.enable (modules/nixos/desktop/noctalia.nix) at the host's
         NixOS-tree level for the system services Noctalia recommends.
       '';
     };

@@ -28,7 +28,7 @@ in
   config = lib.mkIf cfg.enable {
     boot.kernelPatches = [{
       name  = "amdgpu-hdmi-scdc-gate-revert";
-      patch = ../../patches/amdgpu-hdmi-scdc-gate-revert.patch;
+      patch = ../../../patches/amdgpu-hdmi-scdc-gate-revert.patch;
     }];
   };
 }

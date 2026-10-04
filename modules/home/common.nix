@@ -2,8 +2,8 @@
 
 {
   imports = [
-    ../programs/fastfetch.nix
-    ./thunar.nix
+    ./programs/fastfetch.nix
+    ./programs/thunar.nix
   ];
 
   home.username = "david";

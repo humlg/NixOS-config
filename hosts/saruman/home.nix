@@ -18,17 +18,17 @@ in
 {
   imports = [
     ../../modules/home/common.nix
-    ../../modules/desktop/dark-theme.nix
-    ../../modules/bundles/general.nix
-    ../../modules/desktop/hyprland-desktop.nix
-    ../../modules/programs/ssh-keys.nix
-    ../../modules/bundles/yg-work.nix
-    ../../modules/programs/webapps.nix
-    ../../modules/programs/newsboat.nix
-    ../../modules/programs/transmission.nix
-    ../../modules/programs/yg-discover.nix
-    ../../modules/programs/jellyfin-media-player.nix
-    ../../modules/bundles/desktop-apps.nix
+    ../../modules/home/desktop/dark-theme.nix
+    ../../modules/home/bundles/general.nix
+    ../../modules/home/desktop/hyprland-desktop.nix
+    ../../modules/home/programs/ssh-keys.nix
+    ../../modules/home/bundles/yg-work.nix
+    ../../modules/home/programs/webapps.nix
+    ../../modules/home/programs/newsboat.nix
+    ../../modules/home/programs/transmission.nix
+    ../../modules/home/programs/yg-discover.nix
+    ../../modules/home/programs/jellyfin-media-player.nix
+    ../../modules/home/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
@@ -69,7 +69,7 @@ in
     fileManager   = "thunar";
 
     # Currently inert: hypridle (the only consumer of this option) is disabled
-    # on saruman while useNoctalia = true (see modules/desktop/hypridle.nix
+    # on saruman while useNoctalia = true (see modules/home/desktop/hypridle.nix
     # and maintenance.md item 19) — Noctalia's own idle service now owns
     # dim/lock/dpms/sleep instead, configured outside Nix. Left set so the
     # value is correct again the moment useNoctalia flips back off. Matches
@@ -104,7 +104,7 @@ in
     dynamicCursors.enable = true;
 
     # Silently autostart NewsFlash into special:rss, and newsboat (terminal
-    # RSS reader, modules/programs/newsboat.nix) into special:dashboard, same
+    # RSS reader, modules/home/programs/newsboat.nix) into special:dashboard, same
     # mechanism as Thunderbird/Obsidian above (merges with the module's
     # default list). newsboat's own toggle key is left null since
     # mainMod+X/SHIFT+X already toggle special:dashboard unconditionally

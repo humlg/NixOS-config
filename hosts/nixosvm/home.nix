@@ -3,9 +3,9 @@
 {
   imports = [
     ../../modules/home/common.nix
-    ../../modules/desktop/dark-theme.nix
-    ../../modules/bundles/general.nix
-    ../../modules/desktop/hyprland-desktop.nix
+    ../../modules/home/desktop/dark-theme.nix
+    ../../modules/home/bundles/general.nix
+    ../../modules/home/desktop/hyprland-desktop.nix
   ];
 
   bundles.general.enable = true;

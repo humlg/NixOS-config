@@ -41,7 +41,7 @@ in
     boot.kernelPatches = [
       ({
         name  = "amdgpu-no-idle-opt-on-s2idle";
-        patch = ../../patches/amdgpu-no-idle-opt-on-s2idle.patch;
+        patch = ../../../patches/amdgpu-no-idle-opt-on-s2idle.patch;
       } // lib.optionalAttrs cfg.fasterHibernateCompression {
         # HIBERNATION_COMP_{LZO,LZ4} are a Kconfig "choice", so LZO has to be
         # turned off explicitly rather than just switching LZ4 on — otherwise

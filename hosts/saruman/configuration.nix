@@ -4,32 +4,32 @@
   imports = [
     ./hardware-configuration.nix
     ./file-system.nix
-    ../../modules/system/common.nix
-    ../../modules/system/locale.nix
-    ../../modules/system/sddm.nix
-    ../../modules/desktop/hyprland-system.nix
-    ../../modules/programs/zsh.nix
-    ../../modules/services/bluetooth.nix
-    ../../modules/services/kvm.nix
-    ../../modules/services/darkproject-keyboard.nix
-    ../../modules/services/lid-undock-hibernate.nix
-    ../../modules/bundles/photography.nix
-    ../../modules/bundles/3d-printing.nix
-    ../../modules/bundles/wine.nix
-    ../../modules/programs/mullvad.nix
-    ../../modules/services/ollama.nix
-    ../../modules/bundles/gaming.nix
-    ../../modules/bundles/yg-work-system.nix
-    ../../modules/bundles/ham-radio.nix
-    ../../modules/programs/zen-browser.nix
-    ../../modules/system/secrets.nix
-    ../../modules/services/sunshine-moonlight.nix
-    ../../modules/services/tailscale.nix
-    ../../modules/services/wireguard-saruman.nix
-    ../../modules/system/amdgpu-s2idle-patch.nix
-    ../../modules/system/amdgpu-hdmi-scdc-fix.nix
-    ../../modules/desktop/noctalia-system.nix
-    ../../modules/system/tui-askpass.nix
+    ../../modules/nixos/system/common.nix
+    ../../modules/nixos/system/locale.nix
+    ../../modules/nixos/system/sddm.nix
+    ../../modules/nixos/desktop/hyprland.nix
+    ../../modules/nixos/programs/zsh.nix
+    ../../modules/nixos/services/bluetooth.nix
+    ../../modules/nixos/services/kvm.nix
+    ../../modules/nixos/services/darkproject-keyboard.nix
+    ../../modules/nixos/services/lid-undock-hibernate.nix
+    ../../modules/nixos/bundles/photography.nix
+    ../../modules/nixos/bundles/3d-printing.nix
+    ../../modules/nixos/bundles/wine.nix
+    ../../modules/nixos/programs/mullvad.nix
+    ../../modules/nixos/services/ollama.nix
+    ../../modules/nixos/bundles/gaming.nix
+    ../../modules/nixos/bundles/yg-work.nix
+    ../../modules/nixos/bundles/ham-radio.nix
+    ../../modules/nixos/programs/zen-browser.nix
+    ../../modules/nixos/system/secrets.nix
+    ../../modules/nixos/services/sunshine-moonlight.nix
+    ../../modules/nixos/services/tailscale.nix
+    ../../modules/nixos/services/wireguard-saruman.nix
+    ../../modules/nixos/system/amdgpu-s2idle-patch.nix
+    ../../modules/nixos/system/amdgpu-hdmi-scdc-fix.nix
+    ../../modules/nixos/desktop/noctalia.nix
+    ../../modules/nixos/system/tui-askpass.nix
   ];
 
   networking.hostName = "saruman";
@@ -79,7 +79,7 @@
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # systemd stage-1 initrd, required for both LUKS unlock and the whiptail
-  # ask-password agent below (see modules/system/tui-askpass.nix).
+  # ask-password agent below (see modules/nixos/system/tui-askpass.nix).
   boot.initrd.systemd.enable = true;
   custom.tuiAskpass.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
@@ -121,7 +121,7 @@
     options mt7921e disable_aspm=1
   '';
   # Plymouth dropped 2026-08-26 in favor of custom.tuiAskpass (see
-  # modules/system/tui-askpass.nix): full raw boot output plus a whiptail
+  # modules/nixos/system/tui-askpass.nix): full raw boot output plus a whiptail
   # password box instead of a graphical splash hiding both.
   boot.plymouth.enable = false;
 
@@ -246,7 +246,7 @@
   bundles.yg-work.enable = true;
   bundles.ham-radio.enable = true;
 
-  # YG Discover / Netio Discover (modules/programs/yg-discover.nix) send a UDP
+  # YG Discover / Netio Discover (modules/home/programs/yg-discover.nix) send a UDP
   # broadcast on 62387 and devices reply via UDP broadcast on 62386 (NETIO's
   # discovery protocol — https://wiki.netio-products.com/index.php?title=NETIO_UDP_Discover).
   # Firewall default-deny blocks the replies: they come back as a *broadcast*,

@@ -4,26 +4,26 @@
   imports = [
     ./hardware-configuration.nix
     ./file-system.nix
-    ../../modules/system/common.nix
-    ../../modules/system/locale.nix
-    ../../modules/system/amd-gpu.nix
-    ../../modules/system/sddm.nix
-    ../../modules/desktop/hyprland-system.nix
-    ../../modules/programs/zsh.nix
-    ../../modules/services/bluetooth.nix
-    ../../modules/bundles/photography.nix
-    ../../modules/bundles/3d-printing.nix
-    ../../modules/bundles/wine.nix
-    ../../modules/bundles/gaming.nix
-    ../../modules/bundles/ham-radio.nix
-    ../../modules/system/secrets.nix
-    ../../modules/programs/zen-browser.nix
-    ../../modules/programs/mullvad.nix
-    ../../modules/services/ollama.nix
-    ../../modules/services/sunshine-moonlight.nix
-    ../../modules/services/wivrn.nix
-    ../../modules/services/tailscale.nix
-    ../../modules/desktop/noctalia-system.nix
+    ../../modules/nixos/system/common.nix
+    ../../modules/nixos/system/locale.nix
+    ../../modules/nixos/system/amd-gpu.nix
+    ../../modules/nixos/system/sddm.nix
+    ../../modules/nixos/desktop/hyprland.nix
+    ../../modules/nixos/programs/zsh.nix
+    ../../modules/nixos/services/bluetooth.nix
+    ../../modules/nixos/bundles/photography.nix
+    ../../modules/nixos/bundles/3d-printing.nix
+    ../../modules/nixos/bundles/wine.nix
+    ../../modules/nixos/bundles/gaming.nix
+    ../../modules/nixos/bundles/ham-radio.nix
+    ../../modules/nixos/system/secrets.nix
+    ../../modules/nixos/programs/zen-browser.nix
+    ../../modules/nixos/programs/mullvad.nix
+    ../../modules/nixos/services/ollama.nix
+    ../../modules/nixos/services/sunshine-moonlight.nix
+    ../../modules/nixos/services/wivrn.nix
+    ../../modules/nixos/services/tailscale.nix
+    ../../modules/nixos/desktop/noctalia.nix
   ];
 
   networking.hostName = "sauron";

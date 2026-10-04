@@ -3,15 +3,15 @@
 {
   imports = [
     ../../modules/home/common.nix
-    ../../modules/desktop/dark-theme.nix
-    ../../modules/bundles/general.nix
-    ../../modules/desktop/hyprland-desktop.nix
-    ../../modules/programs/ssh-keys.nix
-    ../../modules/programs/cava.nix
-    ../../modules/programs/newsboat.nix
-    ../../modules/programs/transmission.nix
-    ../../modules/programs/jellyfin-media-player.nix
-    ../../modules/bundles/desktop-apps.nix
+    ../../modules/home/desktop/dark-theme.nix
+    ../../modules/home/bundles/general.nix
+    ../../modules/home/desktop/hyprland-desktop.nix
+    ../../modules/home/programs/ssh-keys.nix
+    ../../modules/home/programs/cava.nix
+    ../../modules/home/programs/newsboat.nix
+    ../../modules/home/programs/transmission.nix
+    ../../modules/home/programs/jellyfin-media-player.nix
+    ../../modules/home/bundles/desktop-apps.nix
   ];
 
   bundles.general.enable = true;
@@ -64,7 +64,7 @@
     dynamicCursors.enable = true;
 
     # Silently autostart NewsFlash into special:rss, and newsboat (terminal
-    # RSS reader, modules/programs/newsboat.nix) into special:dashboard, same
+    # RSS reader, modules/home/programs/newsboat.nix) into special:dashboard, same
     # mechanism as Thunderbird/Obsidian above (merges with the module's
     # default list). newsboat's own toggle key is left null since
     # mainMod+X/SHIFT+X already toggle special:dashboard unconditionally

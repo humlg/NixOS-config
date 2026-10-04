@@ -36,11 +36,11 @@ Modules are **not auto-imported**. Each `configuration.nix` and `home.nix` expli
 
 ```nix
 # In configuration.nix
-imports = [ ../../modules/services/bluetooth.nix ];
+imports = [ ../../modules/nixos/services/bluetooth.nix ];
 custom.bluetooth.enable = true;
 
 # In home.nix
-imports = [ ../../modules/bundles/general.nix ];
+imports = [ ../../modules/home/bundles/general.nix ];
 bundles.general.enable = true;
 ```
 
@@ -50,7 +50,7 @@ Most modules declare a `mkEnableOption` so they do nothing unless explicitly ena
 
 ## Module categories
 
-### `modules/system/` — NixOS-level, system-wide
+### `modules/nixos/system/` — NixOS-level, system-wide
 
 These are imported in `configuration.nix`. They configure the OS, not the user.
 
@@ -66,16 +66,16 @@ These are imported in `configuration.nix`. They configure the OS, not the user.
 
 ---
 
-### `modules/desktop/` — Hyprland desktop environment (Home Manager)
+### `modules/home/desktop/` — Hyprland desktop environment (Home Manager)
 
 These are imported in `home.nix`. Together they build the full Wayland desktop.
 
 #### The two-layer split
 
-The desktop is split across two files to separate what NixOS owns from what Home Manager owns:
+The desktop is split across two files, in two separate module trees, to separate what NixOS owns from what Home Manager owns:
 
-- **`hyprland-system.nix`** (imported in `configuration.nix`) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
-- **`hyprland-desktop.nix`** (imported in `home.nix`) — Everything the user sees: Hyprland config, wallpaper/wallust theming, AGS bar, Rofi, screen lock, idle daemon, polkit agent, session variables. This is the experience.
+- **`modules/nixos/desktop/hyprland.nix`** (imported in `configuration.nix`; renamed from `hyprland-system.nix` when the `modules/nixos/` vs `modules/home/` split was introduced) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
+- **`modules/home/desktop/hyprland-desktop.nix`** (imported in `home.nix`) — Everything the user sees: Hyprland config, wallpaper/wallust theming, AGS bar, Rofi, screen lock, idle daemon, polkit agent, session variables. This is the experience.
 
 #### `hyprland-desktop.nix` options
 
@@ -128,9 +128,9 @@ desktop.hyprland-desktop = {
 
 ---
 
-### `modules/bundles/` — Package groups (Home Manager)
+### `modules/bundles/` (split: `modules/nixos/bundles/` for system bundles, `modules/home/bundles/` for HM bundles) — Package groups
 
-Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles) or `configuration.nix` (for system bundles).
+Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles, under `modules/home/bundles/`) or `configuration.nix` (for system bundles, under `modules/nixos/bundles/`).
 
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
@@ -146,7 +146,7 @@ Bundles aggregate related packages and their configs under a single toggle. They
 
 ---
 
-### `modules/programs/` — Individual program configs (mostly Home Manager)
+### `modules/programs/` (split: `modules/nixos/programs/` and `modules/home/programs/`) — Individual program configs (mostly Home Manager)
 
 Each file configures one program in detail. Most declare a `mkEnableOption` and are activated by a bundle or directly by the host.
 
@@ -169,7 +169,7 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 
 ---
 
-### `modules/services/` — System services (NixOS-level unless noted)
+### `modules/services/` (split: `modules/nixos/services/` and `modules/home/services/`) — System services (NixOS-level unless noted)
 
 | File | What it does |
 |------|-------------|
@@ -177,7 +177,7 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 | `kvm.nix` | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
 | `megacmd.nix` | MEGAcmd cloud sync daemon. **Home Manager.** Declarative sync pairs (`local → remote`). Runs as a user systemd service. |
 | `ollama.nix` | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. |
-| `ssh.nix` | SSH daemon config (imported by `modules/system/common.nix`). |
+| `ssh.nix` | SSH daemon config (imported by `modules/nixos/system/common.nix`). |
 
 ---
 
@@ -218,12 +218,12 @@ Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https
 |------|---------|
 | `secrets/secrets.nix` | Maps each `.age` file to its recipient SSH public keys |
 | `secrets/*.age` | Encrypted secret files committed to the repo |
-| `modules/system/secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
+| `modules/nixos/system/secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
 
 ### How secrets reach you
 
 - **Shell env vars** — `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at every shell start. Put `export VAR="value"` lines in it.
-- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/system/secrets.nix`; the file appears at that path after activation.
+- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/nixos/system/secrets.nix`; the file appears at that path after activation.
 
 ### Security model
 
@@ -240,7 +240,7 @@ To decrypt any secret, an attacker needs one of the recipient private keys: eith
 # 2. Create the encrypted file (opens $EDITOR with plaintext, saves as ciphertext)
 agenix -e secrets/my-token.age
 
-# 3. Declare it in modules/system/secrets.nix:
+# 3. Declare it in modules/nixos/system/secrets.nix:
 #    age.secrets.my-token = {
 #      file  = ../../secrets/my-token.age;
 #      owner = "david";
@@ -275,7 +275,7 @@ sudo nixos-rebuild switch --flake .#<host>
 ### How to: remove a secret
 
 ```bash
-# 1. Remove its age.secrets block from modules/system/secrets.nix
+# 1. Remove its age.secrets block from modules/nixos/system/secrets.nix
 # 2. Remove its entry from secrets/secrets.nix
 git rm secrets/my-token.age
 git commit -m "secrets: remove my-token"
@@ -298,7 +298,7 @@ agenix -r secrets/shell-env.age
 
 # 4. In flake.nix: add inputs.agenix.nixosModules.default to the new host's modules list
 
-# 5. In hosts/newhost/configuration.nix: add ../../modules/system/secrets.nix to imports
+# 5. In hosts/newhost/configuration.nix: add ../../modules/nixos/system/secrets.nix to imports
 
 # 6. Stage, commit, rebuild on the new host
 git add secrets/ && git commit -m "secrets: add newhost as recipient"
@@ -326,27 +326,27 @@ sudo nixos-rebuild switch --flake .#newhost
 | I want to change... | Go to |
 |--------------------|-------|
 | Monitor layout / scaling | `hosts/<name>/home.nix` → `desktop.hyprland-desktop.monitors` |
-| A keybind | `modules/desktop/hyprland-config/keybinds.nix` |
-| A window rule | `modules/desktop/hyprland-config/window-rules.nix` |
-| What launches at login | `modules/desktop/hyprland-config/autostart.nix` |
-| Bar layout or widgets | `modules/desktop/ags-config/Bar.tsx` |
-| Bar styling | `modules/desktop/ags-config/style.css` |
-| Lock screen | `modules/desktop/hyprlock.nix` |
-| Idle/suspend timers | `modules/desktop/hypridle.nix` |
-| Notification style | `modules/desktop/swaync.nix` |
-| Wallust color templates | `modules/desktop/hyprland-desktop.nix` (search for `home.file ".config/wallust"`) |
-| Terminal (kitty) config | `modules/programs/kitty.nix` |
-| Shell (zsh) config | `modules/programs/zsh.nix` |
-| Git config | `modules/programs/git.nix` |
-| Which packages all machines get | `modules/bundles/general.nix` |
-| Which GUI apps all desktops get | `modules/bundles/desktop-apps.nix` |
+| A keybind | `modules/home/desktop/hyprland-config/keybinds.nix` |
+| A window rule | `modules/home/desktop/hyprland-config/window-rules.nix` |
+| What launches at login | `modules/home/desktop/hyprland-config/autostart.nix` |
+| Bar layout or widgets | `modules/home/desktop/ags-config/Bar.tsx` |
+| Bar styling | `modules/home/desktop/ags-config/style.css` |
+| Lock screen | `modules/home/desktop/hyprlock.nix` |
+| Idle/suspend timers | `modules/home/desktop/hypridle.nix` |
+| Notification style | `modules/home/desktop/swaync.nix` |
+| Wallust color templates | `modules/home/desktop/hyprland-desktop.nix` (search for `home.file ".config/wallust"`) |
+| Terminal (kitty) config | `modules/home/programs/kitty.nix` |
+| Shell (zsh) config | `modules/nixos/programs/zsh.nix` |
+| Git config | `modules/home/programs/git.nix` |
+| Which packages all machines get | `modules/home/bundles/general.nix` |
+| Which GUI apps all desktops get | `modules/home/bundles/desktop-apps.nix` |
 | Something on one machine only | `hosts/<name>/configuration.nix` or `hosts/<name>/home.nix` |
 | A package version override | `overlays/` + register in `flake.nix` |
 | A secret / API token | `secrets/shell-env.age` (edit with `agenix -e`) |
-| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/system/secrets.nix` |
-| NVIDIA config | `modules/system/nvidia.nix` |
-| VPN | `modules/programs/mullvad.nix` |
-| VMs / KVM | `modules/services/kvm.nix` |
-| Cloud sync | `modules/services/megacmd.nix` |
-| Local LLM | `modules/services/ollama.nix` |
-| Bluetooth | `modules/services/bluetooth.nix` |
+| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/nixos/system/secrets.nix` |
+| NVIDIA config | `modules/nixos/system/nvidia.nix` |
+| VPN | `modules/nixos/programs/mullvad.nix` |
+| VMs / KVM | `modules/nixos/services/kvm.nix` |
+| Cloud sync | `modules/home/services/megacmd.nix` |
+| Local LLM | `modules/nixos/services/ollama.nix` |
+| Bluetooth | `modules/nixos/services/bluetooth.nix` |

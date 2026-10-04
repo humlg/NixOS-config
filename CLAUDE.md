@@ -45,92 +45,99 @@ hosts/
     home.nix
     hardware-configuration.nix
 modules/
-  home/
-    common.nix                     # Shared home-manager boilerplate (username, stateVersion, etc.)
-  desktop/
-    hyprland-desktop.nix           # Main Hyprland HM module (options, packages, services)
-    hyprland-config/               # Legacy hyprlang config fragments — frozen/unmaintained as of 2026-08-19; no longer kept in sync with hyprland-config-lua/ below. New config work goes into hyprland-config-lua/ only (see maintenance.md #16)
-      variables.nix                #   $terminal, $fileManager, $menu, etc.
-      autostart.nix                #   exec-once entries
-      input.nix                    #   Input, gestures, per-device overrides
-      appearance.nix               #   General, decoration, animations, layerrules
-      window-rules.nix             #   Window rules
-      keybinds.nix                 #   All keybinds (core, workspaces, media, etc.)
-      layouts.nix                  #   Dwindle, master, misc, workspace rules
-    hyprland-config-lua/           # Active Lua config fragments — all three hosts set useLuaConfig = true
-      variables.nix
-      autostart.nix
-      input.nix
-      appearance.nix
-      window-rules.nix
-      keybinds.nix
-      layouts.nix
-    hyprland-system.nix            # NixOS-level Hyprland (programs.hyprland, portals, pipewire)
-    waybar.nix                     # Waybar config — orphaned, kept intentionally as an AGS fallback (see maintenance.md)
-    ags.nix                        # AGS v2 (Astal/TypeScript) status bar HM module — the active bar; config in ags-config/*.tsx
-    anyrun.nix                     # Anyrun launcher (applications/websearch/rink plugins)
-    hyprlock.nix                   # Hyprlock config (lock screen)
-    hypridle.nix                   # Hypridle config (idle timers). Dispatchers here must use the external-Lua form (`hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`) — under the Lua config hyprctl feeds its argument to Lua, so the bare hyprlang spelling fails to parse and hypridle never notices. Gated `cfg.enable && !cfg.useNoctalia` — fully inert on saruman as of 2026-08-19, Noctalia's own idle service (configured outside Nix) now owns dim/lock/dpms/sleep there (see maintenance.md item 19, Phase E)
-    swaync.nix                     # SwayNC notification center
-    noctalia.nix                   # Noctalia desktop shell HM module (desktop.hyprland-desktop.useNoctalia) — pilot on saruman (2026-08-19, staged, AGS/swaync/hypridle gated off under it, hyprlock kept as rollback), full replacement on sauron (2026-08-21, no staging needed — no sleep/idle-hang history there); imports inputs.noctalia.homeModules.default. Noctalia's own idle service (its settings UI, not Nix-managed) owns dim/lock/dpms/sleep on both hosts instead of hypridle. Seeds ~/.local/state/noctalia/settings.toml once from noctalia-settings-seed.toml (below) on any host enabling useNoctalia that doesn't already have one — Noctalia owns the file after that, this repo never touches it again. Also installs pkgs.gpu-screen-recorder (2026-09-30) — the backing binary Noctalia's official noctalia/screen_recorder plugin shells out to for screen recording + replay buffer; the plugin itself is enabled via the settings.toml [plugins] list, not a Nix option
-    noctalia-settings-seed.toml    # One-shot seed for Noctalia's runtime settings.toml (bar layout, theme, lockscreen widgets, plugin list, idle behavior) — captured from saruman's live-tuned config 2026-08-21, copied into sauron on first activation by noctalia.nix's seedNoctaliaSettings. Not kept in sync afterward — Noctalia's own settings GUI owns the real file once seeded. [plugins].enabled list updated 2026-09-30 to add "noctalia/screen_recorder" — only affects hosts seeded fresh from here after that date; already-seeded hosts (sauron, saruman) need the plugin toggled on live in their running settings.toml
-    noctalia-system.nix            # NixOS-level counterpart (custom.noctalia.enable) — imports inputs.noctalia.nixosModules.default, sets programs.noctalia.recommendedServices.enable (which default-enables power-profiles-daemon, needed for Noctalia's power-profile widget) — saruman runs power-profiles-daemon instead of TLP as of 2026-08-19, see maintenance.md item 20. Enabled on sauron as of 2026-08-21 (no TLP there, so no conflict)
-    hypr-dynamic-cursors.nix       # "Shake to find" — cursor grows when you wiggle the mouse (KDE Shake Cursor style). HM module, desktop.hyprland-desktop.dynamicCursors.enable. Loads pkgs.hyprlandPlugins.hypr-dynamic-cursors (nixpkgs, ABI-matched to pkgs.hyprland — never hyprpm; src bumped for Hyprland 0.56.2 by overlays/hypr-dynamic-cursors-hl-pin.nix) via wayland.windowManager.hyprland.plugins, runs it shake-only (mode = "none"), appends the plugin's hl.config block after the main Lua config with mkAfter + an hl.plugin.dynamic_cursors guard. Requires useLuaConfig = true (asserted). Enabled on sauron + saruman, off on nixosvm. See maintenance.md #22
-    dark-theme.nix                 # GTK/Qt dark theming (Home Manager module)
-    default-apps.nix               # xdg-mime default application associations
-  bundles/
-    general.nix                    # Always-installed user packages (firefox, kitty, git, etc.)
-    desktop-apps.nix               # Common desktop apps (discord, vscode, kate, chromium, etc.)
-    photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2, DaVinci Resolve)
-    3d-printing.nix                # 3D printing/CAD (prusa-slicer)
-    gaming.nix                     # Gaming (Steam, gamemode, mangohud, lsfg-vk)
-    ham-radio.nix                  # Amateur radio: sdrpp, sdrangel, wsjtx, hamlib + RTL-SDR udev rules (plugdev/dialout groups) — sauron + saruman
-    wine.nix                       # Wine support
-    yg-work.nix                    # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — Home Manager half of the yg-work bundle — saruman only
-    yg-work-system.nix             # System (NixOS) half of the yg-work bundle: NetworkManager-openvpn plugin + agenix secrets for the 1NCE cellular IoT VPN — shares the bundles.yg-work.enable option name with yg-work.nix by convention but is a separate NixOS-tree option, toggled independently in configuration.nix — saruman only
-  programs/
-    zsh.nix                        # Zsh shell config (oh-my-zsh, autosuggestions)
-    git.nix                        # Git identity + defaults (rebase pulls, zdiff3, rerere)
-    vim.nix                        # Vim settings + wallust color sourcing
-    kitty.nix                      # Kitty terminal settings + static "Darkside" theme (deliberately not wallust-driven — wallpaper colors were inconsistently readable)
-    thunar.nix                     # Thunar file manager + thumbnailer backends
-    btop.nix                       # btop with wallust-generated theme
-    cava.nix                       # cava audio visualizer with wallust-generated theme
-    fastfetch.nix                  # fastfetch system-info banner
-    newsboat.nix                   # newsboat TUI RSS reader — native programs.newsboat with a declarative feed list (world/Europe/Czechia news, Linux/AI tech, gaming) + tag-based queries; used by sauron + saruman, silently autostarted into special:dashboard (see hosts/*/home.nix silentApps) alongside NewsFlash's special:rss
-    claude-code.nix                # Claude Code settings (permissions, hooks, notification sounds)
-    ssh-keys.nix                   # SSH client config (github-huml-yg, github-humlg, and homelab host aliases)
-    mullvad.nix                    # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
-    transmission.nix               # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
-    jellyfin-media-player.nix      # Native Qt/mpv Jellyfin desktop client (pkgs.jellyfin-media-player) — opt-in via programs.jellyfin-media-player.enable; used by sauron + saruman
-    webapps.nix                    # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
-    yg-discover.nix                # YG Discover and Netio Discover — same colleague-built .NET/Avalonia network-discovery app for YellowGrid products, shipped under two brand names/binaries, both dropped at ~/YellowGrid/discover/ outside Nix (colleague-provided download, not packaged in nixpkgs or built from source here — reverted off the declarative-fetch-from-GitHub approach 2026-10-03, see maintenance.md #27). Wrapped (writeShellScriptBin + desktop entry) to run via steam-run (its FHS env covers everything except libICE/libSM, the X11 session-management libs Avalonia's X11 backend needs, added via LD_LIBRARY_PATH) — opt-in via programs.yg-discover.enable (YG Discover) and programs.yg-discover.netio.enable (Netio Discover); binaryPath option on each points at the manually-placed local binary (required, no default fetch). saruman only
-    zen-browser.nix                # Zen Browser + DuckDuckGo default search policy
-    winboat.nix                    # Windows-in-a-box via winboat — orphaned, Docker wiring incomplete (see maintenance.md #13)
-  services/
-    bluetooth.nix                  # Bluetooth + blueman
-    kvm.nix                        # libvirtd/QEMU + virt-manager (KVM virtualization)
-    darkproject-keyboard.nix       # udev rules for Dark Project keyboards (WebHID/WebUSB access for their web configurator) — used by saruman
-    lid-undock-hibernate.nix       # Sleeps when the last external display is unplugged while the lid is already shut — closes the gap left by HandleLidSwitchDocked = "ignore" (logind only evaluates the lid action at the instant the lid event fires, never re-checks on undock) — opt-in via custom.lid-undock-hibernate.enable; the action is the sleepCommand option (defaults to hibernate, set to plain suspend on saruman — the "hibernate" in the file/option name is historical) — saruman only
-    megacmd.nix                    # MEGA sync daemon — orphaned, not imported by any host (see maintenance.md #14)
-    ollama.nix                     # Ollama (ROCm build) + oterm TUI
-    sunshine-moonlight.nix         # Sunshine (streaming host) / Moonlight (streaming client) toggle
-    wivrn.nix                      # WiVRn wireless VR streaming server (Meta Quest 2), custom.wivrn.enable — used by sauron
-    tailscale.nix                  # Tailscale VPN mesh networking (services.tailscale + firewall trust for tailscale0), custom.tailscale.enable — used by all three hosts
-    wireguard-saruman.nix          # Personal WireGuard VPN tunnel — declared as a NetworkManager profile via networking.networkmanager.ensureProfiles (not networking.wg-quick.interfaces, switched 2026-09-24) so it's an ordinary NM connection, toggleable from Noctalia's network-manager bar widget without sudo. Private key still comes from the whole wg-homelab.age secret (root 0400); a wg-homelab-nm-env.service oneshot extracts just the PrivateKey line into a root-only /run env file that NetworkManager-ensure-profiles.service loads via EnvironmentFile + envsubst — the key itself never leaves root. Peer public key/endpoint/in-tunnel address are plain Nix values (not secret, but this does mean the WAN endpoint + internal address are now visible in the committed repo, unlike before). Full-tunnel (0.0.0.0/0), so connection.autoconnect = false — toggle manually via nmcli/Noctalia ("wg-homelab"). Interface named wg-homelab, not wg-saruman, so the connection name doesn't just repeat the hostname. custom.wireguard-saruman.enable — saruman only
-  system/
-    amdgpu-s2idle-patch.nix        # Builds a locally-patched kernel dropping amdgpu's DCN3.5+ "IPS before D3cold" s2idle step (the actual fix for the saruman resume hang) + optional LZ4 hibernate compression — opt-in via custom.amdgpu-s2idle-patch.enable — saruman only (see maintenance.md #7)
-    amdgpu-hdmi-scdc-fix.nix       # Kernel patch reverting the HDMI SCDC scdc_present gate (upstream 3471b9a31ce3, kernel 7.2) — DISABLED 2026-09-09, the companion setter ("Improve HDMI info retrieval") turned out to already be in nixpkgs' 7.2.2 kernel all along (removal condition confirmed met by extracting the actual tarball), not yet physically retested. opt-in via custom.amdgpu-hdmi-scdc-fix.enable — saruman only (see maintenance.md #23)
-    common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)
-    locale.nix                     # Timezone, locale (en_US/cs_CZ), keymap (cz)
-    nvidia.nix                     # Proprietary NVIDIA driver config — orphaned, no host imports it (see maintenance.md #4)
-    amd-gpu.nix                    # AMD GPU config (amdgpu, ROCm) — used by sauron
-    sddm.nix                       # SDDM (Qt6, astronaut theme, Wayland)
-    secrets.nix                    # agenix age.secrets declarations
-    ssh.nix                        # sshd + MOTD banner + /etc/hosts entries for sauron/saruman
-    network-tools.nix              # Network troubleshooting tools bundle (nmap, wireshark, mtr, etc.)
-    generation-cleanup.nix         # Scheduled NixOS generation pruning + bootloader entry limit
-    tui-askpass.nix                # Whiptail-based initrd disk-unlock prompt (custom.tuiAskpass.enable) — registers as a systemd password agent (systemd.io/PASSWORD_AGENTS), suppresses the stock systemd-ask-password-console unit, shows dots per keystroke instead of a blank line. Debug view (plain visible input, to catch stuck/dead keys) toggles per-boot via `tuiaskpass.debug=1` on the kernel command line, no rebuild needed — default hidden. Requires boot.initrd.systemd.enable and is mutually exclusive with Plymouth by design (ConditionPathExists=!/run/plymouth/pid) — saruman only, replacing its "motion" Plymouth theme 2026-08-26 so full verbose boot output stays visible (boot.plymouth.enable = false, "quiet" dropped from kernelParams). Escape hatch if the agent ever fails to start: the stock systemd-tty-ask-password-agent binary is still present in the initrd (systemd-tty-ask-password-agent --query from an emergency/rescue shell).
+  nixos/                            # NixOS modules — imported only from hosts/*/configuration.nix
+    system/
+      common.nix                     # Shared NixOS base (bootloader, kernel, CLI tools, fonts)
+      locale.nix                     # Timezone, locale (en_US/cs_CZ), keymap (cz)
+      amd-gpu.nix                    # AMD GPU config (amdgpu, ROCm) — used by sauron
+      sddm.nix                       # SDDM (Qt6, astronaut theme, Wayland)
+      secrets.nix                    # agenix age.secrets declarations
+      ssh.nix                        # sshd + MOTD banner + /etc/hosts entries for sauron/saruman
+      network-tools.nix              # Network troubleshooting tools bundle (nmap, wireshark, mtr, etc.)
+      generation-cleanup.nix         # Scheduled NixOS generation pruning + bootloader entry limit
+      tui-askpass.nix                # Whiptail-based initrd disk-unlock prompt (custom.tuiAskpass.enable) — registers as a systemd password agent (systemd.io/PASSWORD_AGENTS), suppresses the stock systemd-ask-password-console unit, shows dots per keystroke instead of a blank line. Debug view (plain visible input, to catch stuck/dead keys) toggles per-boot via `tuiaskpass.debug=1` on the kernel command line, no rebuild needed — default hidden. Requires boot.initrd.systemd.enable and is mutually exclusive with Plymouth by design (ConditionPathExists=!/run/plymouth/pid) — saruman only, replacing its "motion" Plymouth theme 2026-08-26 so full verbose boot output stays visible (boot.plymouth.enable = false, "quiet" dropped from kernelParams). Escape hatch if the agent ever fails to start: the stock systemd-tty-ask-password-agent binary is still present in the initrd (systemd-tty-ask-password-agent --query from an emergency/rescue shell).
+      amdgpu-s2idle-patch.nix        # Builds a locally-patched kernel dropping amdgpu's DCN3.5+ "IPS before D3cold" s2idle step (the actual fix for the saruman resume hang) + optional LZ4 hibernate compression — opt-in via custom.amdgpu-s2idle-patch.enable — saruman only (see maintenance.md #7)
+      amdgpu-hdmi-scdc-fix.nix       # Kernel patch reverting the HDMI SCDC scdc_present gate (upstream 3471b9a31ce3, kernel 7.2) — DISABLED 2026-09-09, the companion setter ("Improve HDMI info retrieval") turned out to already be in nixpkgs' 7.2.2 kernel all along (removal condition confirmed met by extracting the actual tarball), not yet physically retested. opt-in via custom.amdgpu-hdmi-scdc-fix.enable — saruman only (see maintenance.md #23)
+      nvidia.nix                     # Proprietary NVIDIA driver config — orphaned, no host imports it (see maintenance.md #4)
+    desktop/
+      hyprland.nix                   # NixOS-level Hyprland (programs.hyprland, portals, pipewire) — renamed from hyprland-system.nix 2026-10-05 (modules/nixos vs modules/home split now carries the "NixOS half" distinction, so the -system suffix was redundant)
+      noctalia.nix                   # NixOS-level counterpart (custom.noctalia.enable) — imports inputs.noctalia.nixosModules.default, sets programs.noctalia.recommendedServices.enable (which default-enables power-profiles-daemon, needed for Noctalia's power-profile widget) — saruman runs power-profiles-daemon instead of TLP as of 2026-08-19, see maintenance.md item 20. Enabled on sauron as of 2026-08-21 (no TLP there, so no conflict). Renamed from noctalia-system.nix 2026-10-05, same reason as hyprland.nix above
+    bundles/
+      photography.nix                # Photography tools (gimp, inkscape, darktable, gphoto2, DaVinci Resolve)
+      3d-printing.nix                 # 3D printing/CAD (prusa-slicer)
+      gaming.nix                      # Gaming (Steam, gamemode, mangohud, lsfg-vk)
+      ham-radio.nix                   # Amateur radio: sdrpp, sdrangel, wsjtx, hamlib + RTL-SDR udev rules (plugdev/dialout groups) — sauron + saruman
+      wine.nix                        # Wine support
+      yg-work.nix                     # System (NixOS) half of the yg-work bundle: NetworkManager-openvpn plugin + agenix secrets for the 1NCE cellular IoT VPN — shares the bundles.yg-work.enable option name with modules/home/bundles/yg-work.nix by convention but is a separate NixOS-tree option, toggled independently in configuration.nix — saruman only. Renamed from yg-work-system.nix 2026-10-05 (now unambiguous with its HM counterpart since the two live in separate module trees)
+    programs/
+      zsh.nix                        # Zsh shell config (oh-my-zsh, autosuggestions)
+      mkrepo.nix                      # mkrepo shell function (create + clone a new GitHub repo; --public/--business flags) + gh/git packages
+      thunar.nix                      # Thunar file manager system packages + gvfs/tumbler services (HM half — thumbnailer/xdg config — is modules/home/programs/thunar.nix)
+      mullvad.nix                     # Mullvad VPN (GUI app, CLI, system daemon) — opt-in via custom.mullvad.enable; used by sauron + saruman
+      zen-browser.nix                 # Zen Browser + DuckDuckGo default search policy
+      winboat.nix                     # Windows-in-a-box via winboat — orphaned, Docker wiring incomplete (see maintenance.md #13)
+    services/
+      bluetooth.nix                   # Bluetooth + blueman
+      kvm.nix                         # libvirtd/QEMU + virt-manager (KVM virtualization)
+      darkproject-keyboard.nix        # udev rules for Dark Project keyboards (WebHID/WebUSB access for their web configurator) — used by saruman
+      lid-undock-hibernate.nix        # Sleeps when the last external display is unplugged while the lid is already shut — closes the gap left by HandleLidSwitchDocked = "ignore" (logind only evaluates the lid action at the instant the lid event fires, never re-checks on undock) — opt-in via custom.lid-undock-hibernate.enable; the action is the sleepCommand option (defaults to hibernate, set to plain suspend on saruman — the "hibernate" in the file/option name is historical) — saruman only
+      ollama.nix                      # Ollama (ROCm build) + oterm TUI
+      sunshine-moonlight.nix          # Sunshine (streaming host) / Moonlight (streaming client) toggle
+      wivrn.nix                       # WiVRn wireless VR streaming server (Meta Quest 2), custom.wivrn.enable — used by sauron
+      tailscale.nix                   # Tailscale VPN mesh networking (services.tailscale + firewall trust for tailscale0), custom.tailscale.enable — used by all three hosts
+      wireguard-saruman.nix           # Personal WireGuard VPN tunnel — declared as a NetworkManager profile via networking.networkmanager.ensureProfiles (not networking.wg-quick.interfaces, switched 2026-09-24) so it's an ordinary NM connection, toggleable from Noctalia's network-manager bar widget without sudo. Private key still comes from the whole wg-homelab.age secret (root 0400); a wg-homelab-nm-env.service oneshot extracts just the PrivateKey line into a root-only /run env file that NetworkManager-ensure-profiles.service loads via EnvironmentFile + envsubst — the key itself never leaves root. Peer public key/endpoint/in-tunnel address are plain Nix values (not secret, but this does mean the WAN endpoint + internal address are now visible in the committed repo, unlike before). Full-tunnel (0.0.0.0/0), so connection.autoconnect = false — toggle manually via nmcli/Noctalia ("wg-homelab"). Interface named wg-homelab, not wg-saruman, so the connection name doesn't just repeat the hostname. custom.wireguard-saruman.enable — saruman only
+  home/                             # Home Manager modules — imported only from hosts/*/home.nix
+    common.nix                      # Shared home-manager boilerplate (username, stateVersion, etc.) — stays at the home/ root, no topic folder fits cross-cutting boilerplate
+    desktop/
+      hyprland-desktop.nix           # Main Hyprland HM module (options, packages, services)
+      hyprland-config/               # Legacy hyprlang config fragments — frozen/unmaintained as of 2026-08-19; no longer kept in sync with hyprland-config-lua/ below. New config work goes into hyprland-config-lua/ only (see maintenance.md #16)
+        variables.nix                #   $terminal, $fileManager, $menu, etc.
+        autostart.nix                #   exec-once entries
+        input.nix                    #   Input, gestures, per-device overrides
+        appearance.nix               #   General, decoration, animations, layerrules
+        window-rules.nix             #   Window rules
+        keybinds.nix                 #   All keybinds (core, workspaces, media, etc.)
+        layouts.nix                  #   Dwindle, master, misc, workspace rules
+      hyprland-config-lua/           # Active Lua config fragments — all three hosts set useLuaConfig = true
+        variables.nix
+        autostart.nix
+        input.nix
+        appearance.nix
+        window-rules.nix
+        keybinds.nix
+        layouts.nix
+      waybar.nix                     # Waybar config — orphaned, kept intentionally as an AGS fallback (see maintenance.md)
+      ags.nix                        # AGS v2 (Astal/TypeScript) status bar HM module — the active bar; config in ags-config/*.tsx
+      anyrun.nix                     # Anyrun launcher (applications/websearch/rink plugins)
+      hyprlock.nix                   # Hyprlock config (lock screen)
+      hypridle.nix                   # Hypridle config (idle timers). Dispatchers here must use the external-Lua form (`hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`) — under the Lua config hyprctl feeds its argument to Lua, so the bare hyprlang spelling fails to parse and hypridle never notices. Gated `cfg.enable && !cfg.useNoctalia` — fully inert on saruman as of 2026-08-19, Noctalia's own idle service (configured outside Nix) now owns dim/lock/dpms/sleep there (see maintenance.md item 19, Phase E)
+      swaync.nix                     # SwayNC notification center
+      noctalia.nix                   # Noctalia desktop shell HM module (desktop.hyprland-desktop.useNoctalia) — pilot on saruman (2026-08-19, staged, AGS/swaync/hypridle gated off under it, hyprlock kept as rollback), full replacement on sauron (2026-08-21, no staging needed — no sleep/idle-hang history there); imports inputs.noctalia.homeModules.default. Noctalia's own idle service (its settings UI, not Nix-managed) owns dim/lock/dpms/sleep on both hosts instead of hypridle. Seeds ~/.local/state/noctalia/settings.toml once from noctalia-settings-seed.toml (below) on any host enabling useNoctalia that doesn't already have one — Noctalia owns the file after that, this repo never touches it again. Also installs pkgs.gpu-screen-recorder (2026-09-30) — the backing binary Noctalia's official noctalia/screen_recorder plugin shells out to for screen recording + replay buffer; the plugin itself is enabled via the settings.toml [plugins] list, not a Nix option
+      noctalia-settings-seed.toml    # One-shot seed for Noctalia's runtime settings.toml (bar layout, theme, lockscreen widgets, plugin list, idle behavior) — captured from saruman's live-tuned config 2026-08-21, copied into sauron on first activation by noctalia.nix's seedNoctaliaSettings. Not kept in sync afterward — Noctalia's own settings GUI owns the real file once seeded. [plugins].enabled list updated 2026-09-30 to add "noctalia/screen_recorder" — only affects hosts seeded fresh from here after that date; already-seeded hosts (sauron, saruman) need the plugin toggled on live in their running settings.toml
+      hypr-dynamic-cursors.nix       # "Shake to find" — cursor grows when you wiggle the mouse (KDE Shake Cursor style). HM module, desktop.hyprland-desktop.dynamicCursors.enable. Loads pkgs.hyprlandPlugins.hypr-dynamic-cursors (nixpkgs, ABI-matched to pkgs.hyprland — never hyprpm; src bumped for Hyprland 0.56.2 by overlays/hypr-dynamic-cursors-hl-pin.nix) via wayland.windowManager.hyprland.plugins, runs it shake-only (mode = "none"), appends the plugin's hl.config block after the main Lua config with mkAfter + an hl.plugin.dynamic_cursors guard. Requires useLuaConfig = true (asserted). Enabled on sauron + saruman, off on nixosvm. See maintenance.md #22
+      dark-theme.nix                 # GTK/Qt dark theming (Home Manager module)
+      default-apps.nix               # xdg-mime default application associations
+    bundles/
+      general.nix                    # Always-installed user packages (firefox, kitty, git, etc.)
+      desktop-apps.nix                # Common desktop apps (discord, vscode, kate, chromium, etc.)
+      yg-work.nix                     # Work-specific packages (Slack, Teams, Todoist, MQTT tools) — Home Manager half of the yg-work bundle — saruman only
+    programs/
+      git.nix                         # Git identity + defaults (rebase pulls, zdiff3, rerere)
+      vim.nix                         # Vim settings + wallust color sourcing
+      kitty.nix                       # Kitty terminal settings + static "Darkside" theme (deliberately not wallust-driven — wallpaper colors were inconsistently readable)
+      thunar.nix                      # Thunar file manager thumbnailer backends + xdg config (system half — gvfs/tumbler/packages — is modules/nixos/programs/thunar.nix)
+      btop.nix                        # btop with wallust-generated theme
+      cava.nix                        # cava audio visualizer with wallust-generated theme
+      fastfetch.nix                   # fastfetch system-info banner
+      newsboat.nix                    # newsboat TUI RSS reader — native programs.newsboat with a declarative feed list (world/Europe/Czechia news, Linux/AI tech, gaming) + tag-based queries; used by sauron + saruman, silently autostarted into special:dashboard (see hosts/*/home.nix silentApps) alongside NewsFlash's special:rss
+      claude-code.nix                 # Claude Code settings (permissions, hooks, notification sounds)
+      ssh-keys.nix                    # SSH client config (github-huml-yg, github-humlg, and homelab host aliases)
+      transmission.nix                # Transmission (Qt) wrapped (symlinkJoin + makeWrapper) so its bin/transmission-qt binds all peer sockets to Mullvad's wg0-mullvad tunnel IP on every launch and refuses to start if the tunnel is down — opt-in via custom.transmission-vpn.enable; used by sauron + saruman
+      jellyfin-media-player.nix       # Native Qt/mpv Jellyfin desktop client (pkgs.jellyfin-media-player) — opt-in via programs.jellyfin-media-player.enable; used by sauron + saruman
+      webapps.nix                     # Chromium-based webapp launchers (YT Music, Claude, ChatGPT)
+      yg-discover.nix                 # YG Discover and Netio Discover — same colleague-built .NET/Avalonia network-discovery app for YellowGrid products, shipped under two brand names/binaries, both dropped at ~/YellowGrid/discover/ outside Nix (colleague-provided download, not packaged in nixpkgs or built from source here — reverted off the declarative-fetch-from-GitHub approach 2026-10-03, see maintenance.md #27). Wrapped (writeShellScriptBin + desktop entry) to run via steam-run (its FHS env covers everything except libICE/libSM, the X11 session-management libs Avalonia's X11 backend needs, added via LD_LIBRARY_PATH) — opt-in via programs.yg-discover.enable (YG Discover) and programs.yg-discover.netio.enable (Netio Discover); binaryPath option on each points at the manually-placed local binary (required, no default fetch). saruman only
+    services/
+      megacmd.nix                     # MEGA sync daemon — orphaned, not imported by any host (see maintenance.md #14)
 overlays/
   davinci-resolve.nix               # Overrides pkgs.davinci-resolve to the v21.0b1 beta (see maintenance.md #1)
   davinci-resolve-package.nix       # Local davinci-resolve package.nix backing the overlay above
@@ -140,8 +147,8 @@ overlays/
   openrgb-darkproject-bushido.nix   # Patches pkgs.openrgb with a locally-written, reverse-engineered controller for the Dark Project Bushido 87 keyboard (GSKY PCB, VID 0x342D/PID 0xE40F) — not upstream, OpenRGB's existing DarkProject driver only covers the older KD3B V2 board. Solid-color only (see maintenance.md #26)
   openrgb-darkproject-bushido/      # The 5 controller source files (DarkProjectBushidoController.{h,cpp}, RGBController_DarkProjectBushido.{h,cpp}, DarkProjectBushidoControllerDetect.cpp) copied into openrgb's Controllers/ tree by the overlay above
 patches/
-  amdgpu-no-idle-opt-on-s2idle.patch # Kernel patch removing the two lines f6098641d3e1e4 added to amdgpu's dm_suspend() — applied by modules/system/amdgpu-s2idle-patch.nix (see maintenance.md #7)
-  amdgpu-hdmi-scdc-gate-revert.patch # Kernel patch reverting the two scdc_present guard hunks from upstream 3471b9a31ce3 — applied by modules/system/amdgpu-hdmi-scdc-fix.nix (see maintenance.md #23)
+  amdgpu-no-idle-opt-on-s2idle.patch # Kernel patch removing the two lines f6098641d3e1e4 added to amdgpu's dm_suspend() — applied by modules/nixos/system/amdgpu-s2idle-patch.nix (see maintenance.md #7)
+  amdgpu-hdmi-scdc-gate-revert.patch # Kernel patch reverting the two scdc_present guard hunks from upstream 3471b9a31ce3 — applied by modules/nixos/system/amdgpu-hdmi-scdc-fix.nix (see maintenance.md #23)
 secrets/
   secrets.nix                       # agenix recipient key map
 maintenance.md                      # Log of temporary fixes/overlays/pins and their removal conditions — keep current (see Workflow Rules)
@@ -152,7 +159,7 @@ maintenance.md                      # Log of temporary fixes/overlays/pins and t
 | Host | CPU | GPU | WiFi | Notable quirks |
 |------|-----|-----|------|-----------------|
 | sauron | AMD Ryzen 7 5800X3D | AMD RX 9070 XT (RDNA4, `amdgpu`) | — (wired, `enp9s0`, WoL enabled) | RDNA4 not yet officially supported by ROCm — `HSA_OVERRIDE_GFX_VERSION=12.0.0` in `amd-gpu.nix`. NVMe has slow init — root device timeout raised to 300s, `nvme` forced in initrd. Previously NVIDIA; swapped to AMD (see `maintenance.md` item 4). |
-| saruman | AMD Ryzen AI 9 365 (Strix Point, 10C/20T), Lenovo IdeaPad 14ASP9 / Yoga Pro 7 14ASP9 | AMD Radeon 880M iGPU (RDNA 3.5, DCN 3.5) | MediaTek MT7922 (`mt7921e`) | RDNA 3.5 not yet officially supported by ROCm — `HSA_OVERRIDE_GFX_VERSION=11.0.0`. **s2idle sleep/resume hang — still open; local kernel patch tried 2026-08-16 → 09-09, never showed a clear win, now disabled; retesting stock (unpatched) plain suspend.** Upstream kernel bug [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) (exact same laptop model) bisected it to `f6098641d3e1e4` ("drm/amd/display: fix s2idle entry for DCN3.5+"), which makes `dm_suspend()` force the display block into IPS before D3cold. `patches/amdgpu-no-idle-opt-on-s2idle.patch` (`custom.amdgpu-s2idle-patch.enable`, `modules/system/amdgpu-s2idle-patch.nix`) removes that call — independently confirmed to fix identical hangs on Ryzen AI 7 350 / AI 5 340 (same DCN3.5 block) in the amd-gfx "Radeon 840M/860M bisected suspend crash" thread — but on this machine, journalctl audits across ~5 weeks of real use (bullet 10: Aug 19→26, 25 attempts/3 hangs ≈12%; bullet 11: Aug 26→Sep 9, 48 attempts/8 hangs ≈17%) showed no convincing downward trend vs. the 22% pre-patch baseline, while costing a local kernel build on every version bump and ≈1.2–1.4W higher standby drain (≈15–17%/night, measured via upower's charge-history log) from giving up the iGPU's deepest idle state. **Disabled 2026-09-09** (`custom.amdgpu-s2idle-patch.enable = false`) — saruman is back on nixpkgs' stock kernel, retesting whether stock plain suspend behaves differently now. `amdgpu.dcdebugmask=0x800` was removed at the same time (confirmed inert since 2026-08-16 — it sets the wrong field, `dc->config.disable_ips` rather than the `dc->caps.ips_support` guard on the actual call). Hang signature for future reference: journal's last line is `PM: suspend entry (s2idle)` with no `PM: suspend exit`; needs >10 min of sleep residency, so short `rtcwake` cycles don't reproduce it. **A second, separate bug also affects hibernation on this machine:** hibernate *resume* can die in TTM — `list_add corruption` → `ttm_bo_populate` → `ttm_resource_add_bulk_move`, wedging the GPU (hyprlock draws one frame, then no VT switch, hard power-off needed) — seen exactly once, via `suspend-then-hibernate` with LZ4 compression (the delayed conversion silently resumed from s2idle first). Direct hibernate with LZO ran 9/9 clean (incl. a 7-day hibernation, 2026-07-24→08-02) and was never actually invalidated — it's the leading next step (see `maintenance.md` item 7 bullet 11) if the stock-kernel suspend retest doesn't hold up either, since it would fix both the hang and the drain. `HandlePowerKey`, `HandleLidSwitch`, `HandleLidSwitchExternalPower` (`hosts/saruman/configuration.nix`), Noctalia's own idle service (GUI-owned `~/.local/state/noctalia/settings.toml`, 15-min idle timeout — hypridle is gated off under `useNoctalia`), and `custom.lid-undock-hibernate.sleepCommand` all currently call plain `systemctl suspend`. `boot.resumeDevice` and the LUKS swap are kept so hibernate can be restored without an initrd change. Lid-switch handling must be set via `services.logind`, never a Hyprland compositor keybind — logind's own native lid handler fires independently and races any compositor-level bind. Lid close **with an external monitor attached** is `HandleLidSwitchDocked = "ignore"` so the laptop stays usable lid-shut on the Iiyama — paired with `custom.lid-undock-hibernate.enable`, since logind evaluates the lid action only at the instant the lid event fires and never re-checks on undock. `mt7921e disable_aspm=1` kept as a harmless secondary mitigation (see `maintenance.md` item 7). `ucsi_acpi` blacklist tried and removed — confirmed not the cause of the sleep hang, and it disabled USB-C PD negotiation entirely, so it's loaded again. LUKS-encrypted swap (29.9GB, exceeds 27GiB RAM); `CONFIG_CRYPTO_LZO=y` is what the hibernate image now uses (`hibernate.compressor=lzo`, the kernel's own default). TPM 2.0 present but unused — LUKS unlock is passphrase-only by choice. BIOS PSCN23WW. **Physical HDMI + dock DP→HDMI output regressed on the 7.1.5 → 7.2.0 kernel bump (2026-09-01), workaround retired 2026-09-09 — not yet physically retested:** upstream `3471b9a31ce3` gates all SCDC caps reads / `TMDS_CONFIG` writes on a `dc_edid_caps.scdc_present` flag; `custom.amdgpu-hdmi-scdc-fix.enable` (reverting the two guards) was the workaround, on the assumption that the companion commit which sets that flag ("Improve HDMI info retrieval") wasn't in nixpkgs' kernel yet. That assumption turned out wrong: extracting the actual `linux-7.2.2.tar.xz` nixpkgs fetches for this build shows the setter (`amdgpu_dm_helpers.c:1136`, inside `populate_hdmi_info_from_connector()`) was already present — the fix commit has been an ancestor of the `v7.2` tag since its first release. Disabled the workaround accordingly; needs a real rebuild + reboot + HDMI/dock-DP→HDMI check to confirm output still works before calling this closed. See `maintenance.md` item 23. **Top USB-C port doesn't carry DP alt-mode video to the Iiyama dock (bottom port does); cause still unknown.** The bottom port's "mirrors instead of extends" symptom (same 2026-09-21 flake update) is fixed and confirmed working — it was an unrelated bug, the Iiyama's EDID description string changing (`Iiyama North America PL2797H...` → `iiyama Corporation PL2797H...`) so Hyprland's `desc:` match missed and fell through to the mirror-fallback rule, corrected in `hosts/saruman/home.nix`. The top port, however, is still completely dead (dock's USB hub/keyboard still works through it, no video) — reproduced on kernel 7.2.2 and 7.2.6, and `pcie_ports=compat` (see `maintenance.md` item 7b) has now been ruled out too (still dead with it disabled). Diagnosed 2026-09-21 (`maintenance.md` item 24, open): on the top port the DRM connector shows `connected` with a full valid EDID (AUX/DDC works), but never gets a mode applied (`enabled`/`dpms` both off) and zero kernel log output — `pcie_ports=compat` ruled out (item 7b) as the cause. Leading theory is a hardware DP-lane wiring limitation (unfixable), but an untested alternative lead is that this port's video routes through DP→HDMI PCON inside the dock and hits the same silent-misconfiguration bug as item 23's (still-disabled, never-retested) SCDC kernel patch — re-enabling `custom.amdgpu-hdmi-scdc-fix.enable` might fix it, not yet tried (needs a local kernel compile). Current resolution: use the bottom port, which works correctly. Separately: `pcie_ports=compat` stays disabled while this is unresolved — one clean docked shutdown/reboot so far without it (no hang), a few more wanted before calling it confirmed unneeded. See `maintenance.md` items 7b and 24 for full history. |
+| saruman | AMD Ryzen AI 9 365 (Strix Point, 10C/20T), Lenovo IdeaPad 14ASP9 / Yoga Pro 7 14ASP9 | AMD Radeon 880M iGPU (RDNA 3.5, DCN 3.5) | MediaTek MT7922 (`mt7921e`) | RDNA 3.5 not yet officially supported by ROCm — `HSA_OVERRIDE_GFX_VERSION=11.0.0`. **s2idle sleep/resume hang — still open; local kernel patch tried 2026-08-16 → 09-09, never showed a clear win, now disabled; retesting stock (unpatched) plain suspend.** Upstream kernel bug [#219445](https://bugzilla.kernel.org/show_bug.cgi?id=219445) (exact same laptop model) bisected it to `f6098641d3e1e4` ("drm/amd/display: fix s2idle entry for DCN3.5+"), which makes `dm_suspend()` force the display block into IPS before D3cold. `patches/amdgpu-no-idle-opt-on-s2idle.patch` (`custom.amdgpu-s2idle-patch.enable`, `modules/nixos/system/amdgpu-s2idle-patch.nix`) removes that call — independently confirmed to fix identical hangs on Ryzen AI 7 350 / AI 5 340 (same DCN3.5 block) in the amd-gfx "Radeon 840M/860M bisected suspend crash" thread — but on this machine, journalctl audits across ~5 weeks of real use (bullet 10: Aug 19→26, 25 attempts/3 hangs ≈12%; bullet 11: Aug 26→Sep 9, 48 attempts/8 hangs ≈17%) showed no convincing downward trend vs. the 22% pre-patch baseline, while costing a local kernel build on every version bump and ≈1.2–1.4W higher standby drain (≈15–17%/night, measured via upower's charge-history log) from giving up the iGPU's deepest idle state. **Disabled 2026-09-09** (`custom.amdgpu-s2idle-patch.enable = false`) — saruman is back on nixpkgs' stock kernel, retesting whether stock plain suspend behaves differently now. `amdgpu.dcdebugmask=0x800` was removed at the same time (confirmed inert since 2026-08-16 — it sets the wrong field, `dc->config.disable_ips` rather than the `dc->caps.ips_support` guard on the actual call). Hang signature for future reference: journal's last line is `PM: suspend entry (s2idle)` with no `PM: suspend exit`; needs >10 min of sleep residency, so short `rtcwake` cycles don't reproduce it. **A second, separate bug also affects hibernation on this machine:** hibernate *resume* can die in TTM — `list_add corruption` → `ttm_bo_populate` → `ttm_resource_add_bulk_move`, wedging the GPU (hyprlock draws one frame, then no VT switch, hard power-off needed) — seen exactly once, via `suspend-then-hibernate` with LZ4 compression (the delayed conversion silently resumed from s2idle first). Direct hibernate with LZO ran 9/9 clean (incl. a 7-day hibernation, 2026-07-24→08-02) and was never actually invalidated — it's the leading next step (see `maintenance.md` item 7 bullet 11) if the stock-kernel suspend retest doesn't hold up either, since it would fix both the hang and the drain. `HandlePowerKey`, `HandleLidSwitch`, `HandleLidSwitchExternalPower` (`hosts/saruman/configuration.nix`), Noctalia's own idle service (GUI-owned `~/.local/state/noctalia/settings.toml`, 15-min idle timeout — hypridle is gated off under `useNoctalia`), and `custom.lid-undock-hibernate.sleepCommand` all currently call plain `systemctl suspend`. `boot.resumeDevice` and the LUKS swap are kept so hibernate can be restored without an initrd change. Lid-switch handling must be set via `services.logind`, never a Hyprland compositor keybind — logind's own native lid handler fires independently and races any compositor-level bind. Lid close **with an external monitor attached** is `HandleLidSwitchDocked = "ignore"` so the laptop stays usable lid-shut on the Iiyama — paired with `custom.lid-undock-hibernate.enable`, since logind evaluates the lid action only at the instant the lid event fires and never re-checks on undock. `mt7921e disable_aspm=1` kept as a harmless secondary mitigation (see `maintenance.md` item 7). `ucsi_acpi` blacklist tried and removed — confirmed not the cause of the sleep hang, and it disabled USB-C PD negotiation entirely, so it's loaded again. LUKS-encrypted swap (29.9GB, exceeds 27GiB RAM); `CONFIG_CRYPTO_LZO=y` is what the hibernate image now uses (`hibernate.compressor=lzo`, the kernel's own default). TPM 2.0 present but unused — LUKS unlock is passphrase-only by choice. BIOS PSCN23WW. **Physical HDMI + dock DP→HDMI output regressed on the 7.1.5 → 7.2.0 kernel bump (2026-09-01), workaround retired 2026-09-09 — not yet physically retested:** upstream `3471b9a31ce3` gates all SCDC caps reads / `TMDS_CONFIG` writes on a `dc_edid_caps.scdc_present` flag; `custom.amdgpu-hdmi-scdc-fix.enable` (reverting the two guards) was the workaround, on the assumption that the companion commit which sets that flag ("Improve HDMI info retrieval") wasn't in nixpkgs' kernel yet. That assumption turned out wrong: extracting the actual `linux-7.2.2.tar.xz` nixpkgs fetches for this build shows the setter (`amdgpu_dm_helpers.c:1136`, inside `populate_hdmi_info_from_connector()`) was already present — the fix commit has been an ancestor of the `v7.2` tag since its first release. Disabled the workaround accordingly; needs a real rebuild + reboot + HDMI/dock-DP→HDMI check to confirm output still works before calling this closed. See `maintenance.md` item 23. **Top USB-C port doesn't carry DP alt-mode video to the Iiyama dock (bottom port does); cause still unknown.** The bottom port's "mirrors instead of extends" symptom (same 2026-09-21 flake update) is fixed and confirmed working — it was an unrelated bug, the Iiyama's EDID description string changing (`Iiyama North America PL2797H...` → `iiyama Corporation PL2797H...`) so Hyprland's `desc:` match missed and fell through to the mirror-fallback rule, corrected in `hosts/saruman/home.nix`. The top port, however, is still completely dead (dock's USB hub/keyboard still works through it, no video) — reproduced on kernel 7.2.2 and 7.2.6, and `pcie_ports=compat` (see `maintenance.md` item 7b) has now been ruled out too (still dead with it disabled). Diagnosed 2026-09-21 (`maintenance.md` item 24, open): on the top port the DRM connector shows `connected` with a full valid EDID (AUX/DDC works), but never gets a mode applied (`enabled`/`dpms` both off) and zero kernel log output — `pcie_ports=compat` ruled out (item 7b) as the cause. Leading theory is a hardware DP-lane wiring limitation (unfixable), but an untested alternative lead is that this port's video routes through DP→HDMI PCON inside the dock and hits the same silent-misconfiguration bug as item 23's (still-disabled, never-retested) SCDC kernel patch — re-enabling `custom.amdgpu-hdmi-scdc-fix.enable` might fix it, not yet tried (needs a local kernel compile). Current resolution: use the bottom port, which works correctly. Separately: `pcie_ports=compat` stays disabled while this is unresolved — one clean docked shutdown/reboot so far without it (no hang), a few more wanted before calling it confirmed unneeded. See `maintenance.md` items 7b and 24 for full history. |
 | nixosvm | virtualized (SPICE guest) | virtualized | — | Minimal package set, SPICE agent only — not a physical host. |
 
 Keep this table current: whenever you discover or change a hardware fact (a chip model, a quirk, a workaround tied to specific silicon) while working on a host, update its row here in the same commit — don't let it drift the way the sauron NVIDIA→AMD description did.
@@ -160,8 +167,8 @@ Keep this table current: whenever you discover or change a hardware fact (a chip
 ## Architecture
 
 - **Flake-based**: `flake.nix` defines three hosts under `nixosConfigurations`. Home Manager is included as a NixOS module (not standalone), so `home-manager` config lives inside each host's `configuration.nix` via `home-manager.users.david = import ./home.nix`.
-- **Shared modules** in `modules/` are imported explicitly in each host's `configuration.nix` (NixOS modules) or `home.nix` (Home Manager modules) — there is no auto-import mechanism.
-- **Common boilerplate** is in `modules/home/common.nix` (imported by all `home.nix` files) and `modules/system/common.nix` (imported by all `configuration.nix` files).
+- **Shared modules** in `modules/` are split at the top level by module system — `modules/nixos/` (imported only from `hosts/*/configuration.nix`) and `modules/home/` (imported only from `hosts/*/home.nix`) — with the familiar topic folders (`desktop/`, `programs/`, `services/`, `bundles/`, `system/`) nested inside each. Location alone tells you whether a module is NixOS or Home Manager; there is no auto-import mechanism, so each host file still lists what it needs explicitly.
+- **Common boilerplate** is in `modules/home/common.nix` (imported by all `home.nix` files) and `modules/nixos/system/common.nix` (imported by all `configuration.nix` files).
 - **`specialArgs = { inherit inputs; }`** is passed to both NixOS and Home Manager to allow modules to access flake inputs.
 - `nixpkgs` tracks `nixos-unstable`. `system.stateVersion` and `home.stateVersion` are both `"25.11"` and must not be changed.
 - **Module pattern**: Most modules use `mkEnableOption` / `mkIf` for explicit opt-in. Bundle and service modules are imported in the relevant host config and activated with `enable = true`.
@@ -174,7 +181,7 @@ Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https
 
 - `secrets/secrets.nix` — maps each `.age` file to its recipient SSH public keys (host keys + david's user key)
 - `secrets/*.age` — encrypted secret files committed to the repo
-- `modules/system/secrets.nix` — NixOS module declaring where each secret is placed and with what permissions
+- `modules/nixos/system/secrets.nix` — NixOS module declaring where each secret is placed and with what permissions
 - **Shell env vars**: `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at shell start
 - **SSH private keys**: declared with a `path =` in `age.secrets` so they land directly at `~/.ssh/<name>`
 
@@ -187,7 +194,7 @@ Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https
 # 2. Create (or edit) the encrypted file — opens $EDITOR with plaintext
 agenix -e secrets/my-token.age
 
-# 3. Declare it in modules/system/secrets.nix:
+# 3. Declare it in modules/nixos/system/secrets.nix:
 #    age.secrets.my-token = {
 #      file  = ../../secrets/my-token.age;
 #      owner = "david";
@@ -215,7 +222,7 @@ sudo nixos-rebuild switch --flake .#<host>
 ### Removing a secret
 
 ```bash
-# 1. Remove the age.secrets block from modules/system/secrets.nix
+# 1. Remove the age.secrets block from modules/nixos/system/secrets.nix
 # 2. Delete the .age file
 git rm secrets/my-token.age
 # 3. Remove the entry from secrets/secrets.nix
@@ -238,7 +245,7 @@ agenix -r secrets/shell-env.age
 agenix -r secrets/ssh_myserver.age   # repeat for each .age file
 
 # 4. Add agenix.nixosModules.default to the new host in flake.nix
-# 5. Import modules/system/secrets.nix in the new host's configuration.nix
+# 5. Import modules/nixos/system/secrets.nix in the new host's configuration.nix
 # 6. Stage, commit, rebuild on the new host
 git add secrets/
 git commit -m "secrets: add newhost as recipient, import secrets module"
@@ -257,12 +264,12 @@ sudo nixos-rebuild switch --flake .#newhost
 | `secrets/1nce-vpn.ovpn.age` | 1NCE cellular IoT OpenVPN client profile (embedded CA/cert/key) — saruman only |
 | `secrets/1nce-vpn-credentials.age` | 1NCE VPN auth-user-pass file (username + token) — saruman only |
 | `secrets/wg-homelab.age` | Personal WireGuard VPN — full wg-quick config file (private key, peer, full-tunnel AllowedIPs) — saruman only |
-| `modules/system/secrets.nix` | NixOS declarations for secrets shared/common across hosts |
+| `modules/nixos/system/secrets.nix` | NixOS declarations for secrets shared/common across hosts |
 | `/run/agenix/` | Runtime location of decrypted secrets (tmpfs) |
 
 **Encrypting a secret outside `agenix -e` (e.g. scripting it, or a generated key):** recipients passed to `age -r` must be the raw `ssh-ed25519 AAAA...` public key strings from `secrets/secrets.nix`, not the `age1...` X25519 form from `ssh-to-age`. The two produce different stanza types in the ciphertext header (`ssh-ed25519` vs `X25519`) — the NixOS activation script decrypts using the raw SSH host key files (`-i /etc/ssh/ssh_host_ed25519_key`), which only understands `ssh-ed25519` stanzas, so an `X25519`-recipient file fails at activation with "no identity matched any of the recipients" even though it encrypted without error. Verify a manually-encrypted secret decrypts before committing: add a throwaway `age-keygen` identity as an extra recipient, decrypt with it locally, diff against the plaintext, then re-encrypt with only the real recipients. Also run `agenix -e`/`-r` from inside the `secrets/` directory — it resolves `./secrets.nix` relative to cwd.
 
-Not all `age.secrets` live in `modules/system/secrets.nix` — a host- or bundle-specific secret (like the 1NCE VPN's) can be declared directly inside its own opt-in module (see `modules/bundles/yg-work-system.nix`) so it's only decrypted on hosts that enable that module.
+Not all `age.secrets` live in `modules/nixos/system/secrets.nix` — a host- or bundle-specific secret (like the 1NCE VPN's) can be declared directly inside its own opt-in module (see `modules/nixos/bundles/yg-work.nix`) so it's only decrypted on hosts that enable that module.
 
 ## Workflow Rules
 
@@ -282,6 +289,6 @@ Not all `age.secrets` live in `modules/system/secrets.nix` — a host- or bundle
 - **Document new bodges in `maintenance.md`.** Whenever you add a temporary fix, overlay, version pin, upstream-bug workaround, or anything else that should eventually be removed once some external condition changes (a nixpkgs update, an upstream fix landing, hardware support maturing, etc.), add an entry to `maintenance.md` in the same commit: what it does, why it's needed, and the condition under which it can be removed. If a change you make resolves or removes an existing bodge, update or delete its entry there too — don't let it go stale like the old "Sauron TODO" did.
 - **Always `git add` new files** after creating them. Nix flakes only see git-tracked files, so new files must be staged immediately or the build will fail with "path does not exist".
 - **Always commit changes** after making them. Do **not** push unless explicitly told to.
-- **The "sleep inhibit" toggle gates idle timeouts only — never lid close.** The swaync toggle (`modules/desktop/swaync.nix`) creates `$XDG_RUNTIME_DIR/hypridle-idle-inhibited`, and the *only* thing that may consult it is hypridle's idle-timeout listeners (dim/lock/dpms/sleep). Closing the lid is an explicit "I am done" signal and must always sleep regardless of the toggle — that's also how logind itself behaves (`LidSwitchIgnoreInhibited` defaults to `yes`). Don't add an inhibit check to any lid-driven sleep path, including `modules/services/lid-undock-hibernate.nix`.
+- **The "sleep inhibit" toggle gates idle timeouts only — never lid close.** The swaync toggle (`modules/home/desktop/swaync.nix`) creates `$XDG_RUNTIME_DIR/hypridle-idle-inhibited`, and the *only* thing that may consult it is hypridle's idle-timeout listeners (dim/lock/dpms/sleep). Closing the lid is an explicit "I am done" signal and must always sleep regardless of the toggle — that's also how logind itself behaves (`LidSwitchIgnoreInhibited` defaults to `yes`). Don't add an inhibit check to any lid-driven sleep path, including `modules/nixos/services/lid-undock-hibernate.nix`.
 - **Save learned lessons to this file.** When the user teaches you a workflow rule or preference, add it to this `CLAUDE.md` so it persists across all hosts and sessions.
 - **Show the commit message** at the end of every response that results in a git commit, so the user knows a commit was made and what it says.
