@@ -11,6 +11,7 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       sdrpp   # SDR++ — SDR receiver GUI (waterfall/spectrum, decoders, recording)
+      sdrangel
       wsjtx   # FT8/FT4/JT65/... weak-signal digital mode suite
       hamlib  # rig-control library/CLI (rigctl, rigctld) — CAT control backend used by wsjtx and others
 
