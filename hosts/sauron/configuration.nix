@@ -5,27 +5,14 @@
     ./hardware-configuration.nix
     ./file-system.nix
     ../../modules/nixos/system-common.nix
-    ../../modules/nixos/system-locale.nix
     ../../modules/nixos/system-amd-gpu.nix
-    ../../modules/nixos/system-sddm.nix
-    ../../modules/nixos/desktop-hyprland.nix
-    ../../modules/nixos/program-zsh.nix
-    ../../modules/nixos/program-mkrepo.nix
-    ../../modules/nixos/service-bluetooth.nix
     ../../modules/nixos/bundle-photography.nix
     ../../modules/nixos/bundle-3d-printing.nix
     ../../modules/nixos/bundle-wine.nix
     ../../modules/nixos/bundle-gaming.nix
     ../../modules/nixos/bundle-ham-radio.nix
-    ../../modules/nixos/system-secrets.nix
-    ../../modules/nixos/program-zen-browser.nix
-    ../../modules/nixos/program-mullvad.nix
-    ../../modules/nixos/service-ollama.nix
-    ../../modules/nixos/service-sunshine.nix
-    ../../modules/nixos/service-moonlight.nix
+    ../../modules/nixos/bundle-workstation.nix
     ../../modules/nixos/service-wivrn.nix
-    ../../modules/nixos/service-tailscale.nix
-    ../../modules/nixos/desktop-noctalia.nix
   ];
 
   networking.hostName = "sauron";
@@ -47,19 +34,10 @@
   #console.packages = [ pkgs.terminus_font ];    # fallback if consoleMode=max isn't enough
   #console.font = "ter-132b";
 
-  services.colord.enable = true;
-  services.udev.packages = [ pkgs.openrgb ];
-
-  custom.sunshine.enable = true;
-  custom.moonlight.enable = true;
   custom.wivrn.enable = true;
 
-  programs.zen-browser-custom.enable = true;
-  programs.kdeconnect.enable = true;
   programs.coolercontrol.enable = true;
-  custom.bluetooth.enable = true;
-  custom.mullvad.enable = true;
-  custom.tailscale.enable = true;
+  bundles.workstation.enable = true;
   custom.noctalia.enable = true;  # full replacement here, unlike saruman's staged pilot — docs/maintenance.md #19
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
@@ -85,7 +63,6 @@
     lm_sensors
     stress
     cava
-    openrgb
     usbutils
     bs-manager
   ];

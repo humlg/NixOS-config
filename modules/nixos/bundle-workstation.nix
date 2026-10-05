@@ -10,6 +10,7 @@ in
     ./service-ollama.nix
     ./service-sunshine.nix
     ./service-moonlight.nix
+    ./desktop-noctalia.nix
   ];
 
   options.bundles.workstation = {

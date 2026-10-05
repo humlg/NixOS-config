@@ -12,9 +12,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-
-    nixpkgs.config.allowUnfree = true;
-
     home.packages = with pkgs; [
       mqttx
       slack
@@ -22,7 +19,7 @@ in
       libreoffice-qt
       todoist-electron
       mqttui
-      dm-sans
+      dm-sans  # Yellow Grid brand font, used in work LibreOffice docs
     ];
   };
 }

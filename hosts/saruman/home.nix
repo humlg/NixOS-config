@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 let
   # Native/Full HD toggle for TV mirroring (SUPER+A). `hyprctl eval`, not `keyword` — Lua config.
@@ -16,33 +16,22 @@ in
 {
   imports = [
     ../../modules/home/common.nix
-    ../../modules/home/program-fastfetch.nix
-    ../../modules/home/program-thunar.nix
-    ../../modules/home/desktop-dark-theme.nix
     ../../modules/home/bundle-general.nix
     ../../modules/home/desktop-hyprland-desktop.nix
-    ../../modules/home/program-ssh-keys.nix
     ../../modules/home/bundle-yg-work.nix
     ../../modules/home/program-webapps.nix
-    ../../modules/home/program-newsboat.nix
-    ../../modules/home/program-transmission.nix
     ../../modules/home/program-yg-discover.nix
-    ../../modules/home/program-jellyfin-media-player.nix
-    ../../modules/home/bundle-desktop-apps.nix
+    ../../modules/home/bundle-workstation.nix
   ];
 
   bundles.general.enable = true;
-  bundles.desktop-apps.enable = true;
+  bundles.workstation.enable = true;
   bundles.yg-work.enable = true;
-  custom.transmission-vpn.enable = true;
   programs.yg-discover.enable = true;
   programs.yg-discover.netio.enable = true;
-  programs.jellyfin-media-player.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;
-
-    useLuaConfig = true;
 
     useNoctalia = true;  # pilot, runs alongside AGS/swaync/hyprlock/waypaper — docs/maintenance.md #19
 
@@ -56,11 +45,6 @@ in
       hl.monitor({ output = "desc:iiyama Corporation PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x-258", scale = 1 })
       hl.monitor({ output = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
     '';
-
-    screenshotDir = "/home/david/Pictures/Screenshots";
-    lockScreen    = "hyprlock";
-    terminal      = "kitty";
-    fileManager   = "thunar";
 
     # Inert while useNoctalia=true (desktop-hypridle.nix disabled, docs/maintenance.md #19) — left
     # set so it's correct the moment Noctalia flips off. Matches configuration.nix's logind paths.
@@ -84,32 +68,6 @@ in
       -- Toggle eDP-1 native/Full HD resolution (for TV mirroring)
       hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("resolution-toggle"))
     '';
-
-    # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
-    dynamicCursors.enable = true;
-
-    # Merges with the module's default list (docs/architecture.md). newsboat's key is
-    # null — mainMod+X/SHIFT+X already toggle special:dashboard, a second bind would double it.
-    silentApps = [
-      {
-        name         = "rssReader";
-        command      = "io.gitlab.news_flash.NewsFlash";
-        class        = "^io\\.gitlab\\.news_flash\\.NewsFlash$";
-        matchInitial = false;
-        workspace    = "rss";
-        key          = "U";
-        delay        = 5;
-      }
-      {
-        name         = "newsboatReader";
-        command      = "kitty --class newsboat -e newsboat";
-        class        = "^newsboat$";
-        matchInitial = false;
-        workspace    = "dashboard";
-        key          = null;
-        delay        = 6;
-      }
-    ];
   };
 
   home.packages  = [
@@ -120,30 +78,6 @@ in
     pkgs.kdePackages.k3b
     resolutionToggle
   ];
-
-  home.sessionVariables = {
-    XCURSOR_THEME = "volantes_cursors";
-    XCURSOR_SIZE = 24;
-  };
-
-  home.pointerCursor = {
-    enable = true;
-    name = "volantes_cursors";
-    size = 24;
-    package = pkgs.volantes-cursors;
-    gtk.enable = true;
-    x11.enable = true;
-  };
-
-  gtk.cursorTheme = {
-    name = "volantes_cursors";
-    size = 24;
-    package = pkgs.volantes-cursors;
-  };
-
-  xresources.properties = {
-    "Xft.dpi" = 96;
-  };
 
   programs.webapps = {
     enable = true;

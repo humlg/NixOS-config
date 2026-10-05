@@ -5,32 +5,19 @@
     ./hardware-configuration.nix
     ./file-system.nix
     ../../modules/nixos/system-common.nix
-    ../../modules/nixos/system-locale.nix
-    ../../modules/nixos/system-sddm.nix
-    ../../modules/nixos/desktop-hyprland.nix
-    ../../modules/nixos/program-zsh.nix
-    ../../modules/nixos/program-mkrepo.nix
-    ../../modules/nixos/service-bluetooth.nix
     ../../modules/nixos/service-kvm.nix
     ../../modules/nixos/service-darkproject-keyboard.nix
     ../../modules/nixos/service-lid-undock-hibernate.nix
     ../../modules/nixos/bundle-photography.nix
     ../../modules/nixos/bundle-3d-printing.nix
     ../../modules/nixos/bundle-wine.nix
-    ../../modules/nixos/program-mullvad.nix
-    ../../modules/nixos/service-ollama.nix
     ../../modules/nixos/bundle-gaming.nix
     ../../modules/nixos/bundle-yg-work.nix
     ../../modules/nixos/bundle-ham-radio.nix
-    ../../modules/nixos/program-zen-browser.nix
-    ../../modules/nixos/system-secrets.nix
-    ../../modules/nixos/service-sunshine.nix
-    ../../modules/nixos/service-moonlight.nix
-    ../../modules/nixos/service-tailscale.nix
+    ../../modules/nixos/bundle-workstation.nix
     ../../modules/nixos/service-wireguard-saruman.nix
     ../../modules/nixos/system-amdgpu-s2idle-patch.nix
     ../../modules/nixos/system-amdgpu-hdmi-scdc-fix.nix
-    ../../modules/nixos/desktop-noctalia.nix
     ../../modules/nixos/system-tui-askpass.nix
   ];
 
@@ -73,8 +60,6 @@
   '';  # avoids a sleep/reboot wedge — docs/maintenance.md #7
   boot.plymouth.enable = false;  # off in favor of custom.tuiAskpass (system-tui-askpass.nix)
 
-  services.colord.enable = true;
-
   services.fwupd.enable = true;
 
   services.power-profiles-daemon.enable = true;  # not TLP — docs/maintenance.md #20
@@ -111,16 +96,11 @@
   };
 
   # Not auto-started — mainly connects out to other machines, Sunshine host is occasional.
-  custom.sunshine.enable = true;
   custom.sunshine.autoStart = false;
-  custom.moonlight.enable = true;
 
-  programs.kdeconnect.enable = true;
-  custom.bluetooth.enable = true;
   custom.darkproject-keyboard.enable = true;
-  custom.mullvad.enable = true;
-  custom.tailscale.enable = true;
   custom.wireguard-saruman.enable = true;
+  bundles.workstation.enable = true;
   custom.noctalia.enable = true;  # pairs with desktop.hyprland-desktop.useNoctalia in home.nix
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
@@ -154,15 +134,8 @@
     codex
     clinfo
     openttd
-    openrgb
     krita
   ];
-
-  # Also carries the local Dark Project Bushido 87 controller — see
-  # overlays/openrgb-darkproject-bushido.nix and docs/maintenance.md.
-  services.udev.packages = [ pkgs.openrgb ];
-
-  programs.zen-browser-custom.enable = true;
 
   system.stateVersion = "25.11";
 }

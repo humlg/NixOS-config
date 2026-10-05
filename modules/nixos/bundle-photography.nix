@@ -27,7 +27,6 @@ in
       #rawtherapee  # disabled, see docs/maintenance.md #2
       gphoto2
       davinci-resolve-xcb
-      audacity
     ];
   };
 }

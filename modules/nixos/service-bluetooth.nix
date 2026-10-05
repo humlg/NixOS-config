@@ -14,7 +14,7 @@ in
     services.blueman.enable = true;
     hardware.bluetooth.settings = {
       General = {
-        Enable = "Source,Sink,Mediam,Socket";
+        Enable = "Source,Sink,Media,Socket";
         Experimental = true;
       };
     };

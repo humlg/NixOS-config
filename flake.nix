@@ -72,15 +72,6 @@
         ];
       };
 
-      nixosvm = nixpkgs.lib.nixosSystem{
-        specialArgs = { inherit inputs; nur = inputs.nur; };
-        modules = [
-          overlayModule
-          ./hosts/nixosvm/configuration.nix
-          inputs.home-manager.nixosModules.default
-        ];
-      };
-
       saruman = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; nur = inputs.nur; };
         modules = [

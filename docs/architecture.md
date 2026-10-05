@@ -6,7 +6,7 @@ A human-readable guide to navigating this repository: what lives where, why, and
 
 ## Big picture
 
-This is a **flake-based NixOS configuration** for three machines, sharing a common module library. Home Manager is used as a NixOS module (not standalone), so user-space config and system config are built and switched together with a single `nixos-rebuild switch`.
+This is a **flake-based NixOS configuration** for two machines, sharing a common module library. Home Manager is used as a NixOS module (not standalone), so user-space config and system config are built and switched together with a single `nixos-rebuild switch`.
 
 The entry point is `flake.nix`. Everything else is either a host definition under `hosts/` or a reusable module under `modules/`.
 
@@ -18,7 +18,6 @@ The entry point is `flake.nix`. Everything else is either a host definition unde
 |----------|-----------|----------------|
 | **sauron** | Physical desktop (Ryzen 7 5800X3D, RX 9070 XT) | AMD GPU (amdgpu), multi-monitor layout, photography/3D-printing bundles |
 | **saruman** | Lenovo IdeaPad laptop (AMD GPU) | Battery conservation mode, LUKS swap, Mullvad VPN, KVM/QEMU, Ollama |
-| **nixosvm** | NixOS QEMU/SPICE virtual machine | Minimal package set, SPICE agent for clipboard/resize |
 
 Each machine has a folder under `hosts/<name>/` containing:
 - `configuration.nix` — NixOS-level config (hardware, system services, which modules to import, `home-manager` block)
@@ -60,7 +59,7 @@ These are imported in `configuration.nix`. They configure the OS, not the user.
 
 | File | What it does |
 |------|-------------|
-| `system-common.nix` | Slim aggregator only — every host imports just this one file, which pulls in the pieces below. |
+| `system-common.nix` | Aggregator — every host imports just this one file. Pulls in the base-OS pieces below, plus everything both hosts need unconditionally: `system-locale.nix`, `system-sddm.nix`, `system-secrets.nix`, `desktop-hyprland.nix`, `program-zsh.nix`, `program-mkrepo.nix`, `service-bluetooth.nix` (+`custom.bluetooth.enable`), `service-tailscale.nix` (+`custom.tailscale.enable`). |
 | `system-nix-settings.nix` | `nix.settings.experimental-features`, `nix.optimise`, `nix.gc`. |
 | `system-boot.nix` | Bootloader, latest kernel, inotify sysctl. |
 | `system-console.nix` | Console font + keymap (`cz`). |
@@ -71,7 +70,8 @@ These are imported in `configuration.nix`. They configure the OS, not the user.
 | `system-ssh.nix` | `services.openssh.enable` only. |
 | `system-motd.nix` | figlet MOTD banner. |
 | `system-lan-hosts.nix` | Static `networking.hosts` entries for sauron/saruman. |
-| `system-locale.nix` | Timezone, locale (`en_US` / `cs_CZ`), console keymap (`cz`). |
+| `system-locale.nix` | Timezone, locale (`en_US` / `cs_CZ`). Console keymap is `system-console.nix`, not here. |
+| `system-secrets.nix` | agenix `age.secrets` declarations — what each secret decrypts to, owner, mode. See `docs/secrets.md`. |
 | `system-nvidia.nix` | Proprietary NVIDIA driver config (sauron only, currently orphaned). |
 | `system-sddm.nix` | SDDM display manager with Qt6 and astronaut theme, Wayland session. |
 
@@ -96,10 +96,9 @@ The desktop is split across two files, in two separate module trees, to separate
 desktop.hyprland-desktop = {
   enable       = true;
   monitors     = "monitor = DP-1, 2560x1440@165, 1920x0, 1\n...";  # machine-specific
-  screenshotDir = "/home/david/Pictures/Screenshots";
-  lockScreen   = "hyprlock";
-  terminal     = "kitty";
-  fileManager  = "thunar";
+  # screenshotDir/lockScreen/terminal/fileManager/useLuaConfig all default to the values
+  # both hosts use (Pictures/Screenshots, hyprlock, kitty, thunar, true) — only override
+  # per-host if a machine actually needs something different.
   extraConfig  = "";  # raw Hyprland config appended at the end
 };
 ```
@@ -138,6 +137,9 @@ desktop.hyprland-desktop = {
 | `desktop-swaync.nix` | SwayNC notification center config and style. |
 | `desktop-dark-theme.nix` | GTK and Qt dark theme settings. |
 | `desktop-default-apps.nix` | `xdg.mimeApps` defaults (which app opens which file type). |
+| `desktop-anyrun.nix` | Anyrun — the primary app launcher (`$menu`, bound to `SUPER+R`). |
+| `desktop-hypr-dynamic-cursors.nix` | "Shake to find" cursor plugin (KDE/macOS style); shake-only, defaults to enabled. |
+| `desktop-cursor-theme.nix` | Shared cursor theme/size/DPI (`volantes_cursors`), imported by `common.nix` for every host. |
 
 ---
 
@@ -148,14 +150,16 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
 | `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, btop, claude-code. |
-| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
+| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify, NewsFlash. |
+| `bundle-workstation.nix` (nixos) | `bundles.workstation.enable` | Desktop-workstation extras shared by sauron+saruman: colord, OpenRGB, Zen Browser, Mullvad, KDE Connect, Ollama, Moonlight, Sunshine, Noctalia. |
+| `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, newsboat, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
 | `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2, DaVinci Resolve. |
-| `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, FreeCAD. |
+| `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, printrun. |
 | `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
 | `bundle-wine.nix` (nixos) | `bundles.wine.enable` | Wine with 32-bit support. |
 | `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree. |
 
-**Where to add something:** a new app that belongs on all machines → `bundle-general.nix`. A common GUI app → `bundle-desktop-apps.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
+**Where to add something:** a new app that belongs on all machines → `bundle-general.nix`. A common GUI app → `bundle-desktop-apps.nix`. Something both desktop workstations need but isn't part of the daily-driver baseline → `bundle-workstation.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
 
 ---
 
@@ -169,16 +173,20 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 | `program-kitty.nix` (home) | Kitty terminal | Font, colors, static theme (deliberately not wallust-driven). |
 | `program-vim.nix` (home) | Vim | Plugins, colorscheme (wallust). |
 | `program-btop.nix` (home) | btop | Theme (wallust). |
-| `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. |
-| `program-mkrepo.nix` (nixos) | mkrepo | `mkrepo` shell function (create + clone a GitHub repo) + `gh`/`git` packages. Standalone, imported directly alongside `program-zsh.nix`. |
+| `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. Pulled in by every host via `system-common.nix`. |
+| `program-mkrepo.nix` (nixos) | mkrepo | `mkrepo` shell function (create + clone a GitHub repo) + `gh` package (`git` itself comes from `system-base-packages.nix`). Pulled in by every host via `system-common.nix`. |
 | `program-cava.nix` (home) | Cava audio visualizer | Wallust color integration. |
-| `program-fastfetch.nix` (home) | fastfetch | System info display config. |
-| `program-zen-browser.nix` (nixos) | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. |
-| `program-mullvad.nix` (nixos) | Mullvad VPN | Service + GUI. |
-| `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action). |
+| `program-fastfetch.nix` (home) | fastfetch | System info display config. Imported by every host via `common.nix`. |
+| `program-zen-browser.nix` (nixos) | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. Imported via `bundle-workstation.nix`. |
+| `program-mullvad.nix` (nixos) | Mullvad VPN | Service + GUI. Imported via `bundle-workstation.nix`. |
+| `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action). Imported by every host via `common.nix`. |
 | `program-claude-code.nix` (home) | Claude Code CLI | Config and settings. |
 | `program-webapps.nix` (home) | Web app shortcuts | Desktop entries wrapping web URLs. |
 | `program-winboat.nix` (nixos) | Winboat | Windows compatibility tool (orphaned, see `docs/maintenance.md` #13). |
+| `program-ssh-keys.nix` (home) | SSH keys | Declares `~/.ssh` key files from agenix secrets. Imported via `bundle-workstation.nix`. |
+| `program-newsboat.nix` (home) | Newsboat RSS reader | Config + feed list. Imported via `bundle-workstation.nix`. |
+| `program-jellyfin-media-player.nix` (home) | Jellyfin media player | Desktop client config. Imported via `bundle-workstation.nix`. |
+| `program-yg-discover.nix` (home) | YG/Netio Discover | Work LAN-discovery client (saruman only). |
 
 ---
 
@@ -186,11 +194,12 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 
 | File | What it does |
 |------|-------------|
-| `service-bluetooth.nix` (nixos) | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. |
+| `service-bluetooth.nix` (nixos) | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. Pulled in by every host via `system-common.nix`. |
 | `service-kvm.nix` (nixos) | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
 | `service-megacmd.nix` (home) | MEGAcmd cloud sync daemon. Declarative sync pairs (`local → remote`). Orphaned, see `docs/maintenance.md` #14. |
-| `service-ollama.nix` (nixos) | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. |
-| `service-sunshine.nix` / `service-moonlight.nix` (nixos) | Sunshine streaming host (`custom.sunshine.{enable,autoStart}`) / Moonlight streaming client (`custom.moonlight.enable`). |
+| `service-ollama.nix` (nixos) | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. Imported via `bundle-workstation.nix`. |
+| `service-sunshine.nix` / `service-moonlight.nix` (nixos) | Sunshine streaming host (`custom.sunshine.{enable,autoStart}`) / Moonlight streaming client (`custom.moonlight.enable`). Imported via `bundle-workstation.nix`. |
+| `service-tailscale.nix` (nixos) | Tailscale VPN mesh (`custom.tailscale.enable`). Pulled in by every host via `system-common.nix`. |
 
 System-side SSH config (`services.openssh.enable`) is `system-ssh.nix`, wired through `system-common.nix` — not a `service-*.nix` file, since it's part of the baseline every host needs, not an opt-in service.
 

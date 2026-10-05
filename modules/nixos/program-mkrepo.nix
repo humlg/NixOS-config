@@ -3,7 +3,6 @@
 {
   environment.systemPackages = [
     pkgs.gh
-    pkgs.git
   ];
 
   programs.zsh.interactiveShellInit = ''

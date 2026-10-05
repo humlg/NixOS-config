@@ -9,11 +9,11 @@ let
 in
 {
   options.desktop.hyprland-desktop.dynamicCursors = {
-    enable = lib.mkEnableOption ''
+    enable = (lib.mkEnableOption ''
       hypr-dynamic-cursors "shake to find": the mouse cursor grows when you
       wiggle it (KDE / macOS style). Runs shake-only — the plugin's cursor
       tilt/rotate/stretch effects are left off (mode = "none")
-    '';
+    '') // { default = true; };
 
     threshold = lib.mkOption {
       type    = lib.types.float;

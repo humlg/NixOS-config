@@ -7,7 +7,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Rebuild and switch (on the current host)
 sudo nixos-rebuild switch --flake .#sauron
-sudo nixos-rebuild switch --flake .#nixosvm
 
 # Test a build without switching
 sudo nixos-rebuild test --flake .#sauron
@@ -28,7 +27,7 @@ nix search nixpkgs <package-name>
 ## Repository Structure
 
 ```
-flake.nix                          # Flake entrypoint — defines all three nixosConfigurations
+flake.nix                          # Flake entrypoint — defines both nixosConfigurations
 hosts/
   sauron/                          # Physical desktop (AMD Ryzen 7 5800X3D + RX 9070 XT, Hyprland, full package set)
     configuration.nix
@@ -40,23 +39,19 @@ hosts/
     home.nix
     hardware-configuration.nix
     file-system.nix                # On-demand NAS NFS mount at ~/nas (automount, soft, idle-timeout)
-  nixosvm/                         # NixOS VM (SPICE agent, SSH, minimal packages)
-    configuration.nix
-    home.nix
-    hardware-configuration.nix
 modules/                            # Full module map + what each file does: docs/architecture.md
   nixos/                             # NixOS modules, flat (system-/desktop-/bundle-/program-/service- prefix)
     system-common.nix … system-sddm.nix   # Base OS config, split into focused files, aggregated by system-common.nix
     desktop-hyprland.nix, desktop-noctalia.nix
-    bundle-*.nix                      # 3d-printing, gaming, ham-radio, photography, wine, yg-work
+    bundle-*.nix                      # 3d-printing, gaming, ham-radio, photography, wine, workstation, yg-work
     program-*.nix                     # mkrepo, mullvad, thunar, winboat, zen-browser, zsh
     service-*.nix                     # bluetooth, darkproject-keyboard, kvm, lid-undock-hibernate, ollama, sunshine, moonlight, tailscale, wireguard-saruman, wivrn
   home/                             # Home Manager modules, flat, imported only from hosts/*/home.nix
     common.nix                       # Pure HM boilerplate — unprefixed, stays at the home/ root
     ags-config/, noctalia-settings-seed.toml   # Flat sibling data owned by desktop-ags.nix / desktop-noctalia.nix
     desktop-hyprland-desktop.nix + desktop-hyprland-desktop/{hyprland-config,hyprland-config-lua}/   # Dual config trees — docs/architecture.md
-    desktop-*.nix                     # ags, anyrun, dark-theme, default-apps, hypr-dynamic-cursors, hypridle, hyprlock, noctalia, swaync, waybar
-    bundle-*.nix                      # desktop-apps, general, yg-work
+    desktop-*.nix                     # ags, anyrun, cursor-theme, dark-theme, default-apps, hypr-dynamic-cursors, hypridle, hyprlock, noctalia, swaync, waybar
+    bundle-*.nix                      # desktop-apps, general, workstation, yg-work
     program-*.nix                     # btop, cava, claude-code, fastfetch, git, jellyfin-media-player, kitty, newsboat, ssh-keys, thunar(+vault), transmission, vim, webapps, yg-discover
     service-megacmd.nix               # orphaned
 overlays/                           # Nixpkgs overrides, registered in flake.nix — docs/architecture.md
@@ -77,13 +72,12 @@ docs/
 |------|-----|-----|------|-----------------|
 | sauron | AMD Ryzen 7 5800X3D | RX 9070 XT (RDNA4) | wired, WoL | ROCm GFX override (`12.0.0`). Slow NVMe init → 300s timeout. Ex-NVIDIA (`docs/maintenance.md` #4). |
 | saruman | AMD Ryzen AI 9 365 (Strix Point), Lenovo IdeaPad 14ASP9 | Radeon 880M iGPU (RDNA3.5) | MT7922 (`mt7921e`) | ROCm GFX override (`11.0.0`). TPM present but unused (passphrase-only LUKS). s2idle sleep hang, open (`docs/maintenance.md` #7). HDMI SCDC fix, disabled (#23). Top USB-C port carries no DP video (#24). Backlight curve fix (#25). |
-| nixosvm | virtualized (SPICE guest) | virtualized | — | Minimal package set, SPICE agent only — not a physical host. |
 
 Keep this table current: whenever you discover or change a hardware fact (a chip model, a quirk, a workaround tied to specific silicon) while working on a host, update its row here in the same commit. Full history and diagnosis for each quirk lives in `docs/maintenance.md`, linked by item number — don't duplicate the narrative here, just the fact and the pointer.
 
 ## Architecture
 
-- **Flake-based**: `flake.nix` defines three hosts under `nixosConfigurations`. Home Manager is included as a NixOS module (not standalone), so `home-manager` config lives inside each host's `configuration.nix` via `home-manager.users.david = import ./home.nix`.
+- **Flake-based**: `flake.nix` defines two hosts under `nixosConfigurations`. Home Manager is included as a NixOS module (not standalone), so `home-manager` config lives inside each host's `configuration.nix` via `home-manager.users.david = import ./home.nix`.
 - **Shared modules** in `modules/` are split at the top level by module system — `modules/nixos/` (imported only from `hosts/*/configuration.nix`) and `modules/home/` (imported only from `hosts/*/home.nix`). Both are flat; the topic lives in the filename prefix (`system-`, `desktop-`, `bundle-`, `program-`, `service-`), not a subfolder. Location alone tells you whether a module is NixOS or Home Manager; there is no auto-import mechanism, so each host file still lists what it needs explicitly. Full module map: `docs/architecture.md`.
 - **Common boilerplate** is in `modules/home/common.nix` (imported by all `home.nix` files) and `modules/nixos/system-common.nix` (imported by all `configuration.nix` files).
 - **`specialArgs = { inherit inputs; }`** is passed to both NixOS and Home Manager to allow modules to access flake inputs.

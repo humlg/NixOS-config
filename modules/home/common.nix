@@ -1,6 +1,13 @@
 { ... }:
 
 {
+  imports = [
+    ./program-fastfetch.nix
+    ./program-thunar.nix
+    ./desktop-dark-theme.nix
+    ./desktop-cursor-theme.nix
+  ];
+
   home.username = "david";
   home.homeDirectory = "/home/david";
   home.stateVersion = "25.11";

@@ -1133,6 +1133,32 @@ Last full scan: 2026-07-16.
   `0x342D`/PID `0xE40F` before assuming it's redundant — the upstream implementation may
   use different file/class names).
 
+### 27. AMD GPU module only wired to sauron; saruman hand-copies part of it (found 2026-10-06, not yet fixed)
+- **Where:** `modules/nixos/system-amd-gpu.nix` (imported only by `hosts/sauron/configuration.nix`)
+  vs. `hosts/saruman/configuration.nix:124-130` (the `hardware.graphics.extraPackages`/
+  `HSA_OVERRIDE_GFX_VERSION` block, hand-duplicated rather than importing the module).
+- **What:** Both hosts are AMD-GPU machines (see CLAUDE.md's Hardware Quick Reference), so
+  conceptually both should use the same module, parameterized per-host (different
+  `HSA_OVERRIDE_GFX_VERSION`: `12.0.0` on sauron's RDNA4, `11.0.0` on saruman's RDNA3.5 —
+  correctly different, see items #5/#6). Instead, `system-amd-gpu.nix` is wired only to
+  sauron, and saruman re-declares the two `hardware.graphics.extraPackages` entries
+  (`rocmPackages.clr.icd`, `libglvnd`) directly — but is missing everything else
+  `system-amd-gpu.nix` sets for sauron: `environment.variables.LIBVA_DRIVER_NAME`,
+  `services.xserver.videoDrivers = [ "amdgpu" ]`, the ppfeaturemask unlock, early-KMS
+  `boot.initrd.kernelModules`, and `programs.corectrl.enable`.
+- **Why not fixed now:** found during a module-consolidation pass (2026-10-06) that folded
+  most other sauron/saruman duplication into shared modules, but GPU config was deliberately
+  left untouched — editing `HSA_OVERRIDE_GFX_VERSION`/ROCm/video-driver settings on a live
+  system carries real risk of breaking graphics or GPU compute (Ollama, DaVinci Resolve) on
+  either host, so it needs its own careful pass rather than riding along with a broader
+  refactor.
+- **Action:** Parameterize `system-amd-gpu.nix` (e.g. an option for the GFX override value,
+  or `lib.mkDefault`s hosts can override) and wire it to both `sauron` and `saruman`,
+  removing saruman's hand-copied fragment — reconciling whether the ppfeaturemask/corectrl
+  pieces are sauron-specific on purpose or just never added to saruman.
+- **Removal condition:** Done once both hosts import the same module and
+  `hosts/saruman/configuration.nix` no longer hand-declares `hardware.graphics.extraPackages`.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
