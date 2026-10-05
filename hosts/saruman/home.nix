@@ -1,9 +1,7 @@
 { config, pkgs, ... }:
 
 let
-  # Toggle eDP-1 between native (2880x1800) and Full HD (1920x1080, 16:9)
-  # for TV mirroring/casting. The Lua config parser rejects `hyprctl
-  # keyword`, so use `hyprctl eval`. Bound to SUPER+A.
+  # Native/Full HD toggle for TV mirroring (SUPER+A). `hyprctl eval`, not `keyword` — Lua config.
   resolutionToggle = pkgs.writeShellScriptBin "resolution-toggle" ''
     width=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.name=="eDP-1") | .width')
     if [ "$width" = "1920" ]; then
@@ -46,13 +44,7 @@ in
 
     useLuaConfig = true;
 
-    # Noctalia desktop shell pilot (2026-08-19) — runs alongside AGS/swaync/
-    # hyprlock/waypaper for now (all still enabled below), not replacing them
-    # yet. See the Noctalia migration plan: bar/notifications/wallpaper/lock
-    # get validated standalone (Phase B) before any keybind/autostart cutover
-    # (Phase C), and hypridle's lock_cmd is deliberately left on hyprlock
-    # until Phase D, gated separately given saruman's sleep-hang history.
-    useNoctalia = true;
+    useNoctalia = true;  # pilot, runs alongside AGS/swaync/hyprlock/waypaper — docs/maintenance.md #19
 
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
@@ -70,14 +62,8 @@ in
     terminal      = "kitty";
     fileManager   = "thunar";
 
-    # Currently inert: hypridle (the only consumer of this option) is disabled
-    # on saruman while useNoctalia = true (see modules/home/desktop-hypridle.nix
-    # and docs/maintenance.md item 19) — Noctalia's own idle service now owns
-    # dim/lock/dpms/sleep instead, configured outside Nix. Left set so the
-    # value is correct again the moment useNoctalia flips back off. Matches
-    # the logind lid/power-key paths in configuration.nix — third attempt at
-    # plain suspend (2026-08-19), see docs/maintenance.md item 7 for why the first
-    # two failed and what to revert to if this one does too.
+    # Inert while useNoctalia=true (desktop-hypridle.nix disabled, docs/maintenance.md #19) — left
+    # set so it's correct the moment Noctalia flips off. Matches configuration.nix's logind paths.
     sleepCommand  = "systemctl suspend";
 
     extraConfig = ''
@@ -88,10 +74,7 @@ in
     extraLuaConfig = ''
       hl.config({ xwayland = { force_zero_scaling = false } })
 
-      -- Workaround for upstream Hyprland bug: mirroring outputs with different
-      -- aspect ratios leaves stale scene data flickering in the pillarbox
-      -- margin instead of clearing it to black. A reload fixes it.
-      -- https://github.com/hyprwm/Hyprland/discussions/11708
+      -- Monitor-mirroring flicker workaround — docs/maintenance.md #8.
       hl.on("monitor.added", function(monitor)
         if monitor.name ~= "eDP-1" then
           hl.exec_cmd("sleep 1 && hyprctl reload")
@@ -105,13 +88,8 @@ in
     # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
     dynamicCursors.enable = true;
 
-    # Silently autostart NewsFlash into special:rss, and newsboat (terminal
-    # RSS reader, modules/home/program-newsboat.nix) into special:dashboard, same
-    # mechanism as Thunderbird/Obsidian above (merges with the module's
-    # default list). newsboat's own toggle key is left null since
-    # mainMod+X/SHIFT+X already toggle special:dashboard unconditionally
-    # (keybinds.nix) — a second silentApps-generated bind on the same key
-    # would just double the same dispatch.
+    # Merges with the module's default list (docs/architecture.md). newsboat's key is
+    # null — mainMod+X/SHIFT+X already toggle special:dashboard, a second bind would double it.
     silentApps = [
       {
         name         = "rssReader";
