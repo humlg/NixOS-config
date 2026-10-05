@@ -8,52 +8,21 @@ in
     inputs.noctalia.homeModules.default
   ];
 
-  # Pilot only — gated on useNoctalia so it can run alongside AGS/swaync/
-  # hyprlock/waypaper without disabling any of them. See the Noctalia
-  # migration plan (2026-08-19) for the staged cutover this is part of.
+  # Gated on useNoctalia — runs alongside AGS/swaync/hyprlock/waypaper, disables none of them.
   config = lib.mkIf (cfg.enable && cfg.useNoctalia) {
     programs.noctalia = {
       enable = true;
       systemd.enable = true;
       package = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
-      # Left at Noctalia's own defaults for the initial pilot — bar
-      # layout/widgets, theme source, lock screen, etc. all use Noctalia's
-      # out-of-the-box config until each piece is validated and settings get
-      # tuned to match the existing setup.
-      #
-      # Noctalia has its own wallpaper-derived theme (matugen-style, not
-      # wallust) for itself, but wallust still drives every other themed app
-      # (hyprlock, hyprland core, rofi, btop, cava, vim). Since waypaper's
-      # post_command hook (the previous wallust trigger) is disabled on this
-      # host, wire Noctalia's own wallpaper_changed hook to the same
-      # `wallust run -s ... && reload-desktop` sequence so those apps keep
-      # re-theming when the wallpaper changes through Noctalia's own picker.
-      # Noctalia's own colors will not match wallust's output — the two use
-      # different palette generators — that divergence is a known, accepted
-      # gap for this pilot (see docs/maintenance.md item 19).
+      # Wallust still drives every other themed app; Noctalia gets its own
+      # wallpaper-derived palette (won't match wallust's exactly) — docs/architecture.md.
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';
     };
 
-    # Backing binary for Noctalia's official "Screen Recorder" plugin
-    # (noctalia/screen_recorder — screen recording + replay buffer via
-    # hardware-accelerated encode). The plugin itself is enabled through
-    # Noctalia's own settings.toml [plugins] list (see the seed file below),
-    # not a Nix option — this just makes sure the binary it shells out to is
-    # present on every host running this DE.
+    # Binary Noctalia's screen_recorder plugin shells out to — plugin itself enabled via settings.toml.
     home.packages = [ pkgs.gpu-screen-recorder ];
 
-    # One-shot seed of the tuned look-and-feel (bar layout, theme, lockscreen
-    # widgets, plugin list, idle behavior, etc.) from saruman's live-tuned
-    # config, captured 2026-08-21 into noctalia-settings-seed.toml. This file
-    # is Noctalia's own runtime state, not a declarative Nix option — its
-    # settings GUI rewrites it live, so home-manager must not symlink/manage
-    # it directly (same class of problem as the gtk.css clobbering below).
-    # Only written if absent, exactly like seedWaypaperConfig in
-    # hyprland-desktop.nix, so a host that already has its own tuned
-    # settings.toml (saruman) is left untouched, and once seeded here
-    # Noctalia owns the file completely — this activation script never
-    # touches it again. Referenced plugins/community palette are fetched by
-    # Noctalia's own marketplace mechanism on first run, not copied here.
+    # Seed-once, not Nix-managed after that — docs/architecture.md.
     home.activation.seedNoctaliaSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       if [[ ! -f "$HOME/.local/state/noctalia/settings.toml" ]]; then
         $DRY_RUN_CMD mkdir -p "$HOME/.local/state/noctalia"
@@ -62,22 +31,7 @@ in
       fi
     '';
 
-    # dark-theme.nix no longer writes ~/.config/gtk-4.0/gtk.css at all (its
-    # WhiteSur GTK4 import was broken — see the comment there), so this module
-    # owns the file under Noctalia. It imports noctalia.css, the wallpaper
-    # palette Noctalia's theming daemon regenerates in the same directory, so
-    # libadwaita apps track the bar's colours on top of the bundled Adwaita
-    # stylesheet.
-    #
-    # Noctalia's own GTK4 live-theming (assets/templates/gtk/apply.sh in the
-    # noctalia-shell source, run by its theming daemon on every start/theme
-    # change) rewrites this file at runtime to the same effect. When it does,
-    # the next activation finds a real file where it expects its symlink,
-    # backs it up to gtk.css.hm-bak, and re-symlinks — which then collects a
-    # stale .hm-bak that blocks the activation *after* that with "existing
-    # file ... would be clobbered", since nothing ever removes it. `force =
-    # true` makes home-manager skip the backup step and just overwrite
-    # unconditionally, breaking that cycle. See docs/maintenance.md item 19.
+    # force = true breaks a backup/clobber loop with Noctalia's own live GTK4 theming — docs/architecture.md.
     xdg.configFile."gtk-4.0/gtk.css" = {
       force = true;
       text = ''@import url("noctalia.css");'';

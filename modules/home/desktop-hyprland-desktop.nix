@@ -28,10 +28,7 @@ let
     esac
   '';
 
-  # `wallust run -s` (skip-sequences): without -s, wallust also pushes OSC color
-  # escape sequences straight to every already-open terminal pty on each wallpaper
-  # change, live-repainting kitty's static theme in running windows (newly spawned
-  # windows were unaffected, since they read kitty.conf, not a live sequence).
+  # -s (skip-sequences): without it, wallust also live-repaints kitty's static theme via OSC.
   waypaperDefaultConfig = pkgs.writeText "waypaper-default-config.ini" ''
     [Settings]
     language = en
@@ -174,10 +171,7 @@ in
       '';
     };
 
-    # Used only when useLuaConfig = true (hyprland-config-lua/{variables,
-    # autostart,window-rules,keybinds}.nix). Not wired up for the legacy
-    # hyprlang fragments — see hyprland-config/ in the repo tree note: frozen,
-    # no longer kept in sync.
+    # Only wired up for hyprland-config-lua/ (active) — not the frozen legacy hyprlang tree.
     silentApps = lib.mkOption {
       type = lib.types.listOf (lib.types.submodule {
         options = {
@@ -237,13 +231,9 @@ in
           };
         };
       });
-      # No `default` here on purpose: mkOption's default is a low-priority
-      # contribution that gets fully discarded (not merged) the moment any
-      # module assigns this option in `config`, so the Thunderbird/Obsidian
-      # baseline is instead set below in `config.desktop.hyprland-desktop.
-      # silentApps`, where cross-module list assignments genuinely
-      # concatenate (the same mechanism home.packages relies on) — a host
-      # can then just add its own entries without losing the baseline.
+      # No `default` here — listOf defaults are discarded, not merged, once
+      # any module assigns the option (docs/architecture.md). Baseline set
+      # below in config.desktop.hyprland-desktop.silentApps instead.
       default = [ ];
       description = ''
         Apps launched silently into a special workspace at boot: the window
@@ -253,8 +243,7 @@ in
         a forced refocus to workspace 1 runs once all of them have had time
         to map (no_initial_focus alone only stops focus-stealing from an
         *already-focused* window, and at cold boot nothing is focused yet).
-        See docs/maintenance.md and the obsidian-thunderbird-silent-autostart
-        memory for the debugging history behind this mechanism.
+        Debugging history: docs/maintenance.md.
       '';
     };
   };
@@ -264,11 +253,8 @@ in
     # ── Silent-autostart baseline (see silentApps option above) ───────
     desktop.hyprland-desktop.silentApps = [
       { name = "thunderbird"; command = "thunderbird"; class = "^(thunderbird)$"; matchInitial = true;  workspace = "mail";  key = "T"; delay = 3; }
-      # Obsidian's Wayland app-id has changed across versions ("obsidian" ->
-      # "md.Obsidian" as of 1.13.7, confirmed live via `hyprctl clients -j`
-      # 2026-09-09) — re-check if this rule ever stops matching again
-      # (symptom: Obsidian briefly flashes on screen and steals focus at
-      # boot instead of launching straight into special:notes).
+      # Obsidian's Wayland app-id has changed across versions before (symptom if it
+      # breaks again: brief flash + focus steal instead of launching into special:notes).
       { name = "obsidian";    command = "obsidian";    class = "^md.Obsidian$";   matchInitial = false; workspace = "notes"; key = "S"; delay = 4; }
     ];
 
@@ -354,13 +340,8 @@ in
     };
 
     # ── Screen shaders ──────────────────────────────────────────────
-    # Applied via `decoration:screen_shader`. Off by default; toggled at
-    # runtime with `hyprctl eval` (the Lua parser rejects `hyprctl keyword`).
-    # Static GLES3 shader (no `time` uniform), so it re-applies on every
-    # screen damage without forcing extra re-renders.
-    # Darkroom mode: grayscale mapped to the red channel only. Red light barely
-    # stimulates rod cells, so this preserves dark adaptation in a dark room.
-    # Toggled with SUPER+G (darkroom-toggle).
+    # Darkroom mode (SUPER+G): grayscale mapped to red only, preserves dark
+    # adaptation. Toggled via `hyprctl eval` (Lua parser rejects `hyprctl keyword`).
     home.file.".config/hypr/shaders/darkroom.frag".text = ''
       #version 300 es
       precision highp float;
@@ -408,13 +389,10 @@ in
         Type = "oneshot";
         TimeoutStartSec = 30;
         ExecStart = toString (pkgs.writeShellScript "wallust-restore" ''
-          # Bail out cleanly if awww daemon is not running (e.g. during nixos-rebuild).
-          # wallust run would otherwise hang waiting for the awww socket.
+          # Avoid hanging on the awww socket if the daemon isn't up yet (e.g. during rebuild).
           pgrep -x awww-daemon > /dev/null || exit 0
 
-          # awww stores per-output cache files in ~/.cache/awww/
-          # Use tr to strip null bytes — awww cache files may be binary and bash 5.3
-          # crashes with SEGV when command substitution receives a string with null bytes.
+          # tr strips null bytes — bash 5.3 SEGVs on command substitution with them.
           for f in "$HOME"/.cache/awww/*; do
             [ -f "$f" ] || continue
             wallpaper="$(tr -d '\0' < "$f")"

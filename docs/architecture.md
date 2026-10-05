@@ -278,6 +278,10 @@ Under Noctalia, `modules/home/desktop-noctalia.nix` owns `~/.config/gtk-4.0/gtk.
 
 systemd's `73-seat-late.rules` is what turns a `TAG+="uaccess"` into a real ACL entry (`TAG=="uaccess", RUN{builtin}+="uaccess"`), but that match is evaluated in the same single-pass udev scan — a `uaccess` tag added by a `99-` rule is still unset when `73-` checks for it, so the ACL builtin never runs. The hidraw node ends up correctly tagged (visible in `udevadm info`) but stays `mode 600 root:root` with no ACL entry, so a browser's WebHID request silently fails to open the device. Naming the rules file anything below `73-` puts the tag in place before `73-seat-late.rules` checks for it.
 
+### `listOf` option defaults are discarded, not merged
+
+A `lib.types.listOf` option's `default` is a low-priority contribution that gets fully discarded — not merged — the moment any module assigns that option in `config`. A shared baseline a host is meant to *extend* (e.g. `desktop.hyprland-desktop.silentApps`'s Thunderbird/Obsidian entries) must be set in `config`, not `default`, since cross-module `config` assignments to the same list genuinely concatenate (the same mechanism `home.packages` relies on) — a host can then add its own entries without losing the baseline.
+
 ### Noctalia settings.toml is seed-once, not Nix-managed
 
 `modules/home/desktop-noctalia.nix` seeds `~/.local/state/noctalia/settings.toml` from `noctalia-settings-seed.toml` only if the file doesn't already exist (same pattern as `seedWaypaperConfig` in `desktop-hyprland-desktop.nix`). Once seeded, Noctalia's own settings GUI owns the file — home-manager never touches it again. Noctalia generates its own wallpaper palette (matugen-style), separate from wallust; its `hooks.wallpaper_changed` is wired to run `wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop` so the rest of the desktop (hyprlock, rofi, btop, cava, vim) stays in sync when the wallpaper changes through Noctalia's own picker. The two palettes won't match exactly — a known, accepted gap (see `docs/maintenance.md` #19).

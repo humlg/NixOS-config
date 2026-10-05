@@ -3,46 +3,25 @@
 let
   cfg = config.desktop.hyprland-desktop;
 
-  # Idle-timeout listeners are gated on this flag file so the "sleep inhibit"
-  # toggle (modules/home/desktop-swaync.nix) can disable *just* the idle timeouts
-  # while leaving hypridle running — it must keep running so before_sleep_cmd
-  # still locks the session on a lid-close-triggered suspend (handled directly
-  # by logind, independent of hypridle's own listeners).
+  # Gates idle-timeout listeners only, not before_sleep_cmd — docs/architecture.md.
   runUnlessIdleInhibited = pkgs.writeShellScript "hypridle-run-unless-inhibited" ''
     [ -f "$XDG_RUNTIME_DIR/hypridle-idle-inhibited" ] || exec "$@"
   '';
   guarded = cmd: "${runUnlessIdleInhibited} ${cmd}";
 
-  # All hosts run the Lua config (desktop.hyprland-desktop.useLuaConfig), where
-  # hyprctl hands its dispatch argument to Lua rather than to the hyprlang
-  # dispatcher parser. The bare `hyprctl dispatch dpms on` spelling therefore
-  # fails to parse ("')' expected near 'on'") and the panel never comes back —
-  # silently, because hypridle doesn't check exit status. Same external-Lua form
-  # as hyprland-config-lua/autostart.nix uses.
+  # External-Lua dispatch form required under the Lua config — docs/architecture.md.
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 in
 {
-  # Gated the same way as ags.nix/swaync.nix (Phase C of the Noctalia
-  # migration, docs/maintenance.md item 19): Noctalia owns idle/dim/lock/dpms/sleep
-  # entirely on hosts that pilot it, via its own idle service configured
-  # outside Nix. Running hypridle's listeners alongside it would race the same
-  # way the compositor and logind once raced over lid-switch sleep (item 7's
-  # first attempt) — two independent daemons both listening for the same idle
-  # events, only one of which can win unpredictably.
+  # Inert under Noctalia — its own idle service owns idle/dim/lock/dpms/sleep. docs/maintenance.md #19.
   config = lib.mkIf (cfg.enable && !cfg.useNoctalia) {
 
-    # ── Hypridle ──────────────────────────────────────────────────────────────
     services.hypridle = {
       enable = true;
       settings = {
         general = {
-          # Under Noctalia (Phase D of the migration, see docs/maintenance.md item
-          # 19), lock_cmd must not spawn hyprlock at all: Noctalia also
-          # implements the session-lock protocol, and running both risks a
-          # race for the lock surface. Use Noctalia's documented IPC lock
-          # command instead, so hyprlock is never invoked automatically on
-          # this host again. hyprlock.nix itself stays enabled/untouched so
-          # this is a one-line rollback if Noctalia's lock proves unreliable.
+          # Under Noctalia, route through its IPC lock instead of spawning hyprlock
+          # directly, to avoid both implementing the session-lock protocol at once.
           lock_cmd         = if cfg.useNoctalia
             then "noctalia msg session lock"
             else "pidof hyprlock || hyprlock";
@@ -66,11 +45,7 @@ in
             on-resume  = "${dpms "on"} && brightnessctl -r";
           }
           {
-            # 30 min — sleep. The exact command is host-configurable via
-            # desktop.hyprland-desktop.sleepCommand, so this listener always
-            # matches the host's lid-close and power-key paths (handled by
-            # logind in its configuration.nix).
-            timeout    = 1800;
+            timeout    = 1800;  # sleep; command is host-configurable via sleepCommand
             on-timeout = guarded cfg.sleepCommand;
           }
         ];
