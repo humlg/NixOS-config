@@ -30,7 +30,7 @@ Last full scan: 2026-07-16.
 - **Removal condition:** nixpkgs ships DaVinci Resolve ≥ 21 stable.
 
 ### 2. RawTherapee overlay exists but the package is commented out
-- **Where:** `overlays/rawtherapee-dev.nix` (defines the fix), `modules/nixos/bundles/photography.nix:29` (`#rawtherapee`, commented out)
+- **Where:** `overlays/rawtherapee-dev.nix` (defines the fix), `modules/nixos/bundle-photography.nix:29` (`#rawtherapee`, commented out)
 - **What:** The overlay rebuilds RawTherapee from a specific dev commit + a pinned
   `fmt` 12.0.0 source, to fix a static-initialization-order crash on startup
   (see linked upstream PRs/bug in the overlay's comment).
@@ -53,7 +53,7 @@ Last full scan: 2026-07-16.
   (upstream nixpkgs issue, not tracked with a link here — worth filing/finding one).
 
 ### 4. Sauron: NVIDIA module still in the repo but no longer used
-- **Where:** `modules/nixos/system/nvidia.nix` (orphaned — not imported by any host)
+- **Where:** `modules/nixos/system-nvidia.nix` (orphaned — not imported by any host)
 - **What:** Sauron was rebuilt around a Ryzen 7 5800X3D + RX 9070 XT (AMD), per
   commit `52e662f "docs: update sauron hardware — Ryzen 7 5800X3D + RX 9070 XT,
   not NVIDIA"`. `hosts/sauron/configuration.nix` now imports `amd-gpu.nix`
@@ -61,12 +61,12 @@ Last full scan: 2026-07-16.
 - **Stale doc:** `CLAUDE.md`'s repository-structure comment still describes
   `hosts/sauron/` as "Physical desktop (**NVIDIA**, Hyprland, full package set)".
   Should be corrected to AMD.
-- **Cleanup:** Either delete `modules/nixos/system/nvidia.nix` (if no host will ever
+- **Cleanup:** Either delete `modules/nixos/system-nvidia.nix` (if no host will ever
   go back to NVIDIA) or leave it as a reference for a future NVIDIA box —
   your call, but it should stop being silently dead code either way.
 
 ### 5. Sauron's RDNA 4 GPU forces an unofficial ROCm GFX version
-- **Where:** `modules/nixos/system/amd-gpu.nix`
+- **Where:** `modules/nixos/system-amd-gpu.nix`
 - **What:** `HSA_OVERRIDE_GFX_VERSION = "12.0.0"` — tricks ROCm into treating the
   RX 9070 XT (RDNA 4) as the closest supported architecture.
 - **Why:** RDNA 4 isn't officially supported by ROCm yet.
@@ -82,7 +82,7 @@ Last full scan: 2026-07-16.
 
 ### 7. Saruman: s2idle sleep/resume hang — kernel patch (2026-08-16) never showed a clear win over ~5 weeks; disabled 2026-09-09, retesting stock kernel
 - **Where:** `patches/amdgpu-no-idle-opt-on-s2idle.patch`,
-  `modules/nixos/system/amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
+  `modules/nixos/system-amdgpu-s2idle-patch.nix`, and `hosts/saruman/configuration.nix`
   (`boot.resumeDevice`, `custom.amdgpu-s2idle-patch.enable`, the three
   `services.logind.settings.Login.Handle*` values).
 - **What workarounds are stacked here:**
@@ -131,7 +131,7 @@ Last full scan: 2026-07-16.
      logind reacts to lid events on its own regardless of what the
      compositor does.
      **Extended to the other two s2idle paths on 2026-08-14**: hypridle's
-     30-min idle-timeout listener (`modules/home/desktop/hypridle.nix`) now runs
+     30-min idle-timeout listener (`modules/home/desktop-hypridle.nix`) now runs
      `desktop.hyprland-desktop.sleepCommand`, set to `systemctl hibernate`
      in `hosts/saruman/home.nix`; and `HandlePowerKey` went from `"suspend"`
      to `"hibernate"` too. The option defaults to `systemctl suspend` so
@@ -142,7 +142,7 @@ Last full scan: 2026-07-16.
      relying on the logind default) so the laptop stays usable lid-shut on
      an external monitor. logind evaluates that choice only at the instant
      the lid event fires and never re-checks, so unplugging the monitor
-     afterwards would strand the machine awake in a bag. `modules/nixos/services/
+     afterwards would strand the machine awake in a bag. `modules/nixos/service-
      lid-undock-hibernate.nix` closes that: a udev rule on DRM hotplug runs
      a unit that hibernates when the last external display disappears with
      the lid shut. It edge-triggers on a 1→0 external-display transition
@@ -167,7 +167,7 @@ Last full scan: 2026-07-16.
      Superseded on 2026-08-16 — see bullet 6.
   6. **Local kernel patch (2026-08-16, active fix)** —
      `patches/amdgpu-no-idle-opt-on-s2idle.patch`, applied via
-     `boot.kernelPatches` from `modules/nixos/system/amdgpu-s2idle-patch.nix`
+     `boot.kernelPatches` from `modules/nixos/system-amdgpu-s2idle-patch.nix`
      (`custom.amdgpu-s2idle-patch.enable`). It deletes the two lines that
      `f6098641d3e1e4` added to `dm_suspend()`:
      `if (dm->dc->caps.ips_support && adev->in_s0ix) dc_allow_idle_optimizations(dm->dc, true);`
@@ -567,7 +567,7 @@ Last full scan: 2026-07-16.
   occasionally.
 
 ### 9. SwayNC blur — namespace match was silently broken, now fixed but worth re-checking after Hyprland upgrades
-- **Where:** `modules/home/desktop/hyprland-config-lua/appearance.nix:65-74` (and the
+- **Where:** `modules/home/desktop-hyprland-desktop/hyprland-config-lua/appearance.nix:65-74` (and the
   legacy hyprlang version in `hyprland-config/appearance.nix:64-65`)
 - **What:** A layer-rule that blurs SwayNC's notification/control-center layers.
 - **History:** Originally matched `class = swaync`, which **never matched**
@@ -580,7 +580,7 @@ Last full scan: 2026-07-16.
   check after upgrading SwayNC.
 
 ### 10. SDDM greeter keyboard layout — systemd-localed seeding
-- **Where:** `modules/nixos/system/sddm.nix:36-50`
+- **Where:** `modules/nixos/system-sddm.nix:36-50`
 - **What:** A oneshot systemd service (`seed-x11-locale1`) that runs
   `localectl set-x11-keymap` before the display manager starts.
 - **Why:** SDDM's kwin greeter reads the keyboard layout from
@@ -592,7 +592,7 @@ Last full scan: 2026-07-16.
   greeter's behavior changes upstream.
 
 ### 11. Steam pressure-vessel needs a fake `/usr/sbin/ldconfig`
-- **Where:** `modules/nixos/bundles/gaming.nix` — `system.activationScripts.steamLdconfig`
+- **Where:** `modules/nixos/bundle-gaming.nix` — `system.activationScripts.steamLdconfig`
 - **What:** Symlinks a real ldconfig to `/usr/sbin/ldconfig` at system activation.
 - **Why:** Inside Steam's Linux Runtime container, NixOS's ldconfig stub chain
   loops back on itself, so pressure-vessel can't set `LD_LIBRARY_PATH`, breaking
@@ -603,7 +603,7 @@ Last full scan: 2026-07-16.
   resolution works inside the container.
 
 ### 12. DaVinci Resolve forced to XCB (X11) instead of native Wayland
-- **Where:** `modules/nixos/bundles/photography.nix:6-16`
+- **Where:** `modules/nixos/bundle-photography.nix:6-16`
 - **What:** `davinci-resolve-xcb` wraps the package with `QT_QPA_PLATFORM=xcb`.
 - **Why:** DaVinci Resolve bundles Qt5, which under `WAYLAND_DISPLAY` (i.e. on
   Hyprland) defaults to the Wayland platform, which DR doesn't support.
@@ -611,7 +611,7 @@ Last full scan: 2026-07-16.
   soon — low priority to revisit).
 
 ### 13. `winboat` module is orphaned and its Docker dependency is not wired up
-- **Where:** `modules/nixos/programs/winboat.nix`
+- **Where:** `modules/nixos/program-winboat.nix`
 - **What:** Installs `pkgs.winboat` and adds `david` to the `docker` group, but
   `virtualisation.docker.daemon.enable = true;` is **commented out**, and
   `virtualisation.docker.enable` isn't set anywhere in the repo at all.
@@ -624,7 +624,7 @@ Last full scan: 2026-07-16.
   in a host) or delete it if winboat isn't wanted anymore.
 
 ### 14. `megacmd.nix` service module is fully built but orphaned
-- **Where:** `modules/home/services/megacmd.nix`
+- **Where:** `modules/home/service-megacmd.nix`
 - **What:** A complete MEGAcmd sync-daemon service module (declared sync pairs,
   systemd service/timer). **Not imported by any host.**
 - **Action:** Confirm whether this is still wanted; either import it somewhere
@@ -632,8 +632,8 @@ Last full scan: 2026-07-16.
   "what's actually running."
 
 ### 15. `waybar.nix` kept as a deliberate fallback, not actively maintained
-- **Where:** `modules/home/desktop/waybar.nix` (orphaned — not imported by any host)
-- **What:** Full Waybar config, superseded by the AGS bar (`modules/home/desktop/ags.nix`
+- **Where:** `modules/home/desktop-waybar.nix` (orphaned — not imported by any host)
+- **What:** Full Waybar config, superseded by the AGS bar (`modules/home/desktop-ags.nix`
   + `ags-config/`).
 - **Status:** This one is *intentionally* kept per prior guidance — not a bug,
   just tech debt with a known reason. Listed here so it doesn't get "rediscovered"
@@ -641,8 +641,8 @@ Last full scan: 2026-07-16.
   into an unusable fallback if AGS ever needs to be abandoned in a hurry.
 
 ### 16. Two parallel Hyprland config formats coexist (hyprlang tree now frozen)
-- **Where:** `modules/home/desktop/hyprland-config/` (hyprlang, legacy) vs.
-  `modules/home/desktop/hyprland-config-lua/` (Lua, active)
+- **Where:** `modules/home/desktop-hyprland-desktop/hyprland-config/` (hyprlang, legacy) vs.
+  `modules/home/desktop-hyprland-desktop/hyprland-config-lua/` (Lua, active)
 - **What:** Both directories are fully built out. All three hosts actually run
   the Lua config (`useLuaConfig = true` in each `home.nix`).
 - **Status (2026-08-19):** No longer kept in sync — David confirmed the
@@ -659,9 +659,9 @@ Last full scan: 2026-07-16.
 
 ### 17. Commented-out packages with no explanation
 - **Where:**
-  - `modules/nixos/bundles/3d-printing.nix:15` — `#bambu-studio`
-  - `modules/nixos/bundles/photography.nix:29` — `#rawtherapee` (see item #2 — this one has an explanation, just disconnected from its overlay)
-  - `modules/nixos/system/nvidia.nix:9` — `#package = ...nvidiaPackages.new_feature;`
+  - `modules/nixos/bundle-3d-printing.nix:15` — `#bambu-studio`
+  - `modules/nixos/bundle-photography.nix:29` — `#rawtherapee` (see item #2 — this one has an explanation, just disconnected from its overlay)
+  - `modules/nixos/system-nvidia.nix:9` — `#package = ...nvidiaPackages.new_feature;`
 - **Action:** `bambu-studio` in particular has no comment explaining why it's
   disabled (broken build? license issue? just unused?). Worth a one-line note
   or removing it outright.
@@ -675,8 +675,8 @@ Last full scan: 2026-07-16.
 - **Action:** Delete the stale "Sauron TODO" section from `CLAUDE.md`.
 
 ### 19. Noctalia desktop shell — pilot on saruman, full replacement on sauron
-- **Where:** `modules/home/desktop/noctalia.nix` (HM, `desktop.hyprland-desktop.useNoctalia`),
-  `modules/nixos/desktop/noctalia.nix` (NixOS, `custom.noctalia.enable`), new
+- **Where:** `modules/home/desktop-noctalia.nix` (HM, `desktop.hyprland-desktop.useNoctalia`),
+  `modules/nixos/desktop-noctalia.nix` (NixOS, `custom.noctalia.enable`), new
   `noctalia` flake input in `flake.nix`. Enabled on saruman
   (`hosts/saruman/configuration.nix`, `hosts/saruman/home.nix`) and, as of
   2026-08-21, on sauron too (`hosts/sauron/configuration.nix`,
@@ -691,7 +691,7 @@ Last full scan: 2026-07-16.
   look-and-feel (bar layout, theme, lockscreen widgets, plugin list, idle
   behavior) lives in `~/.local/state/noctalia/settings.toml`, which its own
   settings GUI rewrites at runtime — not a Nix-managed file, same category as
-  the `gtk.css` clobbering problem below. `modules/home/desktop/
+  the `gtk.css` clobbering problem below. `modules/home/
   noctalia-settings-seed.toml` is a snapshot of saruman's live settings.toml
   captured 2026-08-21; `noctalia.nix`'s `seedNoctaliaSettings` activation
   script copies it to `~/.local/state/noctalia/settings.toml` once, only if
@@ -767,7 +767,7 @@ Last full scan: 2026-07-16.
   configured Noctalia's own idle service (outside Nix — Noctalia's settings
   UI, not this repo) to handle dim/lock/dpms/sleep itself and confirmed by
   testing that it locks before suspend on lid-close/power-key, not just via
-  manual `SUPER+L`. `modules/home/desktop/hypridle.nix` is now gated
+  manual `SUPER+L`. `modules/home/desktop-hypridle.nix` is now gated
   `cfg.enable && !cfg.useNoctalia`, the same pattern Phase C already used for
   `ags.nix`/`swaync.nix`, making hypridle fully inert on saruman — no dim,
   lock, DPMS-off, or sleep-timeout listeners run there any more, and
@@ -867,7 +867,7 @@ Last full scan: 2026-07-16.
 
 ### 20. Saruman: TLP replaced with power-profiles-daemon (2026-08-19)
 - **Where:** `hosts/saruman/configuration.nix` (`services.power-profiles-daemon.enable`
-  replaces the old `services.tlp` block), `modules/nixos/desktop/noctalia.nix`
+  replaces the old `services.tlp` block), `modules/nixos/desktop-noctalia.nix`
   (the `power-profiles-daemon.enable = lib.mkForce false` workaround from
   item 19 is gone).
 - **Why:** Noctalia's power-profile bar widget/control-center panel only
@@ -908,7 +908,7 @@ Last full scan: 2026-07-16.
   patch`, item 7) in some way TLP didn't.
 
 ### 22. `hypr-dynamic-cursors` plugin + src-pin overlay for Hyprland 0.56.2 (2026-08-31)
-- **Where:** `modules/home/desktop/hypr-dynamic-cursors.nix`
+- **Where:** `modules/home/desktop-hypr-dynamic-cursors.nix`
   (`desktop.hyprland-desktop.dynamicCursors.enable`), enabled on sauron +
   saruman. Loads `pkgs.hyprlandPlugins.hypr-dynamic-cursors`, with its `src`
   bumped by `overlays/hypr-dynamic-cursors-hl-pin.nix` (registered in
@@ -941,7 +941,7 @@ Last full scan: 2026-07-16.
 
 ### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, disabled 2026-09-09 — removal condition met)
 - **Where:** `patches/amdgpu-hdmi-scdc-gate-revert.patch`,
-  `modules/nixos/system/amdgpu-hdmi-scdc-fix.nix`
+  `modules/nixos/system-amdgpu-hdmi-scdc-fix.nix`
   (`custom.amdgpu-hdmi-scdc-fix.enable`, set in `hosts/saruman/configuration.nix`).
 - **What:** Reverts the two guard hunks upstream commit `3471b9a31ce3`
   ("drm/amd/display: Rework HDMI data channel reads") added to
@@ -1059,7 +1059,7 @@ Last full scan: 2026-07-16.
 - **Where:** `hosts/saruman/configuration.nix` — `boot.kernelParams`, added
   `amdgpu.dcdebugmask=0x40000`.
 - **What:** `brightnessctl set <N>%` (and the `XF86MonBrightnessUp/Down`
-  keybinds that call it, `modules/home/desktop/hyprland-config-lua/keybinds.nix`)
+  keybinds that call it, `modules/home/desktop-hyprland-desktop/hyprland-config-lua/keybinds.nix`)
   updated `/sys/class/backlight/amdgpu_bl1/brightness` and
   `actual_brightness` tracked it proportionally (confirmed via direct sysfs
   writes: 5%/95%/42% all produced distinct `actual_brightness` values), but

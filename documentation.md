@@ -36,11 +36,11 @@ Modules are **not auto-imported**. Each `configuration.nix` and `home.nix` expli
 
 ```nix
 # In configuration.nix
-imports = [ ../../modules/nixos/services/bluetooth.nix ];
+imports = [ ../../modules/nixos/service-bluetooth.nix ];
 custom.bluetooth.enable = true;
 
 # In home.nix
-imports = [ ../../modules/home/bundles/general.nix ];
+imports = [ ../../modules/home/bundle-general.nix ];
 bundles.general.enable = true;
 ```
 
@@ -50,23 +50,32 @@ Most modules declare a `mkEnableOption` so they do nothing unless explicitly ena
 
 ## Module categories
 
-### `modules/nixos/system/` — NixOS-level, system-wide
+### `modules/nixos/system-*.nix` — NixOS-level, system-wide
 
 These are imported in `configuration.nix`. They configure the OS, not the user.
 
 | File | What it does |
 |------|-------------|
-| `common.nix` | Baseline every host needs: bootloader, latest kernel, NetworkManager, fonts, user account for `david`, unfree packages, CLI essentials (`vim`, `git`, `wget`, `htop`). Also imports `ssh.nix` and `fastfetch.nix`. |
-| `locale.nix` | Timezone, locale (`en_US` / `cs_CZ`), console keymap (`cz`). |
-| `nvidia.nix` | Proprietary NVIDIA driver config (sauron only). |
-| `sddm.nix` | SDDM display manager with Qt6 and astronaut theme, Wayland session. |
-| `ssh.nix` | SSH daemon and client config. |
+| `system-common.nix` | Slim aggregator only — every host imports just this one file, which pulls in the pieces below. Split 2026-10-05 from a single grab-bag `common.nix` into focused files so each concern is independently editable. |
+| `system-nix-settings.nix` | `nix.settings.experimental-features`, `nix.optimise`, `nix.gc`. |
+| `system-boot.nix` | Bootloader, latest kernel, inotify sysctl. |
+| `system-console.nix` | Console font + keymap (`cz`). |
+| `system-networking.nix` | NetworkManager + firewall port 46687. |
+| `system-unfree.nix` | `nixpkgs.config.allowUnfree` + `NIXPKGS_ALLOW_UNFREE`. |
+| `system-base-packages.nix` | Fonts, base CLI tools (`vim`, `git`, `wget`, `curl`, `htop`, `openvpn`), `services.udisks2`. |
+| `system-users.nix` | `users.users.david` / `root` account definitions. |
+| `system-ssh.nix` | `services.openssh.enable` only. |
+| `system-motd.nix` | figlet MOTD banner. |
+| `system-lan-hosts.nix` | Static `networking.hosts` entries for sauron/saruman. |
+| `system-locale.nix` | Timezone, locale (`en_US` / `cs_CZ`), console keymap (`cz`). |
+| `system-nvidia.nix` | Proprietary NVIDIA driver config (sauron only, currently orphaned). |
+| `system-sddm.nix` | SDDM display manager with Qt6 and astronaut theme, Wayland session. |
 
-**Where to add something:** system service, kernel module, user account tweak, font → `common.nix` if it belongs on every machine, or directly in `hosts/<name>/configuration.nix` if it's machine-specific.
+**Where to add something:** system service, kernel module, user account tweak, font → whichever `system-*.nix` piece matches the concern (wired into `system-common.nix`'s `imports`) if it belongs on every machine, or directly in `hosts/<name>/configuration.nix` if it's machine-specific.
 
 ---
 
-### `modules/home/desktop/` — Hyprland desktop environment (Home Manager)
+### `modules/home/desktop-*.nix` — Hyprland desktop environment (Home Manager)
 
 These are imported in `home.nix`. Together they build the full Wayland desktop.
 
@@ -74,8 +83,8 @@ These are imported in `home.nix`. Together they build the full Wayland desktop.
 
 The desktop is split across two files, in two separate module trees, to separate what NixOS owns from what Home Manager owns:
 
-- **`modules/nixos/desktop/hyprland.nix`** (imported in `configuration.nix`; renamed from `hyprland-system.nix` when the `modules/nixos/` vs `modules/home/` split was introduced) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
-- **`modules/home/desktop/hyprland-desktop.nix`** (imported in `home.nix`) — Everything the user sees: Hyprland config, wallpaper/wallust theming, AGS bar, Rofi, screen lock, idle daemon, polkit agent, session variables. This is the experience.
+- **`modules/nixos/desktop-hyprland.nix`** (imported in `configuration.nix`; renamed from `hyprland-system.nix` when the `modules/nixos/` vs `modules/home/` split was introduced) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
+- **`modules/home/desktop-hyprland-desktop.nix`** (imported in `home.nix`) — Everything the user sees: Hyprland config, wallpaper/wallust theming, AGS bar, Rofi, screen lock, idle daemon, polkit agent, session variables. This is the experience.
 
 #### `hyprland-desktop.nix` options
 
@@ -93,9 +102,9 @@ desktop.hyprland-desktop = {
 };
 ```
 
-#### `hyprland-config/` — Hyprland config fragments
+#### `desktop-hyprland-desktop/hyprland-config/` — Hyprland config fragments
 
-`hyprland-desktop.nix` assembles the full `hyprland.conf` from these files. Each returns a string of Hyprland config:
+`desktop-hyprland-desktop.nix` assembles the full `hyprland.conf` from these files, nested under a same-named folder since the fragment names aren't self-identifying on their own. Each returns a string of Hyprland config:
 
 | File | What it covers |
 |------|---------------|
@@ -117,67 +126,70 @@ desktop.hyprland-desktop = {
 
 | File | What it does |
 |------|-------------|
-| `ags.nix` | Wires up the AGS status bar (imports the HM module, points it at `ags-config/`). Activated by `hyprland-desktop.nix` automatically. |
-| `ags-config/` | The AGS bar source: `app.tsx` (entry), `Bar.tsx` (layout + widgets), `style.css` (styling). This is where bar layout and widget changes go. |
-| `waybar.nix` | Waybar config (kept as fallback, not actively used — AGS is primary). |
-| `hyprlock.nix` | Lock screen appearance and behavior. |
-| `hypridle.nix` | Idle timers (dim → lock → suspend). |
-| `swaync.nix` | SwayNC notification center config and style. |
-| `dark-theme.nix` | GTK and Qt dark theme settings. |
-| `default-apps.nix` | `xdg.mimeApps` defaults (which app opens which file type). |
+| `desktop-ags.nix` | Wires up the AGS status bar (imports the HM module, points it at `ags-config/`). Activated by `desktop-hyprland-desktop.nix` automatically. |
+| `ags-config/` | The AGS bar source: `app.tsx` (entry), `Bar.tsx` (layout + widgets), `style.css` (styling). Flat sibling at `modules/home/`, not nested under `desktop-ags.nix`'s own name — this is where bar layout and widget changes go. |
+| `desktop-waybar.nix` | Waybar config (kept as fallback, not actively used — AGS is primary). |
+| `desktop-hyprlock.nix` | Lock screen appearance and behavior. |
+| `desktop-hypridle.nix` | Idle timers (dim → lock → suspend). |
+| `desktop-swaync.nix` | SwayNC notification center config and style. |
+| `desktop-dark-theme.nix` | GTK and Qt dark theme settings. |
+| `desktop-default-apps.nix` | `xdg.mimeApps` defaults (which app opens which file type). |
 
 ---
 
-### `modules/bundles/` (split: `modules/nixos/bundles/` for system bundles, `modules/home/bundles/` for HM bundles) — Package groups
+### `bundle-*.nix` (split: `modules/nixos/bundle-*.nix` for system bundles, `modules/home/bundle-*.nix` for HM bundles) — Package groups
 
-Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles, under `modules/home/bundles/`) or `configuration.nix` (for system bundles, under `modules/nixos/bundles/`).
+Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles, under `modules/home/bundle-*.nix`) or `configuration.nix` (for system bundles, under `modules/nixos/bundle-*.nix`).
 
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
-| `general.nix` | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, btop, claude-code. |
-| `desktop-apps.nix` | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
-| `photography.nix` | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2, DaVinci Resolve. |
-| `3d-printing.nix` | `bundles.3d-printing.enable` | PrusaSlicer, FreeCAD. |
-| `gaming.nix` | `bundles.gaming.enable` | Steam + gaming support packages. |
-| `wine.nix` | `bundles.wine.enable` | Wine with 32-bit support. |
-| `yg-work.nix` | (work-specific) | Work-related tools. |
+| `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, btop, claude-code. |
+| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
+| `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2, DaVinci Resolve. |
+| `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, FreeCAD. |
+| `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
+| `bundle-wine.nix` (nixos) | `bundles.wine.enable` | Wine with 32-bit support. |
+| `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree (see CLAUDE.md). |
 
-**Where to add something:** a new app that belongs on all machines → `general.nix`. A common GUI app → `desktop-apps.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
+**Where to add something:** a new app that belongs on all machines → `bundle-general.nix`. A common GUI app → `bundle-desktop-apps.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
 
 ---
 
-### `modules/programs/` (split: `modules/nixos/programs/` and `modules/home/programs/`) — Individual program configs (mostly Home Manager)
+### `program-*.nix` (split: `modules/nixos/program-*.nix` and `modules/home/program-*.nix`) — Individual program configs (mostly Home Manager)
 
 Each file configures one program in detail. Most declare a `mkEnableOption` and are activated by a bundle or directly by the host.
 
 | File | Program | Notes |
 |------|---------|-------|
-| `git.nix` | Git | Username, email, aliases, delta pager. |
-| `kitty.nix` | Kitty terminal | Font, colors (wallust), keybinds. |
-| `vim.nix` | Vim | Plugins, colorscheme (wallust). |
-| `btop.nix` | btop | Theme (wallust). |
-| `zsh.nix` | Zsh | oh-my-zsh, autosuggestions, plugins. **NixOS-level** (imported in `configuration.nix`). |
-| `cava.nix` | Cava audio visualizer | Wallust color integration. |
-| `fastfetch.nix` | fastfetch | System info display config. |
-| `librewolf.nix` | LibreWolf | Browser preferences, extensions. |
-| `zen-browser.nix` | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. **NixOS-level.** |
-| `mullvad.nix` | Mullvad VPN | Service + GUI. **NixOS-level.** |
-| `thunar.nix` | Thunar file manager | Plugins, thumbnail support. |
-| `claude-code.nix` | Claude Code CLI | Config and settings. |
-| `webapps.nix` | Web app shortcuts | Desktop entries wrapping web URLs. |
-| `winboat.nix` | Winboat | Windows compatibility tool. |
+| `program-git.nix` (home) | Git | Username, email, aliases, delta pager. |
+| `program-kitty.nix` (home) | Kitty terminal | Font, colors (wallust), keybinds. |
+| `program-vim.nix` (home) | Vim | Plugins, colorscheme (wallust). |
+| `program-btop.nix` (home) | btop | Theme (wallust). |
+| `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. Decoupled from `mkrepo.nix` 2026-10-05 — see `program-mkrepo.nix` below. |
+| `program-mkrepo.nix` (nixos) | mkrepo | `mkrepo` shell function (create + clone a GitHub repo) + `gh`/`git` packages. Standalone, imported directly alongside `program-zsh.nix`. |
+| `program-cava.nix` (home) | Cava audio visualizer | Wallust color integration. |
+| `program-fastfetch.nix` (home) | fastfetch | System info display config. Imported directly by every host's `home.nix` as of 2026-10-05 (previously transitive via `common.nix`). |
+| `librewolf.nix` | LibreWolf | Browser preferences, extensions. *(Note: this file does not currently exist in the repo — pre-existing stale entry, out of scope for this edit.)* |
+| `program-zen-browser.nix` (nixos) | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. |
+| `program-mullvad.nix` (nixos) | Mullvad VPN | Service + GUI. |
+| `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action, split out 2026-10-05). |
+| `program-claude-code.nix` (home) | Claude Code CLI | Config and settings. |
+| `program-webapps.nix` (home) | Web app shortcuts | Desktop entries wrapping web URLs. |
+| `program-winboat.nix` (nixos) | Winboat | Windows compatibility tool. |
 
 ---
 
-### `modules/services/` (split: `modules/nixos/services/` and `modules/home/services/`) — System services (NixOS-level unless noted)
+### `service-*.nix` (split: `modules/nixos/service-*.nix` and `modules/home/service-*.nix`) — System services (NixOS-level unless noted)
 
 | File | What it does |
 |------|-------------|
-| `bluetooth.nix` | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. |
-| `kvm.nix` | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
-| `megacmd.nix` | MEGAcmd cloud sync daemon. **Home Manager.** Declarative sync pairs (`local → remote`). Runs as a user systemd service. |
-| `ollama.nix` | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. |
-| `ssh.nix` | SSH daemon config (imported by `modules/nixos/system/common.nix`). |
+| `service-bluetooth.nix` (nixos) | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. |
+| `service-kvm.nix` (nixos) | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
+| `service-megacmd.nix` (home) | MEGAcmd cloud sync daemon. **Home Manager.** Declarative sync pairs (`local → remote`). Runs as a user systemd service. |
+| `service-ollama.nix` (nixos) | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. |
+| `service-sunshine.nix` / `service-moonlight.nix` (nixos) | Sunshine streaming host (`custom.sunshine.{enable,autoStart}`) / Moonlight streaming client (`custom.moonlight.enable`) — split from a single `sunshine-moonlight.nix` 2026-10-05. |
+
+System-side SSH config (`services.openssh.enable`) is `system-ssh.nix`, imported via `system-common.nix`, not a `service-*.nix` file — it was split out of the old monolithic `common.nix`, not the services topic.
 
 ---
 
@@ -218,12 +230,12 @@ Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https
 |------|---------|
 | `secrets/secrets.nix` | Maps each `.age` file to its recipient SSH public keys |
 | `secrets/*.age` | Encrypted secret files committed to the repo |
-| `modules/nixos/system/secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
+| `modules/nixos/system-secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
 
 ### How secrets reach you
 
 - **Shell env vars** — `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at every shell start. Put `export VAR="value"` lines in it.
-- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/nixos/system/secrets.nix`; the file appears at that path after activation.
+- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/nixos/system-secrets.nix`; the file appears at that path after activation.
 
 ### Security model
 
@@ -240,7 +252,7 @@ To decrypt any secret, an attacker needs one of the recipient private keys: eith
 # 2. Create the encrypted file (opens $EDITOR with plaintext, saves as ciphertext)
 agenix -e secrets/my-token.age
 
-# 3. Declare it in modules/nixos/system/secrets.nix:
+# 3. Declare it in modules/nixos/system-secrets.nix:
 #    age.secrets.my-token = {
 #      file  = ../../secrets/my-token.age;
 #      owner = "david";
@@ -275,7 +287,7 @@ sudo nixos-rebuild switch --flake .#<host>
 ### How to: remove a secret
 
 ```bash
-# 1. Remove its age.secrets block from modules/nixos/system/secrets.nix
+# 1. Remove its age.secrets block from modules/nixos/system-secrets.nix
 # 2. Remove its entry from secrets/secrets.nix
 git rm secrets/my-token.age
 git commit -m "secrets: remove my-token"
@@ -298,7 +310,7 @@ agenix -r secrets/shell-env.age
 
 # 4. In flake.nix: add inputs.agenix.nixosModules.default to the new host's modules list
 
-# 5. In hosts/newhost/configuration.nix: add ../../modules/nixos/system/secrets.nix to imports
+# 5. In hosts/newhost/configuration.nix: add ../../modules/nixos/system-secrets.nix to imports
 
 # 6. Stage, commit, rebuild on the new host
 git add secrets/ && git commit -m "secrets: add newhost as recipient"
@@ -326,27 +338,27 @@ sudo nixos-rebuild switch --flake .#newhost
 | I want to change... | Go to |
 |--------------------|-------|
 | Monitor layout / scaling | `hosts/<name>/home.nix` → `desktop.hyprland-desktop.monitors` |
-| A keybind | `modules/home/desktop/hyprland-config/keybinds.nix` |
-| A window rule | `modules/home/desktop/hyprland-config/window-rules.nix` |
-| What launches at login | `modules/home/desktop/hyprland-config/autostart.nix` |
-| Bar layout or widgets | `modules/home/desktop/ags-config/Bar.tsx` |
-| Bar styling | `modules/home/desktop/ags-config/style.css` |
-| Lock screen | `modules/home/desktop/hyprlock.nix` |
-| Idle/suspend timers | `modules/home/desktop/hypridle.nix` |
-| Notification style | `modules/home/desktop/swaync.nix` |
-| Wallust color templates | `modules/home/desktop/hyprland-desktop.nix` (search for `home.file ".config/wallust"`) |
-| Terminal (kitty) config | `modules/home/programs/kitty.nix` |
-| Shell (zsh) config | `modules/nixos/programs/zsh.nix` |
-| Git config | `modules/home/programs/git.nix` |
-| Which packages all machines get | `modules/home/bundles/general.nix` |
-| Which GUI apps all desktops get | `modules/home/bundles/desktop-apps.nix` |
+| A keybind | `modules/home/desktop-hyprland-desktop/hyprland-config/keybinds.nix` |
+| A window rule | `modules/home/desktop-hyprland-desktop/hyprland-config/window-rules.nix` |
+| What launches at login | `modules/home/desktop-hyprland-desktop/hyprland-config/autostart.nix` |
+| Bar layout or widgets | `modules/home/ags-config/Bar.tsx` |
+| Bar styling | `modules/home/ags-config/style.css` |
+| Lock screen | `modules/home/desktop-hyprlock.nix` |
+| Idle/suspend timers | `modules/home/desktop-hypridle.nix` |
+| Notification style | `modules/home/desktop-swaync.nix` |
+| Wallust color templates | `modules/home/desktop-hyprland-desktop.nix` (search for `home.file ".config/wallust"`) |
+| Terminal (kitty) config | `modules/home/program-kitty.nix` |
+| Shell (zsh) config | `modules/nixos/program-zsh.nix` |
+| Git config | `modules/home/program-git.nix` |
+| Which packages all machines get | `modules/home/bundle-general.nix` |
+| Which GUI apps all desktops get | `modules/home/bundle-desktop-apps.nix` |
 | Something on one machine only | `hosts/<name>/configuration.nix` or `hosts/<name>/home.nix` |
 | A package version override | `overlays/` + register in `flake.nix` |
 | A secret / API token | `secrets/shell-env.age` (edit with `agenix -e`) |
-| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/nixos/system/secrets.nix` |
-| NVIDIA config | `modules/nixos/system/nvidia.nix` |
-| VPN | `modules/nixos/programs/mullvad.nix` |
-| VMs / KVM | `modules/nixos/services/kvm.nix` |
-| Cloud sync | `modules/home/services/megacmd.nix` |
-| Local LLM | `modules/nixos/services/ollama.nix` |
-| Bluetooth | `modules/nixos/services/bluetooth.nix` |
+| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/nixos/system-secrets.nix` |
+| NVIDIA config | `modules/nixos/system-nvidia.nix` |
+| VPN | `modules/nixos/program-mullvad.nix` |
+| VMs / KVM | `modules/nixos/service-kvm.nix` |
+| Cloud sync | `modules/home/service-megacmd.nix` |
+| Local LLM | `modules/nixos/service-ollama.nix` |
+| Bluetooth | `modules/nixos/service-bluetooth.nix` |
