@@ -6,7 +6,7 @@
 # confirmed by replaying the captured bytes directly via hidraw, independent of the
 # browser. Only whole-keyboard "Direct" solid color is implemented — see the comment at
 # the top of openrgb-darkproject-bushido/DarkProjectBushidoController.cpp for protocol
-# details, and maintenance.md for how to remove this once/if it's upstreamed.
+# details, and docs/maintenance.md for how to remove this once/if it's upstreamed.
 final: prev:
 {
   openrgb = prev.openrgb.overrideAttrs (old: {

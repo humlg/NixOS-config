@@ -23,7 +23,7 @@ in
     };
 
     # recommendedServices.enable above default-enables power-profiles-daemon
-    # (needed for Noctalia's power-profile widget/panel — see maintenance.md
+    # (needed for Noctalia's power-profile widget/panel — see docs/maintenance.md
     # item 20) and lets it apply with no override now that saruman runs it
     # instead of TLP.
   };

@@ -66,7 +66,7 @@
   # hypridle (all auto-gated off by useNoctalia in home.nix below). Unlike
   # saruman this skips the staged pilot: sauron has none of saruman's
   # sleep/idle-hang history that motivated going phase by phase. See
-  # maintenance.md item 19.
+  # docs/maintenance.md item 19.
   custom.noctalia.enable = true;
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;

@@ -30,7 +30,7 @@ in
       # re-theming when the wallpaper changes through Noctalia's own picker.
       # Noctalia's own colors will not match wallust's output — the two use
       # different palette generators — that divergence is a known, accepted
-      # gap for this pilot (see maintenance.md item 19).
+      # gap for this pilot (see docs/maintenance.md item 19).
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';
     };
 
@@ -77,7 +77,7 @@ in
     # stale .hm-bak that blocks the activation *after* that with "existing
     # file ... would be clobbered", since nothing ever removes it. `force =
     # true` makes home-manager skip the backup step and just overwrite
-    # unconditionally, breaking that cycle. See maintenance.md item 19.
+    # unconditionally, breaking that cycle. See docs/maintenance.md item 19.
     xdg.configFile."gtk-4.0/gtk.css" = {
       force = true;
       text = ''@import url("noctalia.css");'';

@@ -6,7 +6,7 @@
   # Lid switch is handled by systemd-logind (services.logind.settings.Login.
   # HandleLidSwitch), not here. A compositor-level bind alongside logind's own
   # native handler double-triggered sleep on every lid close, racing each
-  # other — see maintenance.md item 7.
+  # other — see docs/maintenance.md item 7.
 
   # Core
   bind = $mainMod,       Q, exec,          $terminal

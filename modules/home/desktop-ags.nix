@@ -9,7 +9,7 @@ in
   ];
 
   # Disabled under Noctalia (Phase C of the migration) rather than deleted —
-  # see maintenance.md item 19.
+  # see docs/maintenance.md item 19.
   config = lib.mkIf (cfg.enable && !cfg.useNoctalia) {
     programs.ags = {
       enable = true;

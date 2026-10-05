@@ -13,7 +13,7 @@ in
   -- Lid switch is handled by systemd-logind (services.logind.settings.Login.
   -- HandleLidSwitch), not here. A compositor-level bind alongside logind's own
   -- native handler double-triggered sleep on every lid close, racing each
-  -- other — see maintenance.md item 7.
+  -- other — see docs/maintenance.md item 7.
 
   -- Core
   hl.bind(mainMod .. " + Q",           hl.dsp.exec_cmd(terminal))
@@ -30,7 +30,7 @@ in
   hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
   hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
-  -- Phase D of the Noctalia migration (see maintenance.md item 19) — matches
+  -- Phase D of the Noctalia migration (see docs/maintenance.md item 19) — matches
   -- hypridle.nix's lock_cmd branch so the keybind and the idle/sleep-
   -- triggered lock always agree on which lock screen actually runs.
   hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(${if cfg.useNoctalia then ''"noctalia msg session lock"'' else "lockScreen"}))

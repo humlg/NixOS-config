@@ -77,7 +77,7 @@
   # initrd, same as root). Kept even though all sleep paths are back on plain
   # suspend as of 2026-08-19 (see the logind block below) so manual
   # `systemctl hibernate` still works and the automatic-hibernate backstop can
-  # be restored without an initrd change. See maintenance.md item 7.
+  # be restored without an initrd change. See docs/maintenance.md item 7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # systemd stage-1 initrd, required for both LUKS unlock and the whiptail
@@ -94,17 +94,17 @@
   # unrelated to the dc->caps.ips_support hardware-capability guard on the
   # actual offending call) and was only being kept as a soak-test control
   # variable for the kernel patch below, which is now also disabled — no
-  # reason left to carry a proven-no-op param. See maintenance.md item 7.
+  # reason left to carry a proven-no-op param. See docs/maintenance.md item 7.
   # pcie_ports=compat DISABLED 2026-09-21 for testing: added 2026-07-16 as an
   # EXPERIMENTAL, never-confirmed workaround for a docked shutdown/reboot hang
-  # (see maintenance.md item 7b) — forces ACPI-based PCIe hotplug instead of
+  # (see docs/maintenance.md item 7b) — forces ACPI-based PCIe hotplug instead of
   # native hotplug/AER for the dock's USB4/Thunderbolt tunnel. Now suspected of
   # being the actual cause of a *different* regression: the Iiyama dock's top
   # USB-C port stopped carrying DP altmode video (bottom port still works,
   # keyboard passthrough via the dock's hub still works on the dead port).
   # Testing removal to confirm; if the top port starts working again, this
   # trades back to the original unconfirmed shutdown-hang risk — watch for
-  # that regressing docked shutdowns/reboots. See maintenance.md item 7b.
+  # that regressing docked shutdowns/reboots. See docs/maintenance.md item 7b.
   # No "quiet": kept verbose so all boot/kernel output stays on screen (see
   # custom.tuiAskpass above, which relies on Plymouth being off anyway).
   # amdgpu.dcdebugmask=0x40000 (DC_DISABLE_CUSTOM_BRIGHTNESS_CURVE, added
@@ -114,7 +114,7 @@
   # amdgpu applies on top of the raw PWM value is broken on this kernel
   # (matches multiple upstream reports against 7.1.6+/DCN3.5, still being
   # patched in amd-gfx as of Sept 2026). This debug-mask bit skips the curve
-  # entirely and restores linear PWM control. See maintenance.md item 25.
+  # entirely and restores linear PWM control. See docs/maintenance.md item 25.
   boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x40000" ];
   # MT7922 (mt7921e) firmware wedges the platform when the link sits in deep
   # ASPM states: hangs on s2idle resume after long sleeps and at the final
@@ -132,7 +132,7 @@
   # Firmware updates via LVFS (fwupdmgr refresh && fwupdmgr update)
   services.fwupd.enable = true;
 
-  # Power management — power-profiles-daemon, not TLP (see maintenance.md
+  # Power management — power-profiles-daemon, not TLP (see docs/maintenance.md
   # item 20). Noctalia's power-profile widget/panel only speaks
   # org.freedesktop.UPower.PowerProfiles, which TLP doesn't provide without
   # its own tlp-pd bridge; switched to PPD outright instead. Profile
@@ -144,7 +144,7 @@
   services.power-profiles-daemon.enable = true;
 
   # Third attempt at plain s2idle suspend on every path, 2026-08-19 — see
-  # maintenance.md item 7 for the full history. It failed twice before: a
+  # docs/maintenance.md item 7 for the full history. It failed twice before: a
   # 22% hang rate over ~36 attempts pre-patch (2026-08-02 -> 08-14), then 2/2
   # unattended overnight hangs even with the amdgpu kernel patch applied
   # (2026-08-17 -> 08-18), which is why hibernate was restored on every path
@@ -155,11 +155,11 @@
   # custom.amdgpu-s2idle-patch.enable below) — this is a stock-kernel retest
   # of plain suspend, not just a policy retest. If hangs continue at this
   # rate, hibernate (never actually soaked under the current LZO settings —
-  # see maintenance.md item 7 bullet 8) is the recommended next step, since
+  # see docs/maintenance.md item 7 bullet 8) is the recommended next step, since
   # it would also fix the standby-drain cost the patch traded for hang
   # mitigation. If reverting to hibernate, restore these three lines and
   # custom.lid-undock-hibernate.sleepCommand to hibernate, matching the
-  # 2026-08-18 decision, and update maintenance.md item 7 with the result.
+  # 2026-08-18 decision, and update docs/maintenance.md item 7 with the result.
   services.logind.settings.Login.HandlePowerKey = "suspend";
   services.logind.settings.Login.HandleLidSwitch = "suspend";
   services.logind.settings.Login.HandleLidSwitchExternalPower = "suspend";
@@ -177,12 +177,12 @@
   # ...and once that external monitor is unplugged while the lid is still
   # shut, sleep — otherwise the machine stays awake in a bag. Overridden to
   # plain suspend to match the lid/power-key paths above (2026-08-19 retest,
-  # see maintenance.md item 7); the module's own default is hibernate.
+  # see docs/maintenance.md item 7); the module's own default is hibernate.
   custom.lid-undock-hibernate.enable = true;
   custom.lid-undock-hibernate.sleepCommand = "systemctl --no-block suspend";
 
   # DISABLED 2026-09-09, user-requested stock-kernel retest: a fresh audit
-  # (Aug 26 -> Sep 9, see maintenance.md item 7 bullet 11) found the hang
+  # (Aug 26 -> Sep 9, see docs/maintenance.md item 7 bullet 11) found the hang
   # rate hadn't improved with this patch in ~2.5 weeks of real use (~17%,
   # against a 22% pre-patch baseline) — not a convincing enough win to keep
   # paying for it (local kernel builds on every bump, and the deliberately
@@ -191,11 +191,11 @@
   # kernel while this is off. fasterHibernateCompression is left at its
   # LZO-pinning value so flipping enable back on doesn't silently reintroduce
   # LZ4 (still an unproven variable for the separate hibernate-resume TTM
-  # crash, see maintenance.md item 7 bullet 7).
+  # crash, see docs/maintenance.md item 7 bullet 7).
   custom.amdgpu-s2idle-patch.enable = false;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
-  # DISABLED 2026-09-09: the removal condition in maintenance.md item 23 is
+  # DISABLED 2026-09-09: the removal condition in docs/maintenance.md item 23 is
   # now confirmed met. Extracting the actual linux-7.2.2.tar.xz nixpkgs
   # fetches for this build (not just checking upstream in the abstract) shows
   # populate_hdmi_info_from_connector() already does
@@ -205,7 +205,7 @@
   # kernel was never actually missing the setter the way the original
   # 2026-09-01 diagnosis assumed. Not yet physically tested — verify HDMI and
   # the dock's DP->HDMI output both still work after rebuilding; re-enable if
-  # either regresses. See maintenance.md item 23.
+  # either regresses. See docs/maintenance.md item 23.
   custom.amdgpu-hdmi-scdc-fix.enable = false;
 
   # Battery charge limit for Lenovo IdeaPad 14ASP9
@@ -286,7 +286,7 @@
   ];
 
   # Also carries the local Dark Project Bushido 87 controller — see
-  # overlays/openrgb-darkproject-bushido.nix and maintenance.md.
+  # overlays/openrgb-darkproject-bushido.nix and docs/maintenance.md.
   services.udev.packages = [ pkgs.openrgb ];
 
   programs.zen-browser-custom.enable = true;

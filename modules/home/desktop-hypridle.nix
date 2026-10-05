@@ -23,7 +23,7 @@ let
 in
 {
   # Gated the same way as ags.nix/swaync.nix (Phase C of the Noctalia
-  # migration, maintenance.md item 19): Noctalia owns idle/dim/lock/dpms/sleep
+  # migration, docs/maintenance.md item 19): Noctalia owns idle/dim/lock/dpms/sleep
   # entirely on hosts that pilot it, via its own idle service configured
   # outside Nix. Running hypridle's listeners alongside it would race the same
   # way the compositor and logind once raced over lid-switch sleep (item 7's
@@ -36,7 +36,7 @@ in
       enable = true;
       settings = {
         general = {
-          # Under Noctalia (Phase D of the migration, see maintenance.md item
+          # Under Noctalia (Phase D of the migration, see docs/maintenance.md item
           # 19), lock_cmd must not spawn hyprlock at all: Noctalia also
           # implements the session-lock protocol, and running both risks a
           # race for the lock surface. Use Noctalia's documented IPC lock

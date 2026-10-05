@@ -11,7 +11,7 @@ final: prev:
 # (efb50993780079460b0cbed1363e2166a2de1d9f) to plugin commit
 # 5a224284872208b5324759d535d65061043725de — bump src to that.
 #
-# See maintenance.md #22. Drop this overlay once nixpkgs' plugin catches up to
+# See docs/maintenance.md #22. Drop this overlay once nixpkgs' plugin catches up to
 # a commit that supports our Hyprland.
 
 {

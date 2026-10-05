@@ -72,11 +72,11 @@ in
 
     # Currently inert: hypridle (the only consumer of this option) is disabled
     # on saruman while useNoctalia = true (see modules/home/desktop-hypridle.nix
-    # and maintenance.md item 19) — Noctalia's own idle service now owns
+    # and docs/maintenance.md item 19) — Noctalia's own idle service now owns
     # dim/lock/dpms/sleep instead, configured outside Nix. Left set so the
     # value is correct again the moment useNoctalia flips back off. Matches
     # the logind lid/power-key paths in configuration.nix — third attempt at
-    # plain suspend (2026-08-19), see maintenance.md item 7 for why the first
+    # plain suspend (2026-08-19), see docs/maintenance.md item 7 for why the first
     # two failed and what to revert to if this one does too.
     sleepCommand  = "systemctl suspend";
 

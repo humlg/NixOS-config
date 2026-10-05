@@ -1,4 +1,4 @@
-# NixOS Config — Documentation
+# NixOS Config — Architecture
 
 A human-readable guide to navigating this repository: what lives where, why, and what to touch when you need to change something.
 
@@ -17,7 +17,7 @@ The entry point is `flake.nix`. Everything else is either a host definition unde
 | Hostname | What it is | Notable extras |
 |----------|-----------|----------------|
 | **sauron** | Physical desktop (Ryzen 7 5800X3D, RX 9070 XT) | AMD GPU (amdgpu), multi-monitor layout, photography/3D-printing bundles |
-| **saruman** | Lenovo IdeaPad laptop (AMD GPU) | Battery conservation mode, LUKS swap, Plymouth boot splash, Mullvad VPN, KVM/QEMU, Ollama |
+| **saruman** | Lenovo IdeaPad laptop (AMD GPU) | Battery conservation mode, LUKS swap, Mullvad VPN, KVM/QEMU, Ollama |
 | **nixosvm** | NixOS QEMU/SPICE virtual machine | Minimal package set, SPICE agent for clipboard/resize |
 
 Each machine has a folder under `hosts/<name>/` containing:
@@ -27,6 +27,8 @@ Each machine has a folder under `hosts/<name>/` containing:
 - `file-system.nix` *(sauron only)* — Extra data drives and bind mounts
 
 **Where to look when something is machine-specific:** `hosts/<name>/configuration.nix` or `hosts/<name>/home.nix`.
+
+For hardware quirks and their history, see `docs/maintenance.md` (CLAUDE.md's Hardware Quick Reference table has the short version).
 
 ---
 
@@ -44,7 +46,9 @@ imports = [ ../../modules/home/bundle-general.nix ];
 bundles.general.enable = true;
 ```
 
-Most modules declare a `mkEnableOption` so they do nothing unless explicitly enabled. A few simpler ones (like `ollama.nix`, `mullvad.nix`) have no option and activate unconditionally when imported.
+Most modules declare a `mkEnableOption` so they do nothing unless explicitly enabled. A few simpler ones (like `service-ollama.nix`, `program-mullvad.nix`) have no option and activate unconditionally when imported.
+
+`modules/nixos/` and `modules/home/` are both flat — no topic subfolders. The topic lives in the filename prefix: `system-`, `desktop-`, `bundle-`, `program-`, `service-`.
 
 ---
 
@@ -56,7 +60,7 @@ These are imported in `configuration.nix`. They configure the OS, not the user.
 
 | File | What it does |
 |------|-------------|
-| `system-common.nix` | Slim aggregator only — every host imports just this one file, which pulls in the pieces below. Split 2026-10-05 from a single grab-bag `common.nix` into focused files so each concern is independently editable. |
+| `system-common.nix` | Slim aggregator only — every host imports just this one file, which pulls in the pieces below. |
 | `system-nix-settings.nix` | `nix.settings.experimental-features`, `nix.optimise`, `nix.gc`. |
 | `system-boot.nix` | Bootloader, latest kernel, inotify sysctl. |
 | `system-console.nix` | Console font + keymap (`cz`). |
@@ -83,12 +87,10 @@ These are imported in `home.nix`. Together they build the full Wayland desktop.
 
 The desktop is split across two files, in two separate module trees, to separate what NixOS owns from what Home Manager owns:
 
-- **`modules/nixos/desktop-hyprland.nix`** (imported in `configuration.nix`; renamed from `hyprland-system.nix` when the `modules/nixos/` vs `modules/home/` split was introduced) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
+- **`modules/nixos/desktop-hyprland.nix`** (imported in `configuration.nix`) — NixOS-level: enables `programs.hyprland`, XDG portals, PipeWire/WirePlumber, libinput, printing, Avahi. This is the plumbing.
 - **`modules/home/desktop-hyprland-desktop.nix`** (imported in `home.nix`) — Everything the user sees: Hyprland config, wallpaper/wallust theming, AGS bar, Rofi, screen lock, idle daemon, polkit agent, session variables. This is the experience.
 
-#### `hyprland-desktop.nix` options
-
-When you import this module and set `desktop.hyprland-desktop.enable = true`, you configure it per-machine via:
+#### `desktop-hyprland-desktop.nix` options
 
 ```nix
 desktop.hyprland-desktop = {
@@ -116,8 +118,10 @@ desktop.hyprland-desktop = {
 | `keybinds.nix` | All keybinds — app launchers, workspace switching, media keys, screenshots |
 | `layouts.nix` | Dwindle/master layout settings, workspace rules, `misc` |
 
+`hyprland-config-lua/` mirrors the same 7 files in Lua — see "Dual Hyprland config trees" under Design decisions below for why both exist.
+
 **Where to add something:**
-- New keybind → `keybinds.nix`
+- New keybind → `keybinds.nix` (in the active `hyprland-config-lua/` tree)
 - Window rule (float, workspace assignment, opacity) → `window-rules.nix`
 - App that should launch on login → `autostart.nix`
 - Animation or visual tweak → `appearance.nix`
@@ -127,19 +131,19 @@ desktop.hyprland-desktop = {
 | File | What it does |
 |------|-------------|
 | `desktop-ags.nix` | Wires up the AGS status bar (imports the HM module, points it at `ags-config/`). Activated by `desktop-hyprland-desktop.nix` automatically. |
-| `ags-config/` | The AGS bar source: `app.tsx` (entry), `Bar.tsx` (layout + widgets), `style.css` (styling). Flat sibling at `modules/home/`, not nested under `desktop-ags.nix`'s own name — this is where bar layout and widget changes go. |
+| `ags-config/` | The AGS bar source: `app.tsx` (entry), `Bar.tsx` (layout + widgets), `style.css` (styling). Flat sibling at `modules/home/` — this is where bar layout and widget changes go. |
 | `desktop-waybar.nix` | Waybar config (kept as fallback, not actively used — AGS is primary). |
 | `desktop-hyprlock.nix` | Lock screen appearance and behavior. |
-| `desktop-hypridle.nix` | Idle timers (dim → lock → suspend). |
+| `desktop-hypridle.nix` | Idle timers (dim → lock → suspend). Inert on hosts running Noctalia — see Design decisions below. |
 | `desktop-swaync.nix` | SwayNC notification center config and style. |
 | `desktop-dark-theme.nix` | GTK and Qt dark theme settings. |
 | `desktop-default-apps.nix` | `xdg.mimeApps` defaults (which app opens which file type). |
 
 ---
 
-### `bundle-*.nix` (split: `modules/nixos/bundle-*.nix` for system bundles, `modules/home/bundle-*.nix` for HM bundles) — Package groups
+### `bundle-*.nix` (`modules/nixos/bundle-*.nix` for system bundles, `modules/home/bundle-*.nix` for HM bundles) — Package groups
 
-Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles, under `modules/home/bundle-*.nix`) or `configuration.nix` (for system bundles, under `modules/nixos/bundle-*.nix`).
+Bundles aggregate related packages and their configs under a single toggle. They are imported in `home.nix` (for HM bundles) or `configuration.nix` (for system bundles).
 
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
@@ -149,47 +153,46 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, FreeCAD. |
 | `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
 | `bundle-wine.nix` (nixos) | `bundles.wine.enable` | Wine with 32-bit support. |
-| `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree (see CLAUDE.md). |
+| `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree. |
 
 **Where to add something:** a new app that belongs on all machines → `bundle-general.nix`. A common GUI app → `bundle-desktop-apps.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
 
 ---
 
-### `program-*.nix` (split: `modules/nixos/program-*.nix` and `modules/home/program-*.nix`) — Individual program configs (mostly Home Manager)
+### `program-*.nix` (`modules/nixos/program-*.nix` and `modules/home/program-*.nix`) — Individual program configs
 
 Each file configures one program in detail. Most declare a `mkEnableOption` and are activated by a bundle or directly by the host.
 
 | File | Program | Notes |
 |------|---------|-------|
 | `program-git.nix` (home) | Git | Username, email, aliases, delta pager. |
-| `program-kitty.nix` (home) | Kitty terminal | Font, colors (wallust), keybinds. |
+| `program-kitty.nix` (home) | Kitty terminal | Font, colors, static theme (deliberately not wallust-driven). |
 | `program-vim.nix` (home) | Vim | Plugins, colorscheme (wallust). |
 | `program-btop.nix` (home) | btop | Theme (wallust). |
-| `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. Decoupled from `mkrepo.nix` 2026-10-05 — see `program-mkrepo.nix` below. |
+| `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. |
 | `program-mkrepo.nix` (nixos) | mkrepo | `mkrepo` shell function (create + clone a GitHub repo) + `gh`/`git` packages. Standalone, imported directly alongside `program-zsh.nix`. |
 | `program-cava.nix` (home) | Cava audio visualizer | Wallust color integration. |
-| `program-fastfetch.nix` (home) | fastfetch | System info display config. Imported directly by every host's `home.nix` as of 2026-10-05 (previously transitive via `common.nix`). |
-| `librewolf.nix` | LibreWolf | Browser preferences, extensions. *(Note: this file does not currently exist in the repo — pre-existing stale entry, out of scope for this edit.)* |
+| `program-fastfetch.nix` (home) | fastfetch | System info display config. |
 | `program-zen-browser.nix` (nixos) | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. |
 | `program-mullvad.nix` (nixos) | Mullvad VPN | Service + GUI. |
-| `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action, split out 2026-10-05). |
+| `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action). |
 | `program-claude-code.nix` (home) | Claude Code CLI | Config and settings. |
 | `program-webapps.nix` (home) | Web app shortcuts | Desktop entries wrapping web URLs. |
-| `program-winboat.nix` (nixos) | Winboat | Windows compatibility tool. |
+| `program-winboat.nix` (nixos) | Winboat | Windows compatibility tool (orphaned, see `docs/maintenance.md` #13). |
 
 ---
 
-### `service-*.nix` (split: `modules/nixos/service-*.nix` and `modules/home/service-*.nix`) — System services (NixOS-level unless noted)
+### `service-*.nix` (`modules/nixos/service-*.nix` and `modules/home/service-*.nix`) — System services
 
 | File | What it does |
 |------|-------------|
 | `service-bluetooth.nix` (nixos) | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. |
 | `service-kvm.nix` (nixos) | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
-| `service-megacmd.nix` (home) | MEGAcmd cloud sync daemon. **Home Manager.** Declarative sync pairs (`local → remote`). Runs as a user systemd service. |
+| `service-megacmd.nix` (home) | MEGAcmd cloud sync daemon. Declarative sync pairs (`local → remote`). Orphaned, see `docs/maintenance.md` #14. |
 | `service-ollama.nix` (nixos) | Ollama local LLM server with ROCm (AMD GPU) backend + `oterm` CLI UI. |
-| `service-sunshine.nix` / `service-moonlight.nix` (nixos) | Sunshine streaming host (`custom.sunshine.{enable,autoStart}`) / Moonlight streaming client (`custom.moonlight.enable`) — split from a single `sunshine-moonlight.nix` 2026-10-05. |
+| `service-sunshine.nix` / `service-moonlight.nix` (nixos) | Sunshine streaming host (`custom.sunshine.{enable,autoStart}`) / Moonlight streaming client (`custom.moonlight.enable`). |
 
-System-side SSH config (`services.openssh.enable`) is `system-ssh.nix`, imported via `system-common.nix`, not a `service-*.nix` file — it was split out of the old monolithic `common.nix`, not the services topic.
+System-side SSH config (`services.openssh.enable`) is `system-ssh.nix`, wired through `system-common.nix` — not a `service-*.nix` file, since it's part of the baseline every host needs, not an opt-in service.
 
 ---
 
@@ -211,111 +214,12 @@ Overlays replace or augment packages from nixpkgs. They are registered in `flake
 
 The color theme is driven by **wallust**, which extracts a palette from the current wallpaper and regenerates config files for every themed app.
 
-- **Wallust config:** `~/.config/wallust/wallust.toml` — defined in `hyprland-desktop.nix`
-- **Templates:** `~/.config/wallust/templates/` — also defined in `hyprland-desktop.nix`, one template per app (Hyprland, Kitty, Waybar, Rofi, btop, Cava, Vim, Albert)
+- **Wallust config:** `~/.config/wallust/wallust.toml` — defined in `desktop-hyprland-desktop.nix`
+- **Templates:** `~/.config/wallust/templates/` — also defined in `desktop-hyprland-desktop.nix`, one template per app (Hyprland, Kitty, Waybar, Rofi, btop, Cava, Vim, Albert)
 - **Output:** `~/.cache/wallust/` — runtime-generated, not in the repo
-- **Trigger:** waypaper runs `wallust run "$wallpaper" && reload-desktop` after each wallpaper change; `reload-desktop` also restarts AGS and SwayNC
+- **Trigger:** waypaper runs `wallust run "$wallpaper" && reload-desktop` after each wallpaper change; `reload-desktop` also restarts AGS and SwayNC. Noctalia has its own `wallpaper_changed` hook that triggers the same sequence — see Design decisions below.
 
-To add theming for a new app: add a template entry to `wallust.toml` and a template file, both in `hyprland-desktop.nix`.
-
----
-
-## Secret management (agenix)
-
-Secrets are encrypted with [age](https://age-encryption.org/) via [agenix](https://github.com/ryantm/agenix). Encrypted `.age` files are committed to the repo and are safe to be public — decryption requires a private key that never leaves the machine. Decryption happens automatically at NixOS activation. Decrypted secrets live in `/run/agenix/` (tmpfs, never written to disk unencrypted).
-
-### Key files
-
-| File | Purpose |
-|------|---------|
-| `secrets/secrets.nix` | Maps each `.age` file to its recipient SSH public keys |
-| `secrets/*.age` | Encrypted secret files committed to the repo |
-| `modules/nixos/system-secrets.nix` | NixOS declarations: where each secret lands, owner, permissions |
-
-### How secrets reach you
-
-- **Shell env vars** — `shell-env.age` decrypts to `/run/agenix/shell-env` and is sourced by zsh at every shell start. Put `export VAR="value"` lines in it.
-- **SSH private keys** — declare with `path = "/home/david/.ssh/myserver"` and `mode = "0600"` in `modules/nixos/system-secrets.nix`; the file appears at that path after activation.
-
-### Security model
-
-To decrypt any secret, an attacker needs one of the recipient private keys: either the host's SSH host key (`/etc/ssh/ssh_host_ed25519_key`, root-only) or your personal SSH private key (`~/.ssh/id_ed25519`). The encrypted `.age` files in the repo are worthless without one of those.
-
----
-
-### How to: add a new secret
-
-```bash
-# 1. Add an entry in secrets/secrets.nix
-#    "my-token.age".publicKeys = desktops;
-
-# 2. Create the encrypted file (opens $EDITOR with plaintext, saves as ciphertext)
-agenix -e secrets/my-token.age
-
-# 3. Declare it in modules/nixos/system-secrets.nix:
-#    age.secrets.my-token = {
-#      file  = ../../secrets/my-token.age;
-#      owner = "david";
-#      mode  = "0400";
-#    };
-#    For SSH private keys, also add:
-#      path = "/home/david/.ssh/myserver";
-#      mode = "0600";
-
-# 4. Stage, commit, rebuild
-git add secrets/my-token.age
-git commit -m "secrets: add my-token"
-sudo nixos-rebuild switch --flake .#<host>
-```
-
-For shell env vars, add lines to `shell-env.age` instead of creating a new file:
-```bash
-agenix -e secrets/shell-env.age
-# Add: export GITHUB_TOKEN="ghp_..."
-git add secrets/shell-env.age && git commit -m "secrets: add GITHUB_TOKEN"
-sudo nixos-rebuild switch --flake .#<host>
-```
-
-### How to: edit an existing secret
-
-```bash
-agenix -e secrets/shell-env.age   # decrypts in $EDITOR, re-encrypts on save
-git add secrets/shell-env.age && git commit -m "secrets: update shell-env"
-sudo nixos-rebuild switch --flake .#<host>
-```
-
-### How to: remove a secret
-
-```bash
-# 1. Remove its age.secrets block from modules/nixos/system-secrets.nix
-# 2. Remove its entry from secrets/secrets.nix
-git rm secrets/my-token.age
-git commit -m "secrets: remove my-token"
-sudo nixos-rebuild switch --flake .#<host>
-```
-
-### How to: wire up a new host
-
-```bash
-# 1. Get the new host's SSH host public key
-ssh newhost 'cat /etc/ssh/ssh_host_ed25519_key.pub'
-
-# 2. Add it to secrets/secrets.nix and include in the relevant recipient lists
-#    newhost = "ssh-ed25519 AAAA... root@newhost";
-#    desktops = [ sauron saruman newhost david ];
-
-# 3. Re-encrypt every .age file to include the new host
-agenix -r secrets/shell-env.age
-# repeat for each .age file
-
-# 4. In flake.nix: add inputs.agenix.nixosModules.default to the new host's modules list
-
-# 5. In hosts/newhost/configuration.nix: add ../../modules/nixos/system-secrets.nix to imports
-
-# 6. Stage, commit, rebuild on the new host
-git add secrets/ && git commit -m "secrets: add newhost as recipient"
-sudo nixos-rebuild switch --flake .#newhost
-```
+To add theming for a new app: add a template entry to `wallust.toml` and a template file, both in `desktop-hyprland-desktop.nix`.
 
 ---
 
@@ -330,6 +234,47 @@ sudo nixos-rebuild switch --flake .#newhost
 | `astal` | Astal widget library (dependency of AGS) |
 | `zen-browser` | Zen Browser (not in nixpkgs) |
 | `agenix` | Secret management (age encryption) |
+| `noctalia` | Noctalia desktop shell |
+
+---
+
+## Design decisions & gotchas
+
+Evergreen architecture choices and non-obvious behavior that aren't temporary workarounds (those live in `docs/maintenance.md` instead).
+
+### Initrd password agent (tui-askpass)
+
+`modules/nixos/system-tui-askpass.nix` replaces the stock initrd disk-unlock prompt (a single unmasked line, no feedback while typing) with a whiptail box that shows a dot per keystroke, so a dead/stuck key is visible instead of silently producing "wrong passphrase."
+
+It hooks into systemd's password-agent protocol (https://systemd.io/PASSWORD_AGENTS/) — the same mechanism Plymouth itself uses to grab password prompts, so the two are mutually exclusive by design (`ConditionPathExists=!/run/plymouth/pid`). Only makes sense with Plymouth off. The service polls every 0.3s instead of using inotify, since the initrd has no inotify-tools and the delay is invisible next to how long a human takes to read a prompt and type a passphrase. Debug view (visible keystrokes, to catch a stuck key) toggles per-boot via `tuiaskpass.debug=1` on the kernel command line, no rebuild needed. Escape hatch if the agent fails to start: `systemd-tty-ask-password-agent --query` from an emergency shell.
+
+### WireGuard via NetworkManager, not wg-quick
+
+`modules/nixos/service-wireguard-saruman.nix` declares the personal WireGuard tunnel as a NetworkManager profile (`networking.networkmanager.ensureProfiles`) rather than `networking.wg-quick.interfaces`, so it shows up as an ordinary connection in NetworkManager — and therefore in Noctalia's network-manager bar widget — toggleable without sudo.
+
+The private key never leaves root: a oneshot service extracts it from the already-decrypted agenix secret at boot into a root-only `/run` env file that `NetworkManager-ensure-profiles.service` reads via `EnvironmentFile` + `envsubst`. The peer's public key, endpoint, and in-tunnel address aren't secret, so they're plain Nix values — meaning this device's WAN endpoint and internal tunnel address are visible in the committed repo (the private key is not). The tunnel is full-tunnel (`0.0.0.0/0`), so `connection.autoconnect = false` — bring it up/down from the NetworkManager applet/nmcli ("wg-homelab") instead of at boot. Interface named `wg-homelab`, not `wg-saruman`, so the connection name doesn't just repeat the hostname.
+
+### Dual Hyprland config trees (hyprlang vs Lua)
+
+`modules/home/desktop-hyprland-desktop/` contains two parallel fragment sets: `hyprland-config/` (hyprlang, legacy/frozen) and `hyprland-config-lua/` (Lua, active — all hosts set `useLuaConfig = true`). See `docs/maintenance.md` #16 for why both still exist.
+
+Gotcha: under the Lua config, `hyprctl` hands its dispatch argument to Lua rather than to the hyprlang dispatcher parser. The bare `hyprctl dispatch dpms on` spelling fails to parse silently (hypridle doesn't check exit status) — use the external-Lua form instead: `hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`. `desktop-hypridle.nix` and `hyprland-config-lua/autostart.nix` both need this form.
+
+### Lid-close/undock edge-detection design
+
+`modules/nixos/service-lid-undock-hibernate.nix` closes a gap left by `HandleLidSwitchDocked = "ignore"`: logind only evaluates the lid action at the instant the lid event fires and never re-checks, so unplugging an external monitor afterwards (i.e. packing the laptop away) would leave it awake in a bag.
+
+It's a udev rule on DRM hotplug, not a poll loop, and only acts on a real 1→0 "external display went away" edge (not "no external display," which would also fire right after the sleep it just caused, creating a hibernate loop). A boot-time init unit snapshots the initial external-display state so the very first unplug after boot registers as a real edge. It deliberately does **not** consult the swaync "sleep inhibit" flag (`modules/home/desktop-swaync.nix`) — that toggle holds off idle timeouts only, not lid-close, which is an explicit "I am done" signal (matches logind's own behavior, which ignores inhibitors for lid events too).
+
+### GTK4/libadwaita theming split
+
+`modules/home/desktop-dark-theme.nix` sets `gtk.gtk4.theme = null` explicitly (not just omitted) — `home.stateVersion` is `"25.11"` (< `"26.05"`), so home-manager's legacy default for `gtk4.theme` is still `config.gtk.theme`, and the option has to be set to `null` to actually drop it. This is needed because the WhiteSur theme's `gtk-4.0/gtk.css` is a symlink to a GTK3 resource stub that only resolves when GTK loads the theme by name via its own gresource, never when home-manager `@import`s it directly — so GTK4/libadwaita apps fell back to Adwaita instead (dark via the `color-scheme` dconf setting). Same reasoning rules out setting `GTK_THEME` as an env var.
+
+Under Noctalia, `modules/home/desktop-noctalia.nix` owns `~/.config/gtk-4.0/gtk.css` instead, importing `noctalia.css` (the wallpaper palette Noctalia's theming daemon regenerates). It sets `xdg.configFile.force = true` because Noctalia's own theming daemon rewrites that file at runtime — without `force`, each activation would find a real file where it expects its symlink, back it up to `.hm-bak`, and the next activation would then fail on the stale backup.
+
+### Noctalia settings.toml is seed-once, not Nix-managed
+
+`modules/home/desktop-noctalia.nix` seeds `~/.local/state/noctalia/settings.toml` from `noctalia-settings-seed.toml` only if the file doesn't already exist (same pattern as `seedWaypaperConfig` in `desktop-hyprland-desktop.nix`). Once seeded, Noctalia's own settings GUI owns the file — home-manager never touches it again. Noctalia generates its own wallpaper palette (matugen-style), separate from wallust; its `hooks.wallpaper_changed` is wired to run `wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop` so the rest of the desktop (hyprlock, rofi, btop, cava, vim) stays in sync when the wallpaper changes through Noctalia's own picker. The two palettes won't match exactly — a known, accepted gap (see `docs/maintenance.md` #19).
 
 ---
 
@@ -338,9 +283,9 @@ sudo nixos-rebuild switch --flake .#newhost
 | I want to change... | Go to |
 |--------------------|-------|
 | Monitor layout / scaling | `hosts/<name>/home.nix` → `desktop.hyprland-desktop.monitors` |
-| A keybind | `modules/home/desktop-hyprland-desktop/hyprland-config/keybinds.nix` |
-| A window rule | `modules/home/desktop-hyprland-desktop/hyprland-config/window-rules.nix` |
-| What launches at login | `modules/home/desktop-hyprland-desktop/hyprland-config/autostart.nix` |
+| A keybind | `modules/home/desktop-hyprland-desktop/hyprland-config-lua/keybinds.nix` |
+| A window rule | `modules/home/desktop-hyprland-desktop/hyprland-config-lua/window-rules.nix` |
+| What launches at login | `modules/home/desktop-hyprland-desktop/hyprland-config-lua/autostart.nix` |
 | Bar layout or widgets | `modules/home/ags-config/Bar.tsx` |
 | Bar styling | `modules/home/ags-config/style.css` |
 | Lock screen | `modules/home/desktop-hyprlock.nix` |
@@ -354,8 +299,7 @@ sudo nixos-rebuild switch --flake .#newhost
 | Which GUI apps all desktops get | `modules/home/bundle-desktop-apps.nix` |
 | Something on one machine only | `hosts/<name>/configuration.nix` or `hosts/<name>/home.nix` |
 | A package version override | `overlays/` + register in `flake.nix` |
-| A secret / API token | `secrets/shell-env.age` (edit with `agenix -e`) |
-| An SSH private key (managed) | `secrets/<name>.age` + entry in `modules/nixos/system-secrets.nix` |
+| A secret / API token | see `docs/secrets.md` |
 | NVIDIA config | `modules/nixos/system-nvidia.nix` |
 | VPN | `modules/nixos/program-mullvad.nix` |
 | VMs / KVM | `modules/nixos/service-kvm.nix` |

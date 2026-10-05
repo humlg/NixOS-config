@@ -167,7 +167,7 @@ in
         Command hypridle runs when the final idle timeout fires. Defaults to
         plain suspend; hosts that should not sit suspended indefinitely can set
         "systemctl hibernate" instead (never suspend-then-hibernate on
-        saruman — see maintenance.md item 7 for why that specific combination
+        saruman — see docs/maintenance.md item 7 for why that specific combination
         is unsafe there). Only pick a hibernating variant on a host that has
         boot.resumeDevice configured, otherwise the machine powers off and
         loses the session.
@@ -253,7 +253,7 @@ in
         a forced refocus to workspace 1 runs once all of them have had time
         to map (no_initial_focus alone only stops focus-stealing from an
         *already-focused* window, and at cold boot nothing is focused yet).
-        See maintenance.md and the obsidian-thunderbird-silent-autostart
+        See docs/maintenance.md and the obsidian-thunderbird-silent-autostart
         memory for the debugging history behind this mechanism.
       '';
     };

@@ -20,7 +20,7 @@ in
 
       Like custom.amdgpu-s2idle-patch, this forces the kernel to build locally
       on every version bump (~15-25 min). See
-      patches/amdgpu-hdmi-scdc-gate-revert.patch and maintenance.md for the
+      patches/amdgpu-hdmi-scdc-gate-revert.patch and docs/maintenance.md for the
       removal condition.
     '';
   };

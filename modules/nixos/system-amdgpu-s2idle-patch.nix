@@ -10,7 +10,7 @@ in
       step from amdgpu's dm_suspend(), which wedges this iGPU on resume from any
       s2idle long enough to reach hardware sleep. See
       patches/amdgpu-no-idle-opt-on-s2idle.patch for the full rationale and
-      maintenance.md for the removal condition.
+      docs/maintenance.md for the removal condition.
 
       Note this makes every kernel version bump compile the kernel locally
       (~15-25 min), and reduces but does NOT eliminate the hang (confirmed
@@ -19,7 +19,7 @@ in
       suspend-then-hibernate — that specific sequence (s2idle, then a
       delayed silent internal resume before converting to hibernate) is what
       triggered a separate hibernate-resume TTM crash on this machine. See
-      maintenance.md item 7.
+      docs/maintenance.md item 7.
     '';
 
     fasterHibernateCompression = lib.mkOption {
