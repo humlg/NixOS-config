@@ -1,10 +1,5 @@
-# YG Discover / Netio Discover — colleague-built network discovery tools for
-# YellowGrid products (.NET/Avalonia app, same build shared under two brand
-# names/binaries, both dropped at ~/YellowGrid/discover/ outside Nix — not
-# packaged in nixpkgs, not built from source in this repo). They expect a
-# standard FHS layout, so they're run through steam-run; steam-run's FHS
-# environment is missing libICE/libSM (X11 session-management libs Avalonia's
-# X11 backend needs), so those are added via LD_LIBRARY_PATH on top of it.
+# YG Discover / Netio Discover — same .NET/Avalonia binary, two brand names, run
+# via steam-run (its FHS env lacks libICE/libSM, added via LD_LIBRARY_PATH).
 { config, lib, pkgs, ... }:
 
 let

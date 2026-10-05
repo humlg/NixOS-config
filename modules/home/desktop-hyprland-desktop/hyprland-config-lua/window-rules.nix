@@ -1,10 +1,7 @@
 { cfg, lib, ... }:
 let
-  # class is a regex and may contain backslash escapes (e.g. "\." to match a
-  # literal dot in a reverse-DNS app id) — embed it as a Lua long-bracket
-  # string ([[...]]), which passes the text through verbatim, rather than a
-  # quoted string, where Lua would try (and fail) to interpret "\." itself
-  # as an escape sequence.
+  # Lua long-bracket string ([[...]]), not a quoted string — class is a regex
+  # that may contain backslash escapes Lua would otherwise try to interpret.
   silentAppRules = lib.concatMapStrings (a: ''
     hl.window_rule({
       match            = { ${if a.matchInitial then "initial_class" else "class"} = [[${a.class}]] },

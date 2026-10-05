@@ -3,22 +3,15 @@
 let
   flakeRepo = "/home/david/repos/nixos-config";
 
-  # Fixed display width every value is right-justified into (via printf)
-  # before the row's border char is appended literally. Because the value
-  # arrives already padded to this exact width, the border always lands in
-  # the same column regardless of the value's real length (IP/date/kernel
-  # version, ...) — no cursor-position escape trickery needed.
+  # Every value is right-justified into this width via printf before the
+  # border char, so the border column lines up regardless of value length.
   valueWidth = 28;
 
-  # Must exceed the longest "│ <Label>" key text plus display.separator,
-  # or fastfetch's key-width alignment jump lands *inside* the label
-  # instead of after it, corrupting the text. Longest key is
-  # "│ Generation" (12 chars) + 2-char separator = 14, so this needs to
-  # stay above 15.
+  # Must exceed the longest "│ <Label>" + separator (currently 14), or
+  # fastfetch's key-width alignment jump lands inside the label text.
   keyWidth = 16;
 
-  # Wrap a shell snippet that prints a value on stdout so the value is
-  # captured, then right-justified into valueWidth via printf.
+  # Captures a command's stdout, right-justifies it into valueWidth.
   padded = cmd: ''
     v="$(${cmd})"
     printf "%${toString valueWidth}s" "$v"
@@ -38,9 +31,7 @@ in
 
       logo = {
         type = "data";
-        # Printed above the frame (not beside it) so the frame's own width
-        # — not the logo's — is what has to fit in a narrow terminal.
-        position = "top";
+        position = "top";  # above the frame, so the frame's width (not the logo's) must fit the terminal
         source = ''
           $1                ___   __
                    /¯\    \  \ /  ;
@@ -85,9 +76,7 @@ in
         {
           type = "command";
           key = "│ ";
-          # Color codes must wrap the already-padded string, not sit inside
-          # the printf width argument — otherwise their invisible bytes eat
-          # into the width budget and this row falls short of the others.
+          # Color codes wrap the padded string, not the printf width arg (else their bytes eat the budget).
           text = ''printf "\033[1;31m%${toString valueWidth}s\033[0m" "$(hostname)"'';
           format = "{}│";
         }

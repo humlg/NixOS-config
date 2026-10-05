@@ -4,10 +4,7 @@ let
   cfg = config.desktop.hyprland-desktop;
   home = config.home.homeDirectory;
 
-  # Flag file consumed by modules/home/desktop-hypridle.nix's guarded listeners.
-  # hypridle.service itself is left running throughout so before_sleep_cmd
-  # still locks the session on a lid-close-triggered suspend — only the
-  # idle-timeout listeners (dim/lock/dpms/suspend) are gated on this file.
+  # Consumed by desktop-hypridle.nix's guarded listeners — gates idle timeouts only, docs/architecture.md.
   hypridleInhibitFlag = "$XDG_RUNTIME_DIR/hypridle-idle-inhibited";
 
   sleepInhibitToggle = pkgs.writeShellScript "sleep-inhibit-toggle" ''

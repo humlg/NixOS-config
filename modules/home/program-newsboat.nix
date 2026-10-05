@@ -1,10 +1,6 @@
 { pkgs, ... }:
 
 {
-  # Native Home Manager module. With home.stateVersion "25.11" (>= 21.05) this
-  # writes to ~/.config/newsboat/{urls,config} (XDG), not the legacy
-  # ~/.newsboat/ — confirmed correct for this repo's newsboat version, which
-  # only falls back to ~/.newsboat if that directory already exists on disk.
   programs.newsboat = {
     enable = true;
     package = pkgs.newsboat;
@@ -13,8 +9,7 @@
     reloadTime = 60; # minutes
     reloadThreads = 8;
 
-    # browser left at the HM default (xdg-open) — resolves through
-    # default-apps.nix's mimeApps, which points http(s) at Zen already.
+    # browser left at the HM default (xdg-open) — default-apps.nix already routes http(s) to Zen.
 
     urls = [
       # ── World ───────────────────────────────────────────────────────

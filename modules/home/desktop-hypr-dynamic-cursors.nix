@@ -1,17 +1,7 @@
 { config, lib, pkgs, ... }: # HM
 
-# "Shake to find" for the Hyprland cursor — wiggle the mouse and the pointer
-# briefly grows, like KDE Plasma's Shake Cursor effect (and macOS).
-#
-# Backed by the hypr-dynamic-cursors plugin (VirtCode). That plugin's main
-# feature is realistic cursor tilt/rotate/stretch; this module deliberately
-# runs it shake-only (`mode = "none"`), so the pointer keeps its normal shape
-# and the *only* behaviour added is the grow-on-shake.
-#
-# The plugin comes from nixpkgs (`pkgs.hyprlandPlugins.*`), which builds it
-# against the same `pkgs.hyprland` Home Manager loads — so the ABI always
-# matches. Do NOT install it via hyprpm (that builds against a git Hyprland
-# and will fight the Nix-managed compositor).
+# "Shake to find" cursor (KDE/macOS style) via hypr-dynamic-cursors, shake-only
+# (mode = "none"). Install via nixpkgs, not hyprpm — ABI must match pkgs.hyprland.
 
 let
   cfg  = config.desktop.hyprland-desktop;
@@ -69,11 +59,7 @@ in
       pkgs.hyprlandPlugins.hypr-dynamic-cursors
     ];
 
-    # Appended after the main Lua config (mkAfter). Home Manager emits the
-    # hl.plugin.load(...) call at the top of hyprland.lua, so by the time this
-    # runs the plugin is loaded and the `hl.plugin.dynamic_cursors` guard is
-    # true. The guard keeps the config from erroring if the plugin ever fails
-    # to load.
+    # mkAfter: plugin must already be loaded (top of hyprland.lua) when this guard runs.
     wayland.windowManager.hyprland.extraConfig = lib.mkAfter ''
 
       -- ── hypr-dynamic-cursors: shake-to-find only ───────────────────

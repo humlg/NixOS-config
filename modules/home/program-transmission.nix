@@ -3,12 +3,7 @@
 let
   cfg = config.custom.transmission-vpn;
 
-  # Transmission-Qt uses the same on-disk settings.json as transmission-daemon
-  # (~/.config/transmission by default). We don't manage that file declaratively
-  # (the app rewrites it constantly with UI state), but on every launch we patch
-  # bind-address-ipv4 to Mullvad's current tunnel IP so libtransmission binds all
-  # peer sockets to the VPN interface. If the tunnel is down, there's no address
-  # to bind — sockets fail closed instead of falling back to the default route.
+  # Patches bind-address-ipv4 to Mullvad's tunnel IP on every launch — docs/architecture.md.
   vpnWrapper = pkgs.writeShellScript "transmission-qt-vpn-wrapper" ''
     set -euo pipefail
 
