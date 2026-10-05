@@ -62,17 +62,12 @@
   hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "slide" })
   hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slide" })
 
-  -- Special workspaces (notes, mail, dashboard, rss, scratchpad) get their
-  -- own vertical-slide style, distinct from the horizontal swipe above, so
-  -- they read as "dropping in" rather than being just another workspace.
+  -- Special workspaces get a vertical "drop in" slide, distinct from the horizontal swipe above.
   hl.animation({ leaf = "specialWorkspace",    enabled = true, speed = 1.94, bezier = "almostLinear", style = "slidevert" })
   hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "slidevert" })
   hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slidevert" })
 
-  -- swaync blur
-  -- swaync's actual gtk-layer-shell namespaces are "swaync-notification-window"
-  -- and "swaync-control-center" (not "swaync" — that never matched, so blur
-  -- was never applied).
+  -- Matches "swaync-notification-window"/"swaync-control-center" — bare "swaync" never matched.
   hl.layer_rule({
     match        = { namespace = "^swaync-" },
     blur         = true,
