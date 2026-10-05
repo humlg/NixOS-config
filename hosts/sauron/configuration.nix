@@ -30,8 +30,7 @@
 
   networking.hostName = "sauron";
 
-  # Wake-on-LAN: keep WoL enabled across reboots (kernel resets it otherwise).
-  # Requires BIOS "Wake on LAN" / "PCI-E Power On" enabled, and ErP/EuP disabled.
+  # Kernel resets WoL on every boot otherwise; also requires BIOS WoL/PCI-E Power On enabled.
   networking.interfaces.enp9s0.wakeOnLan.enable = true;
 
   hardware.graphics = {
@@ -44,9 +43,8 @@
 
   powerManagement.cpuFreqGovernor = "performance";
 
-  # HiDPI: larger font for TTY console and boot menu
-  boot.loader.systemd-boot.consoleMode = "max";
-  #console.packages = [ pkgs.terminus_font ];
+  boot.loader.systemd-boot.consoleMode = "max";  # HiDPI: larger TTY console/boot-menu font
+  #console.packages = [ pkgs.terminus_font ];    # fallback if consoleMode=max isn't enough
   #console.font = "ter-132b";
 
   services.colord.enable = true;
@@ -62,12 +60,7 @@
   custom.bluetooth.enable = true;
   custom.mullvad.enable = true;
   custom.tailscale.enable = true;
-  # Noctalia desktop shell — full replacement of AGS/swaync/hyprlock/waypaper/
-  # hypridle (all auto-gated off by useNoctalia in home.nix below). Unlike
-  # saruman this skips the staged pilot: sauron has none of saruman's
-  # sleep/idle-hang history that motivated going phase by phase. See
-  # docs/maintenance.md item 19.
-  custom.noctalia.enable = true;
+  custom.noctalia.enable = true;  # full replacement here, unlike saruman's staged pilot — docs/maintenance.md #19
   bundles.photography.enable = true;
   bundles."3d-printing".enable = true;
   bundles.wine.enable = true;

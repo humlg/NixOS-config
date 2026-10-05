@@ -26,15 +26,8 @@
 
     useLuaConfig = true;
 
-    # Noctalia desktop shell — replaces AGS/swaync/hyprlock/waypaper/hypridle
-    # outright (see custom.noctalia.enable in configuration.nix and
-    # docs/maintenance.md item 19). Runtime look-and-feel (bar/theme/lockscreen/
-    # plugins/idle behavior) is seeded once from saruman's tuned config by
-    # noctalia.nix's seedNoctaliaSettings activation script, then left
-    # entirely to Noctalia's own settings GUI to manage from there on.
-    useNoctalia = true;
+    useNoctalia = true;  # full replacement here (see custom.noctalia.enable) — docs/maintenance.md #19
 
-    # Machine-specific monitor layout (sauron — desktop with external display)
     monitors = ''
       monitor = DP-2, 2560x1440@165.08, 1920x0, 1
       monitor = HDMI-A-1, 1920x1080@75, 0x0, 1
@@ -51,8 +44,7 @@
     terminal      = "kitty";
     fileManager   = "thunar";
 
-    # FreeSync/VRR — enabled only on this AMD host; fullscreen-only avoids
-    # compositor tearing in normal use while still benefiting games.
+    # FreeSync/VRR, fullscreen-only — avoids compositor tearing while still benefiting games.
     extraConfig = ''
       misc {
         vrr = 2
@@ -65,13 +57,8 @@
     # Wiggle the mouse → the cursor briefly grows (KDE Shake Cursor style).
     dynamicCursors.enable = true;
 
-    # Silently autostart NewsFlash into special:rss, and newsboat (terminal
-    # RSS reader, modules/home/program-newsboat.nix) into special:dashboard, same
-    # mechanism as Thunderbird/Obsidian above (merges with the module's
-    # default list). newsboat's own toggle key is left null since
-    # mainMod+X/SHIFT+X already toggle special:dashboard unconditionally
-    # (keybinds.nix) — a second silentApps-generated bind on the same key
-    # would just double the same dispatch.
+    # Merges with the module's default list (docs/architecture.md). newsboat's key is
+    # null — mainMod+X/SHIFT+X already toggle special:dashboard, a second bind would double it.
     silentApps = [
       {
         name         = "rssReader";
