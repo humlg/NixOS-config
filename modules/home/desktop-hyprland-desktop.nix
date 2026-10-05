@@ -62,33 +62,33 @@ let
 
   # Import Hyprland config fragments (hyprlang)
   args = { inherit cfg home pkgs reloadDesktop; };
-  hyprVars      = import ./hyprland-config/variables.nix args;
-  hyprAutostart = import ./hyprland-config/autostart.nix args;
-  hyprInput     = import ./hyprland-config/input.nix args;
-  hyprAppear    = import ./hyprland-config/appearance.nix args;
-  hyprRules     = import ./hyprland-config/window-rules.nix args;
-  hyprKeybinds  = import ./hyprland-config/keybinds.nix args;
-  hyprLayouts   = import ./hyprland-config/layouts.nix args;
+  hyprVars      = import ./desktop-hyprland-desktop/hyprland-config/variables.nix args;
+  hyprAutostart = import ./desktop-hyprland-desktop/hyprland-config/autostart.nix args;
+  hyprInput     = import ./desktop-hyprland-desktop/hyprland-config/input.nix args;
+  hyprAppear    = import ./desktop-hyprland-desktop/hyprland-config/appearance.nix args;
+  hyprRules     = import ./desktop-hyprland-desktop/hyprland-config/window-rules.nix args;
+  hyprKeybinds  = import ./desktop-hyprland-desktop/hyprland-config/keybinds.nix args;
+  hyprLayouts   = import ./desktop-hyprland-desktop/hyprland-config/layouts.nix args;
 
   # Import Hyprland config fragments (Lua — Hyprland 0.55+)
   luaArgs        = { inherit cfg home pkgs reloadDesktop lib; };
-  luaVars        = import ./hyprland-config-lua/variables.nix luaArgs;
-  luaAutostart   = import ./hyprland-config-lua/autostart.nix luaArgs;
-  luaInput       = import ./hyprland-config-lua/input.nix luaArgs;
-  luaAppear      = import ./hyprland-config-lua/appearance.nix luaArgs;
-  luaRules       = import ./hyprland-config-lua/window-rules.nix luaArgs;
-  luaKeybinds    = import ./hyprland-config-lua/keybinds.nix luaArgs;
-  luaLayouts     = import ./hyprland-config-lua/layouts.nix luaArgs;
+  luaVars        = import ./desktop-hyprland-desktop/hyprland-config-lua/variables.nix luaArgs;
+  luaAutostart   = import ./desktop-hyprland-desktop/hyprland-config-lua/autostart.nix luaArgs;
+  luaInput       = import ./desktop-hyprland-desktop/hyprland-config-lua/input.nix luaArgs;
+  luaAppear      = import ./desktop-hyprland-desktop/hyprland-config-lua/appearance.nix luaArgs;
+  luaRules       = import ./desktop-hyprland-desktop/hyprland-config-lua/window-rules.nix luaArgs;
+  luaKeybinds    = import ./desktop-hyprland-desktop/hyprland-config-lua/keybinds.nix luaArgs;
+  luaLayouts     = import ./desktop-hyprland-desktop/hyprland-config-lua/layouts.nix luaArgs;
 in
 {
   imports = [
-    ./swaync.nix
-    ./ags.nix
-    ./anyrun.nix
-    ./hyprlock.nix
-    ./hypridle.nix
-    ./noctalia.nix
-    ./hypr-dynamic-cursors.nix
+    ./desktop-swaync.nix
+    ./desktop-ags.nix
+    ./desktop-anyrun.nix
+    ./desktop-hyprlock.nix
+    ./desktop-hypridle.nix
+    ./desktop-noctalia.nix
+    ./desktop-hypr-dynamic-cursors.nix
   ];
 
   options.desktop.hyprland-desktop = {
@@ -143,7 +143,7 @@ in
         Pilot the Noctalia desktop shell (see noctalia.nix) alongside the
         existing AGS/swaync/hyprlock/waypaper stack, none of which are
         disabled by this flag — it only enables Noctalia in parallel. Pair
-        with custom.noctalia.enable (modules/nixos/desktop/noctalia.nix) at the host's
+        with custom.noctalia.enable (modules/nixos/desktop-noctalia.nix) at the host's
         NixOS-tree level for the system services Noctalia recommends.
       '';
     };

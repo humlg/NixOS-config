@@ -4,7 +4,7 @@ let
   cfg = config.desktop.hyprland-desktop;
 
   # Idle-timeout listeners are gated on this flag file so the "sleep inhibit"
-  # toggle (modules/home/desktop/swaync.nix) can disable *just* the idle timeouts
+  # toggle (modules/home/desktop-swaync.nix) can disable *just* the idle timeouts
   # while leaving hypridle running — it must keep running so before_sleep_cmd
   # still locks the session on a lid-close-triggered suspend (handled directly
   # by logind, independent of hypridle's own listeners).

@@ -32,7 +32,7 @@ in
 
   config = lib.mkIf cfg.enable {
     age.secrets.wg-homelab = {
-      file = ../../../secrets/wg-homelab.age;
+      file = ../../secrets/wg-homelab.age;
       owner = "root";
       mode = "0400";
     };

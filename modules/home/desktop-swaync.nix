@@ -4,7 +4,7 @@ let
   cfg = config.desktop.hyprland-desktop;
   home = config.home.homeDirectory;
 
-  # Flag file consumed by modules/home/desktop/hypridle.nix's guarded listeners.
+  # Flag file consumed by modules/home/desktop-hypridle.nix's guarded listeners.
   # hypridle.service itself is left running throughout so before_sleep_cmd
   # still locks the session on a lid-close-triggered suspend — only the
   # idle-timeout listeners (dim/lock/dpms/suspend) are gated on this file.

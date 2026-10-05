@@ -3,27 +3,27 @@
 {
   age.secrets = {
     shell-env = {
-      file = ../../../secrets/shell-env.age;
+      file = ../../secrets/shell-env.age;
       owner = "david";
       mode  = "0400";
     };
     
     github-huml-yg = {
-      file  = ../../../secrets/github-huml-yg.age;
+      file  = ../../secrets/github-huml-yg.age;
       path  = "/home/david/.ssh/github_huml_yg";
       owner = "david";
       mode  = "0600";
     };
 
     homelab = {
-      file  = ../../../secrets/homelab.age;
+      file  = ../../secrets/homelab.age;
       path  = "/home/david/.ssh/homelab";
       owner = "david";
       mode  = "0600";
     };
 
     surface = {
-      file  = ../../../secrets/surface.age;
+      file  = ../../secrets/surface.age;
       path  = "/home/david/.ssh/surface";
       owner = "david";
       mode  = "0600";

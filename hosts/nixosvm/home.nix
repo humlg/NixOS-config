@@ -3,9 +3,11 @@
 {
   imports = [
     ../../modules/home/common.nix
-    ../../modules/home/desktop/dark-theme.nix
-    ../../modules/home/bundles/general.nix
-    ../../modules/home/desktop/hyprland-desktop.nix
+    ../../modules/home/program-fastfetch.nix
+    ../../modules/home/program-thunar.nix
+    ../../modules/home/desktop-dark-theme.nix
+    ../../modules/home/bundle-general.nix
+    ../../modules/home/desktop-hyprland-desktop.nix
   ];
 
   bundles.general.enable = true;

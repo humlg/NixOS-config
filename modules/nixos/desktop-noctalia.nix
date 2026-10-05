@@ -9,8 +9,8 @@ in
   ];
 
   # Shares the "noctalia" name with desktop.hyprland-desktop.useNoctalia in
-  # modules/home/desktop/noctalia.nix by convention (same pairing as
-  # bundles.yg-work / modules/nixos/bundles/yg-work.nix) but is a separate
+  # modules/home/desktop-noctalia.nix by convention (same pairing as
+  # bundles.yg-work / modules/nixos/bundle-yg-work.nix) but is a separate
   # NixOS-tree option, toggled independently per host.
   options.custom.noctalia.enable = lib.mkEnableOption "Noctalia desktop shell system services";
 

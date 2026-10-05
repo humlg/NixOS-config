@@ -48,7 +48,7 @@ let
     [ "$lid" = "closed" ] || exit 0
 
     # Deliberately does NOT consult the swaync "sleep inhibit" flag
-    # (modules/home/desktop/swaync.nix). That toggle exists to hold off the *idle*
+    # (modules/home/desktop-swaync.nix). That toggle exists to hold off the *idle*
     # timeouts in hypridle — dim/lock/dpms/suspend — not to keep the machine
     # awake with the lid shut. A closed lid is an explicit "I am done" signal
     # and must always sleep, same as logind's own lid handling, which ignores

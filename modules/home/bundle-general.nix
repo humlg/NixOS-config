@@ -5,12 +5,12 @@ let
 in
 {
   imports = [
-    ../programs/git.nix
-    ../programs/kitty.nix
-    ../programs/vim.nix
-    ../programs/btop.nix
-    ../programs/claude-code.nix
-    ../desktop/default-apps.nix
+    ./program-git.nix
+    ./program-kitty.nix
+    ./program-vim.nix
+    ./program-btop.nix
+    ./program-claude-code.nix
+    ./desktop-default-apps.nix
   ];
   options.bundles.general = {
     enable = lib.mkEnableOption "General always-installed user packages bundle";

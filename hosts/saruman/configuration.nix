@@ -4,32 +4,34 @@
   imports = [
     ./hardware-configuration.nix
     ./file-system.nix
-    ../../modules/nixos/system/common.nix
-    ../../modules/nixos/system/locale.nix
-    ../../modules/nixos/system/sddm.nix
-    ../../modules/nixos/desktop/hyprland.nix
-    ../../modules/nixos/programs/zsh.nix
-    ../../modules/nixos/services/bluetooth.nix
-    ../../modules/nixos/services/kvm.nix
-    ../../modules/nixos/services/darkproject-keyboard.nix
-    ../../modules/nixos/services/lid-undock-hibernate.nix
-    ../../modules/nixos/bundles/photography.nix
-    ../../modules/nixos/bundles/3d-printing.nix
-    ../../modules/nixos/bundles/wine.nix
-    ../../modules/nixos/programs/mullvad.nix
-    ../../modules/nixos/services/ollama.nix
-    ../../modules/nixos/bundles/gaming.nix
-    ../../modules/nixos/bundles/yg-work.nix
-    ../../modules/nixos/bundles/ham-radio.nix
-    ../../modules/nixos/programs/zen-browser.nix
-    ../../modules/nixos/system/secrets.nix
-    ../../modules/nixos/services/sunshine-moonlight.nix
-    ../../modules/nixos/services/tailscale.nix
-    ../../modules/nixos/services/wireguard-saruman.nix
-    ../../modules/nixos/system/amdgpu-s2idle-patch.nix
-    ../../modules/nixos/system/amdgpu-hdmi-scdc-fix.nix
-    ../../modules/nixos/desktop/noctalia.nix
-    ../../modules/nixos/system/tui-askpass.nix
+    ../../modules/nixos/system-common.nix
+    ../../modules/nixos/system-locale.nix
+    ../../modules/nixos/system-sddm.nix
+    ../../modules/nixos/desktop-hyprland.nix
+    ../../modules/nixos/program-zsh.nix
+    ../../modules/nixos/program-mkrepo.nix
+    ../../modules/nixos/service-bluetooth.nix
+    ../../modules/nixos/service-kvm.nix
+    ../../modules/nixos/service-darkproject-keyboard.nix
+    ../../modules/nixos/service-lid-undock-hibernate.nix
+    ../../modules/nixos/bundle-photography.nix
+    ../../modules/nixos/bundle-3d-printing.nix
+    ../../modules/nixos/bundle-wine.nix
+    ../../modules/nixos/program-mullvad.nix
+    ../../modules/nixos/service-ollama.nix
+    ../../modules/nixos/bundle-gaming.nix
+    ../../modules/nixos/bundle-yg-work.nix
+    ../../modules/nixos/bundle-ham-radio.nix
+    ../../modules/nixos/program-zen-browser.nix
+    ../../modules/nixos/system-secrets.nix
+    ../../modules/nixos/service-sunshine.nix
+    ../../modules/nixos/service-moonlight.nix
+    ../../modules/nixos/service-tailscale.nix
+    ../../modules/nixos/service-wireguard-saruman.nix
+    ../../modules/nixos/system-amdgpu-s2idle-patch.nix
+    ../../modules/nixos/system-amdgpu-hdmi-scdc-fix.nix
+    ../../modules/nixos/desktop-noctalia.nix
+    ../../modules/nixos/system-tui-askpass.nix
   ];
 
   networking.hostName = "saruman";
@@ -79,7 +81,7 @@
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
   # systemd stage-1 initrd, required for both LUKS unlock and the whiptail
-  # ask-password agent below (see modules/nixos/system/tui-askpass.nix).
+  # ask-password agent below (see modules/nixos/system-tui-askpass.nix).
   boot.initrd.systemd.enable = true;
   custom.tuiAskpass.enable = true;
   # pm_debug_messages + amd_pmc.enable_stb=1: capture PM/S0ix diagnostics for
@@ -121,7 +123,7 @@
     options mt7921e disable_aspm=1
   '';
   # Plymouth dropped 2026-08-26 in favor of custom.tuiAskpass (see
-  # modules/nixos/system/tui-askpass.nix): full raw boot output plus a whiptail
+  # modules/nixos/system-tui-askpass.nix): full raw boot output plus a whiptail
   # password box instead of a graphical splash hiding both.
   boot.plymouth.enable = false;
 
@@ -225,9 +227,9 @@
   # Saruman mainly connects out to other machines, but can also serve as a
   # Sunshine host on demand — installed but not auto-started (systemctl --user
   # start sunshine), since it's not needed 99% of the time.
-  custom.sunshine-moonlight.enable = true;
-  custom.sunshine-moonlight.autoStart = false;
-  custom.sunshine-moonlight.enableMoonlight = true;
+  custom.sunshine.enable = true;
+  custom.sunshine.autoStart = false;
+  custom.moonlight.enable = true;
 
   programs.kdeconnect.enable = true;
   custom.bluetooth.enable = true;
@@ -246,7 +248,7 @@
   bundles.yg-work.enable = true;
   bundles.ham-radio.enable = true;
 
-  # YG Discover / Netio Discover (modules/home/programs/yg-discover.nix) send a UDP
+  # YG Discover / Netio Discover (modules/home/program-yg-discover.nix) send a UDP
   # broadcast on 62387 and devices reply via UDP broadcast on 62386 (NETIO's
   # discovery protocol — https://wiki.netio-products.com/index.php?title=NETIO_UDP_Discover).
   # Firewall default-deny blocks the replies: they come back as a *broadcast*,
@@ -280,6 +282,7 @@
     clinfo
     openttd
     openrgb
+    krita
   ];
 
   # Also carries the local Dark Project Bushido 87 controller — see

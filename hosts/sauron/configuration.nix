@@ -4,26 +4,28 @@
   imports = [
     ./hardware-configuration.nix
     ./file-system.nix
-    ../../modules/nixos/system/common.nix
-    ../../modules/nixos/system/locale.nix
-    ../../modules/nixos/system/amd-gpu.nix
-    ../../modules/nixos/system/sddm.nix
-    ../../modules/nixos/desktop/hyprland.nix
-    ../../modules/nixos/programs/zsh.nix
-    ../../modules/nixos/services/bluetooth.nix
-    ../../modules/nixos/bundles/photography.nix
-    ../../modules/nixos/bundles/3d-printing.nix
-    ../../modules/nixos/bundles/wine.nix
-    ../../modules/nixos/bundles/gaming.nix
-    ../../modules/nixos/bundles/ham-radio.nix
-    ../../modules/nixos/system/secrets.nix
-    ../../modules/nixos/programs/zen-browser.nix
-    ../../modules/nixos/programs/mullvad.nix
-    ../../modules/nixos/services/ollama.nix
-    ../../modules/nixos/services/sunshine-moonlight.nix
-    ../../modules/nixos/services/wivrn.nix
-    ../../modules/nixos/services/tailscale.nix
-    ../../modules/nixos/desktop/noctalia.nix
+    ../../modules/nixos/system-common.nix
+    ../../modules/nixos/system-locale.nix
+    ../../modules/nixos/system-amd-gpu.nix
+    ../../modules/nixos/system-sddm.nix
+    ../../modules/nixos/desktop-hyprland.nix
+    ../../modules/nixos/program-zsh.nix
+    ../../modules/nixos/program-mkrepo.nix
+    ../../modules/nixos/service-bluetooth.nix
+    ../../modules/nixos/bundle-photography.nix
+    ../../modules/nixos/bundle-3d-printing.nix
+    ../../modules/nixos/bundle-wine.nix
+    ../../modules/nixos/bundle-gaming.nix
+    ../../modules/nixos/bundle-ham-radio.nix
+    ../../modules/nixos/system-secrets.nix
+    ../../modules/nixos/program-zen-browser.nix
+    ../../modules/nixos/program-mullvad.nix
+    ../../modules/nixos/service-ollama.nix
+    ../../modules/nixos/service-sunshine.nix
+    ../../modules/nixos/service-moonlight.nix
+    ../../modules/nixos/service-wivrn.nix
+    ../../modules/nixos/service-tailscale.nix
+    ../../modules/nixos/desktop-noctalia.nix
   ];
 
   networking.hostName = "sauron";
@@ -50,8 +52,8 @@
   services.colord.enable = true;
   services.udev.packages = [ pkgs.openrgb ];
 
-  custom.sunshine-moonlight.enable = true;
-  custom.sunshine-moonlight.enableMoonlight = true;
+  custom.sunshine.enable = true;
+  custom.moonlight.enable = true;
   custom.wivrn.enable = true;
 
   programs.zen-browser-custom.enable = true;

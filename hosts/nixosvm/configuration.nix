@@ -3,13 +3,14 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules/nixos/system/common.nix
-    ../../modules/nixos/system/locale.nix
-    ../../modules/nixos/system/sddm.nix
-    ../../modules/nixos/desktop/hyprland.nix
-    ../../modules/nixos/programs/zsh.nix
-    ../../modules/nixos/services/bluetooth.nix
-    ../../modules/nixos/services/tailscale.nix
+    ../../modules/nixos/system-common.nix
+    ../../modules/nixos/system-locale.nix
+    ../../modules/nixos/system-sddm.nix
+    ../../modules/nixos/desktop-hyprland.nix
+    ../../modules/nixos/program-zsh.nix
+    ../../modules/nixos/program-mkrepo.nix
+    ../../modules/nixos/service-bluetooth.nix
+    ../../modules/nixos/service-tailscale.nix
   ];
 
   networking.hostName = "nixosvm";

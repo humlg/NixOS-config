@@ -17,13 +17,13 @@ in
     networking.networkmanager.plugins = [ pkgs.networkmanager-openvpn ];
 
     age.secrets."1nce-vpn-ovpn" = {
-      file = ../../../secrets/1nce-vpn.ovpn.age;
+      file = ../../secrets/1nce-vpn.ovpn.age;
       owner = "david";
       mode = "0400";
     };
 
     age.secrets."1nce-vpn-credentials" = {
-      file = ../../../secrets/1nce-vpn-credentials.age;
+      file = ../../secrets/1nce-vpn-credentials.age;
       owner = "david";
       mode = "0400";
     };

@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../programs/thunar.nix
+    ./program-thunar.nix
   ];
   programs.hyprland = {
     enable = true;
