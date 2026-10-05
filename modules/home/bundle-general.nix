@@ -56,6 +56,9 @@ in
       # AppImage management
       gearlever
 
+      # Bootable USB drive creator
+      impression
+
       ffmpeg
       lazygit
 
