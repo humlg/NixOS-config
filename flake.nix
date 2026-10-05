@@ -55,9 +55,7 @@
     ];
     overlayModule = {
       nixpkgs.overlays = overlays;
-      # home-manager.useGlobalPkgs is off (HM instantiates its own pkgs), so
-      # the overlays above are invisible to home-manager-installed packages
-      # (e.g. gearlever) unless also applied to every user's HM module here.
+      # useGlobalPkgs is off, so HM needs the overlays applied again here, or its own packages won't see them.
       home-manager.sharedModules = [ { nixpkgs.overlays = overlays; } ];
     };
   in

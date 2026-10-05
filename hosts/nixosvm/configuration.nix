@@ -18,7 +18,6 @@
   custom.bluetooth.enable = true;
   custom.tailscale.enable = true;
 
-  # Virtual Machine agent
   services.spice-vdagentd.enable = true;
 
   environment.variables = {
