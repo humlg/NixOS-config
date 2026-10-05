@@ -20,7 +20,7 @@ in
   hl.on("hyprland.start", function()
     hl.exec_cmd("thunar --daemon")
     ${if cfg.useNoctalia then "" else ''hl.exec_cmd("ags run")''}
-    hl.exec_cmd("awww-daemon")
+    ${if cfg.useNoctalia then "" else ''hl.exec_cmd("awww-daemon")''}
     ${if cfg.useNoctalia then "" else ''hl.exec_cmd("sleep 1 && waypaper --restore")''}
 ${silentLaunches}${focusBack}
     hl.exec_cmd("wl-paste --type text  --watch cliphist store")
