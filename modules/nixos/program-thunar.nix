@@ -11,7 +11,6 @@
 
   services.gvfs.enable = true;
 
-  # Thumbnail generation
   services.tumbler.enable = true;
   environment.systemPackages = with pkgs; [
     tumbler            # thumbnail backend

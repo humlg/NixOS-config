@@ -8,10 +8,7 @@ in
     inputs.noctalia.nixosModules.default
   ];
 
-  # Shares the "noctalia" name with desktop.hyprland-desktop.useNoctalia in
-  # modules/home/desktop-noctalia.nix by convention (same pairing as
-  # bundles.yg-work / modules/nixos/bundle-yg-work.nix) but is a separate
-  # NixOS-tree option, toggled independently per host.
+  # Separate NixOS-tree option from desktop.hyprland-desktop.useNoctalia (home tree) — paired by convention, toggled independently.
   options.custom.noctalia.enable = lib.mkEnableOption "Noctalia desktop shell system services";
 
   config = lib.mkIf cfg.enable {
@@ -22,9 +19,6 @@ in
       recommendedServices.enable = true;
     };
 
-    # recommendedServices.enable above default-enables power-profiles-daemon
-    # (needed for Noctalia's power-profile widget/panel — see docs/maintenance.md
-    # item 20) and lets it apply with no override now that saruman runs it
-    # instead of TLP.
+    # recommendedServices.enable default-enables power-profiles-daemon (docs/maintenance.md #20).
   };
 }

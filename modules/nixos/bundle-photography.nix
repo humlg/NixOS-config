@@ -3,8 +3,7 @@
 let
   cfg = config.bundles.photography;
 
-  # DaVinci Resolve uses bundled Qt5. When WAYLAND_DISPLAY is set (Hyprland),
-  # Qt defaults to the Wayland platform which DR doesn't support — force xcb.
+  # Forces XCB — DR's bundled Qt5 can't do Wayland (docs/maintenance.md #12).
   davinci-resolve-xcb = pkgs.symlinkJoin {
     name = "davinci-resolve";
     paths = [ pkgs.davinci-resolve ];
@@ -21,12 +20,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Graphics and photography applications bundle
     environment.systemPackages = with pkgs; [
-      gimp          # GNU Image Manipulation Program
-      inkscape      # Vector graphics editor
-      darktable     # Photography workflow and RAW developer
-      #rawtherapee
+      gimp
+      inkscape
+      darktable
+      #rawtherapee  # disabled, see docs/maintenance.md #2
       gphoto2
       davinci-resolve-xcb
       audacity

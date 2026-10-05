@@ -9,15 +9,11 @@ let
     set -eu
     export PATH=${lib.makeBinPath [ config.systemd.package pkgs.coreutils ]}
 
-    # --record-only: just snapshot the current external-display state without
-    # ever acting. Used by the boot-time init unit so the very first unplug
-    # after boot is seen as a real 1->0 edge (see the edge check below).
+    # --record-only snapshots state without acting (used by the boot-time init unit).
     record_only=0
     [ "''${1-}" = "--record-only" ] && record_only=1
 
-    # Let the hotplug settle — unplugging a DP-alt-mode monitor briefly
-    # reports connectors as disconnected mid-renegotiation, and we do not
-    # want to hibernate on that transient.
+    # Let a DP hotplug renegotiation settle before sampling (docs/architecture.md).
     [ "$record_only" = "1" ] || sleep ${toString cfg.settleSeconds}
 
     external=0
@@ -37,22 +33,14 @@ let
 
     [ "$record_only" = "1" ] && exit 0
 
-    # Only act on a real "external display went away" edge. This is also what
-    # stops a hibernate loop: we write 0 before hibernating, so when the
-    # machine is powered back on with the lid still shut and no monitor
-    # attached, previous is already 0 and nothing fires.
+    # Only act on a real 1->0 edge (prevents a hibernate loop on resume).
     [ "$external" = "0" ] || exit 0
     [ "$previous" = "1" ] || exit 0
 
     lid=$(cat /proc/acpi/button/lid/*/state 2>/dev/null | awk '{ print $2; exit }' || true)
     [ "$lid" = "closed" ] || exit 0
 
-    # Deliberately does NOT consult the swaync "sleep inhibit" flag
-    # (modules/home/desktop-swaync.nix). That toggle exists to hold off the *idle*
-    # timeouts in hypridle — dim/lock/dpms/suspend — not to keep the machine
-    # awake with the lid shut. A closed lid is an explicit "I am done" signal
-    # and must always sleep, same as logind's own lid handling, which ignores
-    # inhibitors too (LidSwitchIgnoreInhibited defaults to yes).
+    # Deliberately ignores the swaync sleep-inhibit flag — see docs/architecture.md.
     echo "external display disconnected while lid closed — sleeping"
     exec ${cfg.sleepCommand}
   '';
@@ -101,8 +89,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # DRM hotplug (monitor plugged/unplugged) — udev RUN must return promptly,
-    # hence --no-block into a unit that does the actual waiting and checking.
     services.udev.extraRules = ''
       ACTION=="change", SUBSYSTEM=="drm", KERNEL=="card[0-9]*", RUN+="${config.systemd.package}/bin/systemctl --no-block start lid-undock-hibernate.service"
     '';
@@ -115,9 +101,7 @@ in
       };
     };
 
-    # Snapshot external-display state at boot so the first unplug registers as
-    # an edge. Without this the state file would be absent, previous would
-    # default to 0, and the first undock after boot would be missed.
+    # Snapshots state at boot so the first unplug after boot registers as an edge.
     systemd.services.lid-undock-hibernate-init = {
       description = "Record initial external-display state for lid-undock-hibernate";
       wantedBy = [ "multi-user.target" ];

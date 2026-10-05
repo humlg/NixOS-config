@@ -4,9 +4,9 @@
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;
-    open = false; # proprietary driver
+    open = false;
     nvidiaSettings = true;
-    #package = config.boot.kernelPackages.nvidiaPackages.new_feature;
+    #package = config.boot.kernelPackages.nvidiaPackages.new_feature;  # unexplained — docs/maintenance.md #17
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 

@@ -1,10 +1,6 @@
 { pkgs, lib, config, ... }:
 
-# System-level (NixOS) half of the yg-work bundle — the Home Manager half
-# (packages) lives in yg-work.nix, imported separately into home.nix. Both
-# share the bundles.yg-work.enable option name by convention, but since
-# NixOS and Home Manager are separate module trees, each must be toggled
-# on its own host file.
+# NixOS half of the yg-work bundle (HM half: modules/home/bundle-yg-work.nix) — docs/architecture.md.
 let
   cfg = config.bundles.yg-work;
 in

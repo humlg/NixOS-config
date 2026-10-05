@@ -3,3 +3,12 @@
     - swag
     - 3D printing
     - productivity
+- Ham radio bundle (`modules/nixos/bundle-ham-radio.nix`) — other apps worth considering:
+    - gqrx, cubicsdr — alternative SDR receiver GUIs
+    - gnuradio — SDR signal-processing toolkit for custom flowgraphs
+    - js8call — JS8 weak-signal mode with keyboard-to-keyboard messaging
+    - fldigi + flrig — PSK31/RTTY/other classic digital modes + rig-control GUI
+    - direwolf, xastir — APRS TNC/digipeater + mapping/tracking client
+    - chirp — radio programming software for handheld/mobile transceivers
+    - gpredict — satellite tracking/pass prediction
+    - qsstv — slow-scan television (SSTV) send/receive

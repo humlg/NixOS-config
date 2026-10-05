@@ -10,28 +10,14 @@ in
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      sdrpp   # SDR++ — SDR receiver GUI (waterfall/spectrum, decoders, recording)
+      sdrpp   # SDR receiver GUI
       sdrangel
-      wsjtx   # FT8/FT4/JT65/... weak-signal digital mode suite
-      hamlib  # rig-control library/CLI (rigctl, rigctld) — CAT control backend used by wsjtx and others
-
-      # --- other apps worth considering, uncomment as needed ---
-      # gqrx        # alternative SDR receiver GUI (simpler than sdrpp, also GNU Radio-based)
-      # gnuradio    # SDR signal-processing toolkit for custom flowgraphs
-      # cubicsdr    # another SDR receiver GUI option
-      # js8call     # JS8 — FT8-like weak-signal mode with free-text keyboard-to-keyboard messaging
-      # fldigi      # PSK31/RTTY/other classic digital modes
-      # flrig       # rig-control GUI, commonly paired with fldigi
-      # direwolf    # software TNC/digipeater for APRS over a soundcard
-      # xastir      # APRS mapping/tracking client
-      # chirp       # radio programming software for handheld/mobile transceivers
-      # gpredict    # satellite tracking/pass prediction, useful for ham satellite ops
-      # qsstv       # slow-scan television (SSTV) send/receive
+      wsjtx   # FT8/FT4/JT65 weak-signal digital modes
+      hamlib  # rig-control (CAT) backend used by wsjtx and others
     ];
 
-    # RTL-SDR dongle udev rules (grants non-root USB access via the plugdev group).
-    services.udev.packages = [ pkgs.rtl-sdr ];
+    services.udev.packages = [ pkgs.rtl-sdr ];  # non-root USB access to RTL-SDR dongles
     users.groups.plugdev = { };
-    users.users.david.extraGroups = [ "plugdev" "dialout" ]; # plugdev: RTL-SDR USB access; dialout: CAT-control serial ports
+    users.users.david.extraGroups = [ "plugdev" "dialout" ]; # RTL-SDR USB / CAT-control serial
   };
 }

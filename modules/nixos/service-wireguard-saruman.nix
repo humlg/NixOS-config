@@ -1,26 +1,7 @@
 { lib, config, ... }:
 
-# Personal WireGuard VPN tunnel for saruman, provisioned from a full
-# wg-quick config file (encrypted whole, since it's already in exactly the
-# format wg-quick wants — no need to split it into individual NixOS
-# networking.wireguard options). Declared as a NetworkManager profile via
-# networking.networkmanager.ensureProfiles rather than
-# networking.wg-quick.interfaces, so it shows up as an ordinary connection
-# in NetworkManager — and therefore in Noctalia's network-manager bar
-# widget — toggleable without sudo. The private key never leaves root: a
-# oneshot service extracts it from the already-decrypted agenix secret at
-# boot into a root-only /run env file that
-# NetworkManager-ensure-profiles.service reads via EnvironmentFile and
-# envsubst's into the generated connection. The peer's public key, the
-# endpoint, and the in-tunnel address are not secret (only the private key
-# is) so they're plain Nix values here — that does mean this device's WAN
-# endpoint and internal tunnel address are now visible in the (committed)
-# repo, where before they only existed inside the encrypted secret.
-# This tunnel's AllowedIPs is 0.0.0.0/0, ::/0 (full-tunnel), so it's set to
-# not autoconnect — bring it up/down from the NetworkManager applet/nmcli
-# ("wg-homelab") instead of at boot. Interface named wg-homelab (not
-# wg-saruman) so the connection name doesn't just repeat the hostname it
-# runs on.
+# Personal WireGuard VPN tunnel for saruman, via NetworkManager rather than
+# wg-quick — rationale and private-key handling: docs/architecture.md.
 let
   cfg = config.custom.wireguard-saruman;
   privateKeyEnvFile = "/run/wg-homelab-nm.env";

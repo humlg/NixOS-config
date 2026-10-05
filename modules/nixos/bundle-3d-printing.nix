@@ -9,10 +9,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # 3D printing and CAD applications bundle
     environment.systemPackages = with pkgs; [
-      prusa-slicer   # 3D print slicing
-      #bambu-studio
+      prusa-slicer
+      #bambu-studio  # disabled, no reason recorded — docs/maintenance.md #17
       printrun
     ];
   };

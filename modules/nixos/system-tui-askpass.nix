@@ -1,13 +1,5 @@
-# Replaces the stock initrd disk-unlock prompt (a single unmasked line with
-# zero feedback while typing) with a whiptail box that shows dots per
-# keystroke, so a dead/sticking key is visible instead of silently vanishing
-# into "wrong passphrase, try again". Requires boot.initrd.systemd.enable
-# (systemd stage-1 initrd) — this hooks into systemd's password-agent
-# protocol (see https://systemd.io/PASSWORD_AGENTS/), the same mechanism
-# Plymouth itself uses to grab password prompts, so Plymouth and this module
-# are mutually exclusive by design (see the ConditionPathExists guards
-# below) — enabling this only makes sense with Plymouth off, since the point
-# is to see full boot output with no splash covering it.
+# Whiptail-based initrd disk-unlock prompt (shows keystroke feedback, unlike
+# the stock prompt). Protocol + Plymouth mutual-exclusion: docs/architecture.md.
 {
   config,
   lib,
@@ -37,8 +29,7 @@ in
 
   config = lib.mkIf cfg.enable {
     boot.initrd.systemd = {
-      # Must suppress both: the .path unit is what actually triggers the
-      # .service, so disabling only the .service leaves the trigger armed.
+      # Must suppress both — the .path unit triggers the .service.
       suppressedUnits = [
         "systemd-ask-password-console.path"
         "systemd-ask-password-console.service"
@@ -68,9 +59,7 @@ in
 
       services.tui-askpass = {
         description = "TUI disk-unlock password agent (whiptail)";
-        # `path` sets this unit's PATH outright (no fallback to the
-        # initrd's global /bin), so every coreutil the script calls has to
-        # be listed explicitly here.
+        # `path` sets PATH outright, no fallback to the initrd's /bin.
         path = [ pkgs.newt pkgs.coreutils pkgs.gnused ];
         unitConfig = {
           DefaultDependencies = false;
@@ -103,9 +92,7 @@ in
           Restart = "on-failure";
           RestartSec = 1;
         };
-        # Polls instead of using inotify: the initrd has no inotify-tools,
-        # and a 0.3s poll is invisible next to how long it takes a human to
-        # read a prompt and type a passphrase.
+        # Polls — the initrd has no inotify-tools.
         script = ''
           set -eu
 

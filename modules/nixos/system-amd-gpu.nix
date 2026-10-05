@@ -18,9 +18,7 @@
     libglvnd
   ];
 
-  # RDNA 4 (RX 9070 XT) is not yet officially supported by ROCm.
-  # Override GFX version to treat it as the closest supported architecture.
-  # Verify the right value once ROCm adds native RDNA 4 support.
+  # RDNA4 not yet officially supported by ROCm — override GFX version (docs/maintenance.md).
   environment.variables = {
     HSA_OVERRIDE_GFX_VERSION = "12.0.0";
     LIBVA_DRIVER_NAME        = "radeonsi";  # VA-API hardware video decode

@@ -102,9 +102,7 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Keep the bootloader menu in sync with the generation limit.
-    # Add 2 as a small buffer for the anchor entry + any in-flight builds.
-    boot.loader.systemd-boot.configurationLimit = cfg.keepGenerations + 2;
+    boot.loader.systemd-boot.configurationLimit = cfg.keepGenerations + 2;  # +2 buffer: anchor entry + in-flight builds
 
     systemd.services.nixos-generation-cleanup = {
       description = "NixOS generation cleanup";
