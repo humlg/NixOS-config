@@ -1159,6 +1159,43 @@ Last full scan: 2026-07-16.
 - **Removal condition:** Done once both hosts import the same module and
   `hosts/saruman/configuration.nix` no longer hand-declares `hardware.graphics.extraPackages`.
 
+### 28. Saruman: 1NCE cellular VPN switched from NetworkManager import to a native `services.openvpn` server (2026-10-06, fixed)
+- **Where:** `modules/nixos/bundle-yg-work.nix`.
+- **What:** The bundle previously only declared the two agenix secrets
+  (`1nce-vpn-ovpn`, `1nce-vpn-credentials`) and added the
+  `networkmanager-openvpn` plugin, leaving the actual VPN connection to be
+  created by hand via `nm-connection-editor`/GUI import. Replaced that with a
+  declarative `services.openvpn.servers."1nce".config = "config
+  /run/agenix/1nce-vpn-ovpn";` (the standard NixOS indirection pattern for a
+  non-world-readable config), `autoStart = false`.
+- **Why:** The GUI-imported NetworkManager connection never connected —
+  `journalctl` showed `nm-openvpn` starting, then `connect timeout exceeded` /
+  `ERROR: could not read Auth username/password/ok/string from management
+  interface` every attempt. This matches a known `NetworkManager-openvpn`
+  bug class where the plugin's interactive management-interface handshake
+  fails to hand a long password through to the `openvpn` process — the 1NCE
+  credential is a ~300-character JWT, well past what triggers it (search hit:
+  "MFA systems using 64 character long responses... generate this error...
+  work fine when using the command line version"). The `.ovpn` profile
+  decrypted to `/run/agenix/1nce-vpn-ovpn` already contains its own
+  `auth-user-pass /run/agenix/1nce-vpn-credentials` directive, i.e. it was
+  always meant to be run directly by the `openvpn` binary (installed
+  system-wide per commit `7c84633`) rather than through NM's credential
+  prompt path — switching to `services.openvpn` just uses it the way it was
+  built to be used.
+- **Two stale NetworkManager connection profiles left behind on the live
+  system** (`1nce-vpn-ovpn`, `eu-central-1-client` — the latter has
+  `password-flags=1`/agent-owned, so it silently never prompts for a password
+  at all on this agent-less Hyprland/Noctalia setup): not Nix-managed, so not
+  removed by this change. Safe to delete by hand (`nmcli connection delete
+  <name>`) once the native service is confirmed working, or keep as inert
+  leftovers.
+- **Usage:** `sudo systemctl start openvpn-1nce` / `stop` (on-demand, not
+  autostarted); routes are server-pushed, not static in the client config.
+- **Removal condition:** N/A — this is the intended permanent mechanism, not
+  a bodge to later undo. Listed here for the diagnosis trail in case the VPN
+  breaks again.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)

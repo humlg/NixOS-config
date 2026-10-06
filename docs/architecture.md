@@ -157,7 +157,7 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, printrun. |
 | `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
 | `bundle-wine.nix` (nixos) | `bundles.wine.enable` | Wine with 32-bit support. |
-| `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree. |
+| `bundle-yg-work.nix` (nixos + home) | `bundles.yg-work.enable` | Work-related tools — two separate options of the same name, one per tree. NixOS side runs the 1NCE cellular IoT VPN as a native `services.openvpn` server (`sudo systemctl start openvpn-1nce`), not a NetworkManager import — `docs/maintenance.md` #28. |
 
 **Where to add something:** a new app that belongs on all machines → `bundle-general.nix`. A common GUI app → `bundle-desktop-apps.nix`. Something both desktop workstations need but isn't part of the daily-driver baseline → `bundle-workstation.nix`. Something for only one machine → directly in `hosts/<name>/home.nix` (or `configuration.nix`) under `environment.systemPackages` / `home.packages`.
 

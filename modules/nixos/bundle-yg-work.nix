@@ -10,7 +10,13 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    networking.networkmanager.plugins = [ pkgs.networkmanager-openvpn ];
+    # Native openvpn service, not NetworkManager's GUI/nmcli import path — NM's
+    # nm-openvpn plugin fails to hand the long 1NCE JWT password to openvpn over
+    # its management-interface socket (upstream bug, see docs/maintenance.md).
+    services.openvpn.servers."1nce" = {
+      config = "config /run/agenix/1nce-vpn-ovpn";
+      autoStart = false;
+    };
 
     age.secrets."1nce-vpn-ovpn" = {
       file = ../../secrets/1nce-vpn.ovpn.age;
