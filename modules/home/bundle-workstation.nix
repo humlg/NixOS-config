@@ -6,7 +6,6 @@ in
 {
   imports = [
     ./program-ssh-keys.nix
-    ./program-newsboat.nix
     ./program-transmission.nix
     ./program-jellyfin-media-player.nix
     ./bundle-desktop-apps.nix

@@ -150,9 +150,9 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
 | `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, btop, claude-code. |
-| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify, NewsFlash. |
+| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
 | `bundle-workstation.nix` (nixos) | `bundles.workstation.enable` | Desktop-workstation extras shared by sauron+saruman: colord, OpenRGB, Zen Browser, Mullvad, KDE Connect, Ollama, Moonlight, Sunshine, Noctalia. |
-| `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, newsboat, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
+| `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
 | `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2, DaVinci Resolve. |
 | `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, printrun. |
 | `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
@@ -184,7 +184,6 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 | `program-webapps.nix` (home) | Web app shortcuts | Desktop entries wrapping web URLs. |
 | `program-winboat.nix` (nixos) | Winboat | Windows compatibility tool (orphaned, see `docs/maintenance.md` #13). |
 | `program-ssh-keys.nix` (home) | SSH keys | Declares `~/.ssh` key files from agenix secrets. Imported via `bundle-workstation.nix`. |
-| `program-newsboat.nix` (home) | Newsboat RSS reader | Config + feed list. Imported via `bundle-workstation.nix`. |
 | `program-jellyfin-media-player.nix` (home) | Jellyfin media player | Desktop client config. Imported via `bundle-workstation.nix`. |
 | `program-yg-discover.nix` (home) | YG/Netio Discover | Work LAN-discovery client (saruman only). |
 

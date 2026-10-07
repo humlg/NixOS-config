@@ -256,25 +256,16 @@ in
       # Obsidian's Wayland app-id has changed across versions before (symptom if it
       # breaks again: brief flash + focus steal instead of launching into special:notes).
       { name = "obsidian";    command = "obsidian";    class = "^md.Obsidian$";   matchInitial = false; workspace = "notes"; key = "S"; delay = 4; }
-      # newsboat's key is null — mainMod+X/SHIFT+X already toggle special:dashboard,
+      # Todoist's key is null — mainMod+X/SHIFT+X already toggle special:dashboard,
       # a second bind would double it.
       {
-        name         = "rssReader";
-        command      = "io.gitlab.news_flash.NewsFlash";
-        class        = "^io\\.gitlab\\.news_flash\\.NewsFlash$";
-        matchInitial = false;
-        workspace    = "rss";
-        key          = "U";
-        delay        = 5;
-      }
-      {
-        name         = "newsboatReader";
-        command      = "kitty --class newsboat -e newsboat";
-        class        = "^newsboat$";
-        matchInitial = false;
+        name         = "todoist";
+        command      = "todoist-electron";
+        class        = "^Todoist$";
+        matchInitial = true;
         workspace    = "dashboard";
         key          = null;
-        delay        = 6;
+        delay        = 5;
       }
     ];
 

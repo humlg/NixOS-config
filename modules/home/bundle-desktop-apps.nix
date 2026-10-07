@@ -17,7 +17,6 @@ in
       spotify
       megasync
       appimage-run
-      newsflash
     ];
   };
 }
