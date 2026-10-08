@@ -76,6 +76,7 @@ in
     pkgs.cameractrls-gtk4
     pkgs.remmina
     pkgs.kdePackages.k3b
+    pkgs.kdePackages.kdenlive
     resolutionToggle
   ];
 
