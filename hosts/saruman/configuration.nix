@@ -135,6 +135,7 @@
     clinfo
     openttd
     krita
+    obs-studio
   ];
 
   system.stateVersion = "25.11";
