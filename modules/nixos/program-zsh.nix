@@ -15,12 +15,14 @@
         fastfetch
       fi
       [ -f /run/agenix/shell-env ] && source /run/agenix/shell-env
+
+      # kitten ssh relies on kitty's terminal protocol — only alias it inside a kitty window.
+      [ -n "$KITTY_WINDOW_ID" ] && alias ssh="kitten ssh"
     '';
 
     shellAliases = {
       rebuild      = "sudo nixos-rebuild switch --flake /home/david/repos/nixos-config#$(hostname)";
       rebuild-test = "sudo nixos-rebuild test --flake /home/david/repos/nixos-config#$(hostname)";
-      ssh          = "kitten ssh";
     };
   };
 }
