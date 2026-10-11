@@ -34,6 +34,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    lightcraft = {
+      # Pinned to the v0.6.0 tag, not the default branch: main has a commit ahead of this release
+      # that adds a git-source cargo dependency (craft-ui) without the matching Nix outputHashes
+      # entry, which breaks `nix build` until upstream fixes it. Bump this tag deliberately once a
+      # newer release's flake build is confirmed working.
+      url = "github:storytold/lightcraft/v0.6.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     agenix = {
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";

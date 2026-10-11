@@ -21,6 +21,7 @@ in
     ../../modules/home/bundle-yg-work.nix
     ../../modules/home/program-webapps.nix
     ../../modules/home/program-yg-discover.nix
+    ../../modules/home/program-lightcraft.nix
     ../../modules/home/bundle-workstation.nix
   ];
 
@@ -29,6 +30,7 @@ in
   bundles.yg-work.enable = true;
   programs.yg-discover.enable = true;
   programs.yg-discover.netio.enable = true;
+  programs.lightcraft.enable = true;
 
   desktop.hyprland-desktop = {
     enable = true;

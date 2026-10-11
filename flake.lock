@@ -110,6 +110,23 @@
         "type": "github"
       }
     },
+    "craft-fonts": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1791311399,
+        "narHash": "sha256-4E9OrthE5z39xFXpvpwn4Fn6RH3wX2sF56rZZejZT+I=",
+        "owner": "storytold",
+        "repo": "craft-fonts",
+        "rev": "8dcdacd5153e64560d109541a47d806f26f048c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "storytold",
+        "repo": "craft-fonts",
+        "rev": "8dcdacd5153e64560d109541a47d806f26f048c0",
+        "type": "github"
+      }
+    },
     "darwin": {
       "inputs": {
         "nixpkgs": [
@@ -215,6 +232,28 @@
         "type": "github"
       }
     },
+    "lightcraft": {
+      "inputs": {
+        "craft-fonts": "craft-fonts",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791675490,
+        "narHash": "sha256-hPRTJQql7TzmqZgkmDU1W3/IQMLQD/XzHNi6Lyv4XE0=",
+        "owner": "storytold",
+        "repo": "lightcraft",
+        "rev": "9e6c4c6fc9c7a7f192ce846c00ceb531e0f64dda",
+        "type": "github"
+      },
+      "original": {
+        "owner": "storytold",
+        "ref": "v0.6.0",
+        "repo": "lightcraft",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1789785513,
@@ -279,6 +318,7 @@
         "anyrun": "anyrun",
         "astal": "astal",
         "home-manager": "home-manager_2",
+        "lightcraft": "lightcraft",
         "nixpkgs": "nixpkgs",
         "noctalia": "noctalia",
         "nur": "nur",
