@@ -50,6 +50,12 @@
   services.colord.enable = true;
   services.udev.packages = [ pkgs.openrgb ];
 
+  # Docker — used to run GPU-accelerated (ROCm) containers, e.g. Stable
+  # Diffusion UIs, without declaring each one as a Nix module. See
+  # docker-compose files kept outside this repo for the actual workloads.
+  virtualisation.docker.enable = true;
+  users.users.david.extraGroups = [ "docker" ];
+
   custom.sunshine-moonlight.enable = true;
   custom.sunshine-moonlight.enableMoonlight = true;
   custom.wivrn.enable = true;
