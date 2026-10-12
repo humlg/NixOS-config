@@ -23,10 +23,6 @@
 
   networking.hostName = "saruman";
 
-  # Autologin skips the redundant post-LUKS SDDM password; manual logout (SUPER+SHIFT+M)
-  # still reaches the greeter normally since autologin only fires once, at daemon start.
-  services.displayManager.autoLogin.enable = true;
-  services.displayManager.autoLogin.user = "david";
   services.displayManager.defaultSession = "hyprland-uwsm";
 
   # K3B needs direct (non-ACL/session) access to the optical writer
