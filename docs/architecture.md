@@ -16,7 +16,7 @@ The entry point is `flake.nix`. Everything else is either a host definition unde
 
 | Hostname | What it is | Notable extras |
 |----------|-----------|----------------|
-| **sauron** | Physical desktop (Ryzen 7 5800X3D, RX 9070 XT) | AMD GPU (amdgpu), multi-monitor layout, photography/3D-printing bundles |
+| **sauron** | Physical desktop (Ryzen 7 5800X3D, RX 9060 XT) | AMD GPU (amdgpu), multi-monitor layout, photography/3D-printing bundles |
 | **saruman** | Lenovo IdeaPad laptop (AMD GPU) | Battery conservation mode, LUKS swap, Mullvad VPN, KVM/QEMU, Ollama |
 
 Each machine has a folder under `hosts/<name>/` containing:

@@ -3,18 +3,22 @@
 let
   flakeRepo = "/home/david/repos/nixos-config";
 
-  # Every value is right-justified into this width via printf before the
-  # border char, so the border column lines up regardless of value length.
+  # Every value is right-justified into this width via printf, which also
+  # appends the (magenta-colored) border char in the same call, so the
+  # border column lines up regardless of value length.
   valueWidth = 28;
 
   # Must exceed the longest "│ <Label>" + separator (currently 14), or
   # fastfetch's key-width alignment jump lands inside the label text.
   keyWidth = 16;
 
-  # Captures a command's stdout, right-justifies it into valueWidth.
+  # Captures a command's stdout, right-justifies it into valueWidth, then
+  # appends the colored border char here rather than in `format`'s bare
+  # "│" — printf's own \033[0m reset would otherwise leave that "│" in the
+  # terminal's default foreground instead of matching the frame.
   padded = cmd: ''
     v="$(${cmd})"
-    printf "%${toString valueWidth}s" "$v"
+    printf "%${toString valueWidth}s\033[35m│\033[0m" "$v"
   '';
 
   frameWidth = keyWidth + valueWidth - 2;
@@ -77,8 +81,8 @@ in
           type = "command";
           key = "│ ";
           # Color codes wrap the padded string, not the printf width arg (else their bytes eat the budget).
-          text = ''printf "\033[1;31m%${toString valueWidth}s\033[0m" "$(hostname)"'';
-          format = "{}│";
+          text = ''printf "\033[1;31m%${toString valueWidth}s\033[0m\033[35m│\033[0m" "$(hostname)"'';
+          format = "{}";
         }
         {
           type = "custom";
@@ -88,25 +92,25 @@ in
           type = "command";
           key = "│ Kernel";
           text = padded "fastfetch --logo none -s kernel --pipe true 2>/dev/null | sed -E 's/^Kernel[[:space:]]*//; s/\\x1b\\[[0-9;]*[A-Za-z]//g'";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "command";
           key = "│ Uptime";
           text = padded "fastfetch --logo none -s uptime --pipe true 2>/dev/null | sed -E 's/^Uptime[[:space:]]*//; s/\\x1b\\[[0-9;]*[A-Za-z]//g'";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "command";
           key = "│ Local IP";
           text = padded "fastfetch --logo none -s localip --pipe true 2>/dev/null | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -1";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "command";
           key = "│ Public IP";
           text = padded "timeout 2 fastfetch --logo none -s publicip --pipe true 2>/dev/null | grep -oE '([0-9]{1,3}\\.){3}[0-9]{1,3}' | head -1";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "custom";
@@ -116,13 +120,13 @@ in
           type = "command";
           key = "│ Generation";
           text = padded "ls /nix/var/nix/profiles/system-*-link 2>/dev/null | grep -oP 'system-\\K[0-9]+' | sort -n | tail -1";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "command";
           key = "│ Flake Pin";
           text = padded "git -C ${flakeRepo} log -1 --format='%as (%ar)' -- flake.lock";
-          format = "{}│";
+          format = "{}";
         }
         {
           type = "custom";

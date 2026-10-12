@@ -64,11 +64,18 @@ Last full scan: 2026-07-16.
 - **Cleanup:** Either delete `modules/nixos/system-nvidia.nix` (if no host will ever
   go back to NVIDIA) or leave it as a reference for a future NVIDIA box —
   your call, but it should stop being silently dead code either way.
+- **Correction (2026-10-11):** the card is actually an RX 9060 XT (Navi 44, PCI ID
+  `1002:7590`, `gfx1200`), not the RX 9070 XT/Navi 48 originally recorded —
+  confirmed via `lspci`/Mesa on the live machine. See item 5 for the ROCm
+  override this affects.
 
 ### 5. Sauron's RDNA 4 GPU forces an unofficial ROCm GFX version
 - **Where:** `modules/nixos/system-amd-gpu.nix`
 - **What:** `HSA_OVERRIDE_GFX_VERSION = "12.0.0"` — tricks ROCm into treating the
-  RX 9070 XT (RDNA 4) as the closest supported architecture.
+  RX 9060 XT (RDNA 4, Navi 44) as the closest supported architecture. This
+  already matches the card's native `gfx1200` — not yet re-verified whether
+  the override is still doing anything (vs. a no-op self-override) now that
+  the real chip is known (see item 4's 2026-10-11 correction).
 - **Why:** RDNA 4 isn't officially supported by ROCm yet.
 - **Note in code:** "Verify the right value once ROCm adds native RDNA 4 support" — no verification date recorded.
 - **Removal condition:** ROCm adds native RDNA 4 support; re-test GPU compute

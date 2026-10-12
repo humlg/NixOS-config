@@ -34,6 +34,15 @@
   #console.packages = [ pkgs.terminus_font ];    # fallback if consoleMode=max isn't enough
   #console.font = "ter-132b";
 
+  # Docker — used to run GPU-accelerated (ROCm) containers, e.g. Stable
+  # Diffusion UIs, without declaring each one as a Nix module. See
+  # docker-compose files kept outside this repo for the actual workloads.
+  virtualisation.docker.enable = true;
+  users.users.david.extraGroups = [ "docker" ];
+
+  # ComfyUI (running in Docker above) — opened for LAN access from saruman.
+  networking.firewall.allowedTCPPorts = [ 8188 ];
+
   custom.wivrn.enable = true;
 
   programs.coolercontrol.enable = true;

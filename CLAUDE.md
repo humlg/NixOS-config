@@ -29,7 +29,7 @@ nix search nixpkgs <package-name>
 ```
 flake.nix                          # Flake entrypoint — defines both nixosConfigurations
 hosts/
-  sauron/                          # Physical desktop (AMD Ryzen 7 5800X3D + RX 9070 XT, Hyprland, full package set)
+  sauron/                          # Physical desktop (AMD Ryzen 7 5800X3D + RX 9060 XT, Hyprland, full package set)
     configuration.nix
     home.nix
     hardware-configuration.nix
@@ -70,8 +70,9 @@ docs/
 
 | Host | CPU | GPU | WiFi | Notable quirks |
 |------|-----|-----|------|-----------------|
-| sauron | AMD Ryzen 7 5800X3D | RX 9070 XT (RDNA4) | wired, WoL | ROCm GFX override (`12.0.0`). Slow NVMe init → 300s timeout. Ex-NVIDIA (`docs/maintenance.md` #4). |
+| sauron | AMD Ryzen 7 5800X3D | RX 9060 XT (RDNA4, Navi 44) | wired, WoL | ROCm GFX override (`12.0.0`). Slow NVMe init → 300s timeout. Ex-NVIDIA; GPU corrected 2026-10-11 from a misidentified 9070 XT (`docs/maintenance.md` #4). |
 | saruman | AMD Ryzen AI 9 365 (Strix Point), Lenovo IdeaPad 14ASP9 | Radeon 880M iGPU (RDNA3.5) | MT7922 (`mt7921e`) | ROCm GFX override (`11.0.0`). TPM present but unused (passphrase-only LUKS). s2idle sleep hang, open (`docs/maintenance.md` #7). HDMI SCDC fix, disabled (#23). Top USB-C port carries no DP video (#24). Backlight curve fix (#25). |
+| nixosvm | virtualized (SPICE guest) | virtualized | — | Minimal package set, SPICE agent only — not a physical host. |
 
 Keep this table current: whenever you discover or change a hardware fact (a chip model, a quirk, a workaround tied to specific silicon) while working on a host, update its row here in the same commit. Full history and diagnosis for each quirk lives in `docs/maintenance.md`, linked by item number — don't duplicate the narrative here, just the fact and the pointer.
 
