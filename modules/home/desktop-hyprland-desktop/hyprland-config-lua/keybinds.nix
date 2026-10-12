@@ -134,6 +134,8 @@ ${silentAppBinds}  hl.bind(mainMod .. " + X",         hl.dsp.workspace.toggle_sp
   hl.bind("XF86AudioPlay",         hl.dsp.exec_cmd("playerctl play-pause"),  { locked = true })
   hl.bind("XF86AudioPrev",         hl.dsp.exec_cmd("playerctl previous"),    { locked = true })
 
-  -- Screenshot (region)
-  hl.bind("PRINT", hl.dsp.exec_cmd("hyprshot -m region"))
+  -- Screenshot (Noctalia's own capture, not hyprshot)
+  hl.bind("PRINT",         hl.dsp.exec_cmd("noctalia msg screenshot-region"))
+  hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
+  hl.bind("CTRL + PRINT",  hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen pick"))
 ''

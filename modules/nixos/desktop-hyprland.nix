@@ -24,6 +24,11 @@
     NIXOS_OZONE_WL          = "1";
   };
 
+  environment.systemPackages = with pkgs; 
+  [
+    grim
+  ];
+
   services.libinput.enable = true;
 
   services.pipewire = {
