@@ -43,5 +43,11 @@
       fsType = "ext4";
       options = [ "nofail" "x-systemd.automatic" ];
     };
+
+    "/home/david/docker" = {
+      device = "/mnt/data1/docker";
+      fsType = "none";
+      options = [ "bind" "nofail" "x-systemd.requires-mounts-for=/mnt/data1" ];
+    };
   };
 }
