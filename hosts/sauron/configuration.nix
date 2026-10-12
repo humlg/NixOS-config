@@ -56,6 +56,9 @@
   virtualisation.docker.enable = true;
   users.users.david.extraGroups = [ "docker" ];
 
+  # ComfyUI (running in Docker above) — opened for LAN access from saruman.
+  networking.firewall.allowedTCPPorts = [ 8188 ];
+
   custom.sunshine-moonlight.enable = true;
   custom.sunshine-moonlight.enableMoonlight = true;
   custom.wivrn.enable = true;
