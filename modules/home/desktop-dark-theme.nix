@@ -52,20 +52,27 @@ in
     };
 
     # Highest-priority GTK3 stylesheet (~/.config/gtk-3.0/gtk.css), overriding the
-    # theme. Only touches background-color, so text/icons stay fully opaque — matches
-    # kitty's background_opacity (program-kitty.nix). Applies to all GTK3 apps, not
-    # just Thunar: GTK3 has no clean per-app scoping without wrapping each binary.
+    # theme. Only touches background-color, so text/icons stay fully opaque. Applies
+    # to all GTK3 apps, not just Thunar: GTK3 has no clean per-app scoping without
+    # wrapping each binary.
+    #
+    # 0.9 (kitty's background_opacity, program-kitty.nix) was confirmed to genuinely
+    # alpha-composite here (verified with a screenshot test) but is visually
+    # imperceptible on a GTK window, since icons/text occlude most of the area that
+    # could show it, unlike kitty's large uniform background — 0.7 is the lowest value
+    # that's actually visible against the desktop in practice.
     gtk3.extraCss = ''
+      decoration,
       window.background,
       headerbar,
       .sidebar {
-        background-color: alpha(@theme_bg_color, 0.9);
+        background-color: alpha(@theme_bg_color, 0.7);
       }
 
       .view,
       treeview.view,
       iconview {
-        background-color: alpha(@theme_base_color, 0.9);
+        background-color: alpha(@theme_base_color, 0.7);
       }
     '';
 
