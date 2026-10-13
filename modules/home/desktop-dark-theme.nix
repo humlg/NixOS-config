@@ -1,13 +1,15 @@
 { config, lib, pkgs, ... }:
 
 let
-  gtkThemeName = "WhiteSur-Dark-solid-purple";
+  gtkThemeName = "WhiteSur-Dark-purple";
 
   # Replaces Orchis-Purple-Dark-Compact (removed from nixpkgs, gtk-engine-murrine dependency unmaintained).
+  # opacityVariants "normal" (vs "solid") gives translucent backgrounds (headerbars,
+  # sidebars) while keeping text/icons fully opaque — matches kitty's background_opacity.
   gtkTheme = pkgs.whitesur-gtk-theme.override {
     colorVariants = [ "dark" ];
     themeVariants = [ "purple" ];
-    opacityVariants = [ "solid" ];
+    opacityVariants = [ "normal" ];
   };
 
   papirus-purple = pkgs.runCommand "papirus-icon-theme-purple" {
