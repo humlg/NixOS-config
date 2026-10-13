@@ -1,15 +1,16 @@
 { config, lib, pkgs, ... }:
 
 let
-  gtkThemeName = "WhiteSur-Dark-purple";
+  gtkThemeName = "WhiteSur-Dark-solid-purple";
 
   # Replaces Orchis-Purple-Dark-Compact (removed from nixpkgs, gtk-engine-murrine dependency unmaintained).
-  # opacityVariants "normal" (vs "solid") gives translucent backgrounds (headerbars,
-  # sidebars) while keeping text/icons fully opaque — matches kitty's background_opacity.
+  # opacityVariants "normal" was tried for background transparency but only applies a
+  # 0.96-alpha tint baked into the theme's compiled gtk.gresource (imperceptible) —
+  # see gtk3.extraCss below for the actual, visible override.
   gtkTheme = pkgs.whitesur-gtk-theme.override {
     colorVariants = [ "dark" ];
     themeVariants = [ "purple" ];
-    opacityVariants = [ "normal" ];
+    opacityVariants = [ "solid" ];
   };
 
   papirus-purple = pkgs.runCommand "papirus-icon-theme-purple" {
@@ -49,6 +50,24 @@ in
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = 1;
     };
+
+    # Highest-priority GTK3 stylesheet (~/.config/gtk-3.0/gtk.css), overriding the
+    # theme. Only touches background-color, so text/icons stay fully opaque — matches
+    # kitty's background_opacity (program-kitty.nix). Applies to all GTK3 apps, not
+    # just Thunar: GTK3 has no clean per-app scoping without wrapping each binary.
+    gtk3.extraCss = ''
+      window.background,
+      headerbar,
+      .sidebar {
+        background-color: alpha(@theme_bg_color, 0.9);
+      }
+
+      .view,
+      treeview.view,
+      iconview {
+        background-color: alpha(@theme_base_color, 0.9);
+      }
+    '';
 
     # Explicit null (not omitted) to actually drop GTK4 theming — docs/architecture.md.
     gtk4 = {
