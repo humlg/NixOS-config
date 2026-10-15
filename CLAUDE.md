@@ -52,7 +52,7 @@ modules/                            # Full module map + what each file does: doc
     desktop-hyprland-desktop.nix + desktop-hyprland-desktop/{hyprland-config,hyprland-config-lua}/   # Dual config trees — docs/architecture.md
     desktop-*.nix                     # ags, anyrun, cursor-theme, dark-theme, default-apps, hypr-dynamic-cursors, hypridle, hyprlock, noctalia, swaync, waybar
     bundle-*.nix                      # desktop-apps, general, workstation, yg-work
-    program-*.nix                     # btop, cava, claude-code, fastfetch, git, jellyfin-media-player, kitty, ssh-keys, thunar(+vault), transmission, vim, webapps, yg-discover
+    program-*.nix                     # btop, cava, claude-code, fastfetch, git, jellyfin-media-player, kitty, neovim, ssh-keys, thunar(+vault), transmission, vim, webapps, yg-discover
     service-megacmd.nix               # orphaned
 overlays/                           # Nixpkgs overrides, registered in flake.nix — docs/architecture.md
 patches/                             # Kernel patches applied by modules/nixos/system-*.nix — docs/maintenance.md

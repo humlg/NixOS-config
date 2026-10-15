@@ -149,7 +149,7 @@ Bundles aggregate related packages and their configs under a single toggle. They
 
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
-| `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, btop, claude-code. |
+| `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, neovim, btop, claude-code. |
 | `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
 | `bundle-workstation.nix` (nixos) | `bundles.workstation.enable` | Desktop-workstation extras shared by sauron+saruman: colord, OpenRGB, Zen Browser, Mullvad, KDE Connect, Ollama, Moonlight, Sunshine, Noctalia. |
 | `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
@@ -172,6 +172,7 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 | `program-git.nix` (home) | Git | Username, email, aliases, delta pager. |
 | `program-kitty.nix` (home) | Kitty terminal | Font, colors, static theme (deliberately not wallust-driven). |
 | `program-vim.nix` (home) | Vim | Plugins, colorscheme (wallust). |
+| `program-neovim.nix` (home) | Neovim | Same indentation/wallust config as `program-vim.nix`, kept in sync manually (no shared option between the two HM modules). |
 | `program-btop.nix` (home) | btop | Theme (wallust). |
 | `program-zsh.nix` (nixos) | Zsh | oh-my-zsh, autosuggestions, plugins. Pulled in by every host via `system-common.nix`. |
 | `program-mkrepo.nix` (nixos) | mkrepo | `mkrepo` shell function (create + clone a GitHub repo) + `gh` package (`git` itself comes from `system-base-packages.nix`). Pulled in by every host via `system-common.nix`. |

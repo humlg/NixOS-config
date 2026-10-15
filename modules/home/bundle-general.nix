@@ -8,6 +8,7 @@ in
     ./program-git.nix
     ./program-kitty.nix
     ./program-vim.nix
+    ./program-neovim.nix
     ./program-btop.nix
     ./program-claude-code.nix
     ./desktop-default-apps.nix
@@ -21,6 +22,7 @@ in
     programs.git.enable = true;
     programs.kitty.enable = true;
     programs.vim.enable = true;
+    programs.neovim.enable = true;
     programs.btop.enable = true;
     programs.claude-code.enable = true;
 
