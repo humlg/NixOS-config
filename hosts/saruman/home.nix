@@ -61,10 +61,15 @@ in
       hl.config({ xwayland = { force_zero_scaling = false } })
 
       -- Monitor-mirroring flicker workaround — docs/maintenance.md #8.
+      local function syncDamageTracking()
+        hl.exec_cmd([[sleep 1 && if hyprctl monitors -j | ${pkgs.jq}/bin/jq -e 'any(.[]; .mirrorOf != "none")' >/dev/null; then hyprctl eval 'hl.config({ debug = { damage_tracking = 0 } })'; else hyprctl eval 'hl.config({ debug = { damage_tracking = 2 } })'; fi]])
+      end
+
       hl.on("monitor.added", function(monitor)
-        if monitor.name ~= "eDP-1" then
-          hl.exec_cmd("sleep 1 && hyprctl keyword monitor " .. monitor.name .. ",disable && sleep 0.3 && hyprctl reload")
-        end
+        if monitor.name ~= "eDP-1" then syncDamageTracking() end
+      end)
+      hl.on("monitor.removed", function(monitor)
+        if monitor.name ~= "eDP-1" then syncDamageTracking() end
       end)
 
       -- Toggle eDP-1 native/Full HD resolution (for TV mirroring)

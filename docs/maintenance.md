@@ -563,32 +563,42 @@ Last full scan: 2026-07-16.
   shutdown/reboot cycles before updating the removal condition to "confirmed
   not needed" and dropping the EXPERIMENTAL param/comment entirely.
 
-### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
+### 8. Hyprland: monitor-mirroring pillarbox margin shows stale/glitchy content instead of black (upstream bug, CONFIRMED FIXED 2026-10-16 via damage-tracking toggle)
 - **Where:** `hosts/saruman/home.nix:60-71`
-- **What:** A Lua `monitor.added` hook that runs when a non-`eDP-1` monitor
-  connects.
+- **What:** Lua `monitor.added`/`monitor.removed` hooks that toggle
+  `debug:damage_tracking` based on whether any connected monitor is currently
+  mirroring.
 - **Why:** Upstream Hyprland bug — mirroring outputs with different aspect
   ratios (eDP-1 is 16:10, TVs/monitors are 16:9) leaves stale scene data in
   the pillarbox margin instead of clearing to black. Linked:
   https://github.com/hyprwm/Hyprland/discussions/11708 — still open as of
   2026-10-16 (latest Hyprland release is still v0.56.2, same as pinned here;
   no fix landed). Maintainer says the renderer likely isn't clearing the
-  scene properly and has no hardware to reproduce it on.
-- **UPDATE (2026-10-16):** a plain `sleep 1 && hyprctl reload` only
-  mitigated this partially — reported asymmetric behavior where the right
-  margin cleared to black reliably but the left margin kept showing glitchy,
-  jumping/static content. Changed the hook to disable and recreate the
-  output instead of just reparsing config: `sleep 1 && hyprctl keyword
-  monitor <name>,disable && sleep 0.3 && hyprctl reload` (the trailing
-  reload re-applies the wildcard mirror rule, since the disable is
-  config-level, not physical). Theory: a soft `reload` reparses config but
-  may not recreate the output's actual render buffers, while a disable+recreate
-  cycle forces fresh (black) buffers — more likely to force the clear the
-  upstream discussion says the renderer is skipping. **Not yet physically
-  confirmed** — needs a real monitor connect/disconnect cycle to verify
-  both margins come up clean, and this is still a mitigation around an open
-  upstream bug, not a real fix; it may not fully eliminate the artifact.
-- **Removal condition:** Upstream fixes the discussion linked above. Check it
+  scene properly (a damage-tracking miss: the compositor assumes the margin
+  region hasn't changed, so it never repaints it) and has no hardware to
+  reproduce it on.
+- **History (2026-10-16):** a plain `sleep 1 && hyprctl reload` only
+  mitigated this partially — right margin cleared to black reliably, left
+  margin kept showing glitchy, jumping/static content. Tried disabling and
+  recreating the output instead of just reparsing config (`hyprctl keyword
+  monitor <name>,disable && hyprctl reload`), theorizing a fresh output
+  would get fresh (black) buffers — **confirmed this did NOT help**: the log
+  showed the hook firing correctly each time, but the artifact persisted, so
+  buffer recreation alone doesn't force a real clear.
+- **Root cause confirmed and fixed:** manually testing `hyprctl eval
+  'hl.config({ debug = { damage_tracking = 0 } })'` (full redraw every
+  frame, no damage-region shortcuts) while the TV was connected immediately
+  cleared both margins to solid black — confirms this is exactly the
+  damage-tracking miss the upstream discussion describes. Replaced the
+  disable/recreate hack with hooks on both `monitor.added` and
+  `monitor.removed` that check `hyprctl monitors -j` for any monitor with
+  `mirrorOf != "none"` and set `debug:damage_tracking` to `0` (disable, full
+  redraw) if so, or back to `2` (full damage tracking, the default) if not —
+  so the performance cost only applies while actually mirroring, not on
+  battery/eDP-1-only use.
+- **Removal condition:** Upstream fixes the discussion linked above (true
+  damage-tracking stays off as a permanent perf cost otherwise while
+  mirroring — worth revisiting if upstream lands a real fix). Check it
   occasionally.
 
 ### 9. SwayNC blur — namespace match was silently broken, now fixed but worth re-checking after Hyprland upgrades
