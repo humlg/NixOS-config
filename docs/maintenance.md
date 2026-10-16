@@ -565,11 +565,29 @@ Last full scan: 2026-07-16.
 
 ### 8. Hyprland: monitor-mirroring flicker workaround (upstream bug)
 - **Where:** `hosts/saruman/home.nix:60-71`
-- **What:** A Lua `monitor.added` hook that force-reloads Hyprland (`sleep 1 &&
-  hyprctl reload`) whenever a non-`eDP-1` monitor connects.
+- **What:** A Lua `monitor.added` hook that runs when a non-`eDP-1` monitor
+  connects.
 - **Why:** Upstream Hyprland bug — mirroring outputs with different aspect
-  ratios leaves stale scene data flickering in the pillarbox margin instead of
-  clearing to black. Linked: https://github.com/hyprwm/Hyprland/discussions/11708
+  ratios (eDP-1 is 16:10, TVs/monitors are 16:9) leaves stale scene data in
+  the pillarbox margin instead of clearing to black. Linked:
+  https://github.com/hyprwm/Hyprland/discussions/11708 — still open as of
+  2026-10-16 (latest Hyprland release is still v0.56.2, same as pinned here;
+  no fix landed). Maintainer says the renderer likely isn't clearing the
+  scene properly and has no hardware to reproduce it on.
+- **UPDATE (2026-10-16):** a plain `sleep 1 && hyprctl reload` only
+  mitigated this partially — reported asymmetric behavior where the right
+  margin cleared to black reliably but the left margin kept showing glitchy,
+  jumping/static content. Changed the hook to disable and recreate the
+  output instead of just reparsing config: `sleep 1 && hyprctl keyword
+  monitor <name>,disable && sleep 0.3 && hyprctl reload` (the trailing
+  reload re-applies the wildcard mirror rule, since the disable is
+  config-level, not physical). Theory: a soft `reload` reparses config but
+  may not recreate the output's actual render buffers, while a disable+recreate
+  cycle forces fresh (black) buffers — more likely to force the clear the
+  upstream discussion says the renderer is skipping. **Not yet physically
+  confirmed** — needs a real monitor connect/disconnect cycle to verify
+  both margins come up clean, and this is still a mitigation around an open
+  upstream bug, not a real fix; it may not fully eliminate the artifact.
 - **Removal condition:** Upstream fixes the discussion linked above. Check it
   occasionally.
 

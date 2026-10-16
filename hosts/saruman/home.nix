@@ -63,7 +63,7 @@ in
       -- Monitor-mirroring flicker workaround — docs/maintenance.md #8.
       hl.on("monitor.added", function(monitor)
         if monitor.name ~= "eDP-1" then
-          hl.exec_cmd("sleep 1 && hyprctl reload")
+          hl.exec_cmd("sleep 1 && hyprctl keyword monitor " .. monitor.name .. ",disable && sleep 0.3 && hyprctl reload")
         end
       end)
 
