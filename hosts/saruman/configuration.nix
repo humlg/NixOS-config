@@ -75,7 +75,7 @@
   custom.amdgpu-s2idle-patch.enable = false;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
-  # Re-enabled 2026-10-16 to test against a live HDMI-A-1 "connected but
+  # Re-enabled 2026-10-16, confirmed fixes a live HDMI-A-1 "connected but
   # disabled" repro (-22 vendor-infoframe failure) — docs/maintenance.md #23/#24.
   custom.amdgpu-hdmi-scdc-fix.enable = true;
 

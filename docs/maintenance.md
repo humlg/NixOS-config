@@ -946,7 +946,7 @@ Last full scan: 2026-07-16.
   shake-to-find / cursor-zoom option (then drop the plugin entirely and use
   the built-in `cursor:` setting).
 
-### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, re-enabled 2026-10-16 to test a live repro)
+### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, CONFIRMED FIXED 2026-10-16, re-enabled for good)
 - **Where:** `patches/amdgpu-hdmi-scdc-gate-revert.patch`,
   `modules/nixos/system-amdgpu-hdmi-scdc-fix.nix`
   (`custom.amdgpu-hdmi-scdc-fix.enable`, set in `hosts/saruman/configuration.nix`).
@@ -1028,6 +1028,16 @@ Last full scan: 2026-07-16.
   (`hosts/saruman/configuration.nix`) to test directly against this repro.
   Needs a real rebuild (triggers a local kernel compile, ~15-25 min) + reboot
   + HDMI re-test before this item or item 24 can be closed either way.
+- **UPDATE (2026-10-16): confirmed fixed.** After the rebuild + reboot,
+  `/sys/class/drm/card1-HDMI-A-1` now reads `enabled`/`dpms: On`, and
+  `hyprctl monitors` shows it running its real mode (`1920x1080@60`) at its
+  configured position instead of mode `0x0`/mirrored. `custom.amdgpu-hdmi-scdc-fix.enable`
+  stays **on** — the 2026-09-09 disable was the mistake, not this patch.
+  Leave this item's removal condition (nixpkgs picks up the upstream setter —
+  already true since v7.2, see above) as effectively moot: the setter being
+  present clearly isn't sufficient on its own for this sink, so the guard
+  revert is still doing real work. Re-evaluate only if a future kernel bump
+  regresses HDMI again.
 
 ### 24. Saruman: top USB-C port carries no DisplayPort video to the Iiyama dock (2026-09-21, open — living with it)
 - **Where:** Hardware/kernel-level, not a Nix config option — no file to point
@@ -1076,10 +1086,12 @@ Last full scan: 2026-07-16.
   "connected, EDID fine, `enabled: disabled`, no kernel error" signature
   showed up on native `HDMI-A-1` (not the dock), with one additional kernel
   log line this time: `Failed to setup vendor infoframe on connector
-  HDMI-A-1: -22`. This reopens option (a) directly — see item 23's
-  2026-10-16 update, where `custom.amdgpu-hdmi-scdc-fix.enable` was
-  re-enabled to test against it. A rebuild/reboot/retest will settle both
-  items at once.
+  HDMI-A-1: -22`. Re-enabling `custom.amdgpu-hdmi-scdc-fix.enable` (item 23)
+  fixed that repro cleanly after rebuild+reboot. This is strong support for
+  option (a) above but **not yet the same test**: that was the native HDMI
+  connector, not the dock's top USB-C port specifically. Still open —
+  removal condition unchanged until someone plugs the dock into the top port
+  with the fix now active and confirms video comes up.
 
 ---
 
