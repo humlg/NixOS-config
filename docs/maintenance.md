@@ -946,7 +946,7 @@ Last full scan: 2026-07-16.
   shake-to-find / cursor-zoom option (then drop the plugin entirely and use
   the built-in `cursor:` setting).
 
-### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, disabled 2026-09-09 — removal condition met)
+### 23. Saruman: kernel patch reverting the HDMI SCDC `scdc_present` gate (2026-09-01, re-enabled 2026-10-16 to test a live repro)
 - **Where:** `patches/amdgpu-hdmi-scdc-gate-revert.patch`,
   `modules/nixos/system-amdgpu-hdmi-scdc-fix.nix`
   (`custom.amdgpu-hdmi-scdc-fix.enable`, set in `hosts/saruman/configuration.nix`).
@@ -1015,6 +1015,19 @@ Last full scan: 2026-07-16.
   and investigate further — the setter being present doesn't guarantee
   `hdmi->scdc.supported` itself evaluates true for this exact sink/dock in
   every case.
+- **UPDATE (2026-10-16): re-enabled to test a live repro.** A directly
+  connected HDMI monitor (`HDMI-A-1`, native connector, not the dock) stayed
+  black: `/sys/class/drm/card1-HDMI-A-1/status` = `connected` with a valid
+  EDID, but `enabled` = `disabled` and `dpms` = `Off`, and `hyprctl monitors`
+  tracked it at mode `0x0`. The *only* kernel log line at the moment of
+  connection was `amdgpu 0000:62:00.0: [drm] Failed to setup vendor infoframe
+  on connector HDMI-A-1: -22` — otherwise completely silent, matching this
+  item's "silent misconfiguration" signature exactly and also matching item
+  24's documented symptom one-for-one. Since the 2026-09-09 disable was never
+  physically verified either way, re-enabled `custom.amdgpu-hdmi-scdc-fix.enable`
+  (`hosts/saruman/configuration.nix`) to test directly against this repro.
+  Needs a real rebuild (triggers a local kernel compile, ~15-25 min) + reboot
+  + HDMI re-test before this item or item 24 can be closed either way.
 
 ### 24. Saruman: top USB-C port carries no DisplayPort video to the Iiyama dock (2026-09-21, open — living with it)
 - **Where:** Hardware/kernel-level, not a Nix config option — no file to point
@@ -1059,6 +1072,14 @@ Last full scan: 2026-07-16.
   condition in one shot), or (b) it's confirmed as genuine hardware wiring
   (e.g. by testing a different cable/device with video on the top port) and
   this item gets closed as "won't fix, hardware limitation" instead.
+- **UPDATE (2026-10-16):** a *second*, independent repro of the same
+  "connected, EDID fine, `enabled: disabled`, no kernel error" signature
+  showed up on native `HDMI-A-1` (not the dock), with one additional kernel
+  log line this time: `Failed to setup vendor infoframe on connector
+  HDMI-A-1: -22`. This reopens option (a) directly — see item 23's
+  2026-10-16 update, where `custom.amdgpu-hdmi-scdc-fix.enable` was
+  re-enabled to test against it. A rebuild/reboot/retest will settle both
+  items at once.
 
 ---
 

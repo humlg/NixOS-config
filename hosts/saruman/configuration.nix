@@ -75,8 +75,9 @@
   custom.amdgpu-s2idle-patch.enable = false;
   custom.amdgpu-s2idle-patch.fasterHibernateCompression = false;
 
-  # Disabled 2026-09-09, removal condition confirmed met — docs/maintenance.md #23.
-  custom.amdgpu-hdmi-scdc-fix.enable = false;
+  # Re-enabled 2026-10-16 to test against a live HDMI-A-1 "connected but
+  # disabled" repro (-22 vendor-infoframe failure) — docs/maintenance.md #23/#24.
+  custom.amdgpu-hdmi-scdc-fix.enable = true;
 
   # ideapad_laptop: ~80% battery charge conservation mode. sg: needed by Brasero/libburn to burn (not just read).
   boot.kernelModules = [ "ideapad_laptop" "sg" ];
