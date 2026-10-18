@@ -43,6 +43,11 @@
   # ComfyUI (running in Docker above) — opened for LAN access from saruman.
   networking.firewall.allowedTCPPorts = [ 8188 ];
 
+  # Ollama (enabled via bundles.workstation) defaults to binding 127.0.0.1 regardless of
+  # openFirewall, so it's unreachable from the LAN unless the host is widened too. Needed
+  # for the hermes server to reach models running here.
+  services.ollama.host = "0.0.0.0";
+
   custom.wivrn.enable = true;
 
   programs.coolercontrol.enable = true;
