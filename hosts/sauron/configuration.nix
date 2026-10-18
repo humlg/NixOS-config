@@ -48,6 +48,13 @@
   # for the hermes server to reach models running here.
   services.ollama.host = "0.0.0.0";
 
+  # Default Ollama context window (2048-4096 depending on model) is too small for
+  # Hermes' tool-use loop, which requires >=64k. 65536 is Hermes' documented
+  # known-good starting point.
+  services.ollama.environmentVariables = {
+    OLLAMA_CONTEXT_LENGTH = "65536";
+  };
+
   custom.wivrn.enable = true;
 
   programs.coolercontrol.enable = true;
