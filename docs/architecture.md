@@ -194,6 +194,7 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 
 | File | What it does |
 |------|-------------|
+| `service-backlight-permissions.nix` (nixos) | Backlight write permissions (`custom.backlight-permissions.enable`). udev rules that `chgrp video` + `chmod g+w` `/sys/class/backlight/*/brightness`, so brightness control never depends on a resolvable logind session. saruman only (sauron has no sysfs backlight) — `docs/maintenance.md` #29. |
 | `service-bluetooth.nix` (nixos) | Bluetooth (`custom.bluetooth.enable`). Enables `services.bluetooth` and blueman. Pulled in by every host via `system-common.nix`. |
 | `service-kvm.nix` (nixos) | KVM/QEMU virtualisation: `libvirtd`, `virt-manager`, `virtiofsd`, SPICE USB redirection, default NAT network auto-start. |
 | `service-megacmd.nix` (home) | MEGAcmd cloud sync daemon. Declarative sync pairs (`local → remote`). Orphaned, see `docs/maintenance.md` #14. |
@@ -307,6 +308,30 @@ A `lib.types.listOf` option's `default` is a low-priority contribution that gets
 ### Noctalia settings.toml is seed-once, not Nix-managed
 
 `modules/home/desktop-noctalia.nix` seeds `~/.local/state/noctalia/settings.toml` from `noctalia-settings-seed.toml` only if the file doesn't already exist (same pattern as `seedWaypaperConfig` in `desktop-hyprland-desktop.nix`). Once seeded, Noctalia's own settings GUI owns the file — home-manager never touches it again. Noctalia generates its own wallpaper palette (matugen-style), separate from wallust; its `hooks.wallpaper_changed` is wired to run `wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop` so the rest of the desktop (hyprlock, rofi, btop, cava, vim) stays in sync when the wallpaper changes through Noctalia's own picker. The two palettes won't match exactly — a known, accepted gap (see `docs/maintenance.md` #19).
+
+
+### Backlight writes go through group permissions, not logind
+
+`/sys/class/backlight/*/brightness` is `root:root 0644` by default, so an
+unprivileged process can only change brightness by asking logind
+(`org.freedesktop.login1.Session.SetBrightness`) — which first has to attribute
+the caller to an **active** session on the seat.
+
+Under uwsm the whole graphical session lives in `user@1000.service`, not in
+`session-N.scope`, and uwsm does not export `XDG_SESSION_ID` into the user
+manager's environment. So any shell component started as a systemd user unit
+(Noctalia, and anything it spawns) is session-less: `GetSessionByPID` fails for
+it, and whether brightness works at all then depends on which fallback that
+particular program happens to implement. `modules/nixos/service-backlight-permissions.nix`
+removes the whole question by making the sysfs attribute group-writable for
+`video`, so every brightness path is a plain file write.
+
+Note that `brightnessctl` ships exactly these rules itself, but it is a
+`home.packages` entry (`modules/home/desktop-hyprland-desktop.nix`) and
+Home Manager has no `services.udev.packages` equivalent — a package's
+`lib/udev/rules.d/` is only read when the *system* references it. Installing a
+udev-rule-carrying tool into the user profile therefore silently gets you the
+binary without its rules.
 
 ---
 

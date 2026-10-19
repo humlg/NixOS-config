@@ -45,7 +45,7 @@ modules/                            # Full module map + what each file does: doc
     desktop-hyprland.nix, desktop-noctalia.nix
     bundle-*.nix                      # 3d-printing, gaming, ham-radio, photography, wine, workstation, yg-work
     program-*.nix                     # mkrepo, mullvad, thunar, winboat, zen-browser, zsh
-    service-*.nix                     # bluetooth, darkproject-keyboard, kvm, lid-undock-hibernate, ollama, sunshine, moonlight, tailscale, wireguard-saruman, wivrn
+    service-*.nix                     # backlight-permissions, bluetooth, darkproject-keyboard, kvm, lid-undock-hibernate, ollama, sunshine, moonlight, tailscale, wireguard-saruman, wivrn
   home/                             # Home Manager modules, flat, imported only from hosts/*/home.nix
     common.nix                       # Pure HM boilerplate — unprefixed, stays at the home/ root
     ags-config/, noctalia-settings-seed.toml   # Flat sibling data owned by desktop-ags.nix / desktop-noctalia.nix
@@ -71,7 +71,7 @@ docs/
 | Host | CPU | GPU | WiFi | Notable quirks |
 |------|-----|-----|------|-----------------|
 | sauron | AMD Ryzen 7 5800X3D | RX 9060 XT (RDNA4, Navi 44) | wired, WoL | ROCm GFX override (`12.0.0`). Slow NVMe init → 300s timeout. Ex-NVIDIA; GPU corrected 2026-10-11 from a misidentified 9070 XT (`docs/maintenance.md` #4). |
-| saruman | AMD Ryzen AI 9 365 (Strix Point), Lenovo IdeaPad 14ASP9 | Radeon 880M iGPU (RDNA3.5) | MT7922 (`mt7921e`) | ROCm GFX override (`11.0.0`). TPM present but unused (passphrase-only LUKS). s2idle sleep hang, open (`docs/maintenance.md` #7). HDMI SCDC fix, re-enabled 2026-10-16 and confirmed fixed (#23). Top USB-C port carries no DP video, still open (#24). Backlight curve fix (#25). |
+| saruman | AMD Ryzen AI 9 365 (Strix Point), Lenovo IdeaPad 14ASP9 | Radeon 880M iGPU (RDNA3.5) | MT7922 (`mt7921e`) | ROCm GFX override (`11.0.0`). TPM present but unused (passphrase-only LUKS). s2idle sleep hang, open (`docs/maintenance.md` #7). HDMI SCDC fix, re-enabled 2026-10-16 and confirmed fixed (#23). Top USB-C port carries no DP video, still open (#24). Backlight curve fix, confirmed active (#25). Backlight sysfs needs `video` group write perms or brightness control dies with the logind session (#29). |
 | nixosvm | virtualized (SPICE guest) | virtualized | — | Minimal package set, SPICE agent only — not a physical host. |
 
 Keep this table current: whenever you discover or change a hardware fact (a chip model, a quirk, a workaround tied to specific silicon) while working on a host, update its row here in the same commit. Full history and diagnosis for each quirk lives in `docs/maintenance.md`, linked by item number — don't duplicate the narrative here, just the fact and the pointer.

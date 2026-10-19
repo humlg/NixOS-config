@@ -7,6 +7,7 @@
     ../../modules/nixos/system-common.nix
     ../../modules/nixos/service-kvm.nix
     ../../modules/nixos/service-darkproject-keyboard.nix
+    ../../modules/nixos/service-backlight-permissions.nix
     ../../modules/nixos/service-lid-undock-hibernate.nix
     ../../modules/nixos/bundle-photography.nix
     ../../modules/nixos/bundle-3d-printing.nix
@@ -96,6 +97,7 @@
   custom.sunshine.autoStart = false;
 
   custom.darkproject-keyboard.enable = true;
+  custom.backlight-permissions.enable = true;  # docs/maintenance.md #29
   custom.wireguard-saruman.enable = true;
   bundles.workstation.enable = true;
   custom.noctalia.enable = true;  # pairs with desktop.hyprland-desktop.useNoctalia in home.nix

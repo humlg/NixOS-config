@@ -1147,11 +1147,13 @@ Last full scan: 2026-07-16.
   skips the firmware curve and restores linear PWM control. This is a boot
   parameter only — no source patch, no local kernel compile (unlike items 7
   and 23's `custom.*` kernel-patch modules).
-- **Not yet confirmed:** added but not yet rebuilt/rebooted/tested on the
-  physical panel — verify brightness keys and the Noctalia slider actually
-  dim/brighten the screen after a reboot with this param active, and that
-  brightness still isn't clipped or non-linear (e.g. seemingly identical
-  near 0% or 100%) once the curve is disabled.
+- **Confirmed active (2026-10-19):** the param is on the running cmdline
+  (`/sys/module/amdgpu/parameters/dcdebugmask` = `262144`) and
+  `amdgpu_bl1/scale` now reads `linear` where it previously read
+  `non-linear` — the firmware curve is being skipped as intended. Writes to
+  `brightness` are honoured and `actual_brightness` tracks them. The separate
+  "control sometimes does nothing" symptom seen afterwards was *not* this
+  item — it was the logind-session permission problem, item #29.
 - **Removal condition:** an upstream kernel release ships a real fix for the
   ATIF curve conversion (the amd-gfx patch series above, once it lands and
   reaches nixpkgs' kernel) — confirm the curve now behaves correctly with
@@ -1263,6 +1265,63 @@ Last full scan: 2026-07-16.
 - **Removal condition:** N/A — this is the intended permanent mechanism, not
   a bodge to later undo. Listed here for the diagnosis trail in case the VPN
   breaks again.
+
+---
+
+### 29. Saruman: brightness control only worked when logind could attribute the caller to a session (2026-10-19, fixed)
+- **Where:** `modules/nixos/service-backlight-permissions.nix` (new),
+  enabled from `hosts/saruman/configuration.nix`
+  (`custom.backlight-permissions.enable`).
+- **What:** brightness control worked intermittently — sometimes the Fn keys
+  and the Noctalia slider moved the panel, sometimes nothing happened at all.
+  In the broken state Noctalia logged, on every backlight (re)discovery:
+  `[WRN] [brightness] failed to resolve logind session:`
+  `[org.freedesktop.login1.NoSessionForPID] PID <noctalia> does not belong to`
+  `any known session`, immediately followed by
+  `found backlight candidate 'amdgpu_bl1' type='raw' current=100%` — a bogus
+  `current`, while the device actually sat at 52%
+  (`208804`/`400000`). Rediscovery is triggered by output hotplug, so
+  docking/undocking re-entered the bad state.
+- **Diagnosis:** `/sys/class/backlight/amdgpu_bl1/brightness` is
+  `root:root 0644`, so an unprivileged process cannot write it and must go
+  through logind's `org.freedesktop.login1.Session.SetBrightness`, which
+  requires the caller to be attributable to an **active** session on the seat.
+  Under uwsm the graphical session lives in
+  `user@1000.service/app.slice/…`, not in `session-N.scope`, and uwsm does not
+  export `XDG_SESSION_ID` into the systemd user manager's environment
+  (confirmed: `/proc/<noctalia>/environ` has no `XDG_SESSION_ID`, while
+  `/proc/<start-hyprland>/environ` does). So `GetSessionByPID` fails for every
+  shell component started as a user unit, and whether brightness works comes
+  down to which fallback each program implements: `brightnessctl` falls back to
+  `sd_uid_get_display()` and keeps working, Noctalia's *write* path falls back to
+  logind's `/org/freedesktop/login1/session/auto` and also works, but Noctalia's
+  *discovery* path has no fallback and poisons its cached `current` with 100%.
+  Relative up/down steps then start from the wrong base — hence "sometimes
+  nothing happens".
+- **Fix:** udev rules (`90-backlight.rules`) that `chgrp video` +
+  `chmod g+w` `/sys/class/backlight/%k/brightness` on device add — the same
+  rules `brightnessctl` ships but which never reach `/etc/udev/rules.d/`,
+  because brightnessctl is a `home.packages` entry and Home Manager has no
+  `services.udev.packages` (see `docs/architecture.md`). `david` is already in
+  `video` via `system-users.nix`. With the attribute group-writable, no
+  brightness path needs a logind session at all.
+- **Note:** udev rules only re-run on device `add`, so a plain
+  `nixos-rebuild switch` does not apply them to the already-present
+  `amdgpu_bl1` — either reboot or
+  `sudo udevadm trigger -s backlight -c add`. Verify with
+  `stat -c '%U:%G %a' /sys/class/backlight/amdgpu_bl1/brightness` →
+  expect `root:video 664`.
+- **Not covered:** `/sys/class/leds/platform::kbd_backlight/brightness` is
+  still `root:root 0644`. brightnessctl's own rules `chgrp input` that one, but
+  `david` is deliberately not in `input` (it would also grant `/dev/input/*`
+  read access, i.e. keylogging). Left alone unless keyboard-backlight control
+  turns out to be wanted.
+- **Removal condition:** Noctalia grows a session fallback for its discovery
+  path (or upstream/uwsm starts exporting `XDG_SESSION_ID` to the user
+  manager) *and* nothing else in the stack writes the backlight directly. Low
+  priority — group-writable backlight is the conventional setup on
+  single-user machines and is what `brightnessctl`, `light` and
+  `programs.light.enable` all assume.
 
 ---
 
