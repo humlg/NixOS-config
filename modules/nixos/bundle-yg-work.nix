@@ -29,5 +29,13 @@ in
       owner = "david";
       mode = "0400";
     };
+
+    # services.printing.enable is already on via desktop-hyprland.nix.
+    hardware.printers.ensurePrinters = [{
+      name = "Godex_G530";
+      deviceUri = "socket://192.168.100.78:9100";
+      model = "drv:///sample.drv/zebra.ppd";
+      ppdOptions = { Resolution = "300dpi"; };
+    }];
   };
 }
