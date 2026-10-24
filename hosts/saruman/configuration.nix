@@ -47,8 +47,7 @@
   # Kept so manual `systemctl hibernate` works even though sleep paths use plain suspend — docs/maintenance.md #7.
   boot.resumeDevice = "/dev/mapper/luks-01b4b8c5-f250-4434-b00a-86d91e74ce05";
 
-  boot.initrd.systemd.enable = true;  # required for LUKS unlock + system-tui-askpass.nix
-  custom.tuiAskpass.enable = true;
+  custom.tuiAskpass.enable = true;  # systemd initrd is now the only option (scripted initrd removed upstream) — LUKS unlock + askpass work without an explicit opt-in
   # pm_debug_messages/amd_pmc.enable_stb: s2idle diagnostics. dcdebugmask=0x40000: backlight curve
   # fix. Full history: docs/maintenance.md #7, #25.
   boot.kernelParams = [ "amd_pstate=active" "pm_debug_messages" "amd_pmc.enable_stb=1" "amdgpu.dcdebugmask=0x40000" ];

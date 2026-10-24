@@ -8,14 +8,15 @@
   };
 
   environment.systemPackages = [
-    pkgs.oterm
-    (pkgs.makeDesktopItem {
-      name = "oterm";
-      desktopName = "oterm";
-      comment = "Terminal UI for Ollama";
-      exec = "kitty -e oterm";
-      icon = "utilities-terminal";
-      categories = [ "Utility" ];
-    })
+    # oterm disabled: broken in nixpkgs, see docs/maintenance.md #30
+    # pkgs.oterm
+    # (pkgs.makeDesktopItem {
+    #   name = "oterm";
+    #   desktopName = "oterm";
+    #   comment = "Terminal UI for Ollama";
+    #   exec = "kitty -e oterm";
+    #   icon = "utilities-terminal";
+    #   categories = [ "Utility" ];
+    # })
   ];
 }

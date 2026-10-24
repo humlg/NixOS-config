@@ -61,6 +61,7 @@
       (import ./overlays/patool-no-check.nix)
       (import ./overlays/hypr-dynamic-cursors-hl-pin.nix)
       (import ./overlays/openrgb-darkproject-bushido.nix)
+      (import ./overlays/gearlever-wrapper-fix.nix)
     ];
     overlayModule = {
       nixpkgs.overlays = overlays;

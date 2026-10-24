@@ -1323,6 +1323,52 @@ Last full scan: 2026-07-16.
   single-user machines and is what `brightnessctl`, `light` and
   `programs.light.enable` all assume.
 
+### 30. Saruman: `oterm` (Ollama TUI) disabled — nixpkgs marks its `fastmcp-slim` dependency broken (2026-10-25, open)
+- **Where:** `modules/nixos/service-ollama.nix` — `pkgs.oterm` and its
+  `makeDesktopItem` entry commented out in `environment.systemPackages`.
+- **What:** A `nix flake update` bumped nixpkgs' `python3Packages.mcp` to
+  v2+, and `fastmcp-slim` (a transitive dependency of `oterm`) sets
+  `meta.broken = lib.versionAtLeast mcp.version "2"` — so evaluating
+  `pkgs.oterm` now hard-fails with "Refusing to evaluate package
+  'python3.14-fastmcp-slim' ... because it has problems: broken", which
+  blocked the whole `nixos-rebuild` for saruman. Surfaced in the same rebuild
+  attempt as an unrelated breakage (`boot.initrd.systemd.enable` no longer
+  having any effect, since scripted initrd was removed upstream — fixed by
+  deleting the option from `hosts/saruman/configuration.nix`). This is a
+  genuine version-skew incompatibility in nixpkgs, not an overcautious flag
+  — fastmcp-slim's own code isn't compatible with mcp v2.
+- **Removal condition:** nixpkgs either updates `oterm`/`fastmcp-slim` to
+  work with `mcp` v2+, or pins oterm's `mcp` dependency back down. Re-enable
+  by uncommenting the block in `service-ollama.nix` once a `nix flake
+  update` no longer hits the broken-package eval error.
+
+### 31. `gearlever` wrapper broke under nixpkgs' default switch to the compiled C wrapper (2026-10-25, fixed via overlay)
+- **Where:** `overlays/gearlever-wrapper-fix.nix`, registered in `flake.nix`.
+- **What:** nixpkgs' `pkgs.gearlever` (AppImage manager, `modules/home/bundle-general.nix`)
+  failed to build: `wrapProgram`/`makeWrapper` for Python applications now
+  defaults to `makeBinaryWrapper`'s compiled C wrapper instead of the old
+  eval-based bash wrapper. Gearlever's upstream `package.nix` relies on two
+  idioms that only worked with the old bash wrapper: (1) passing the literal
+  string `"${gappsWrapperArgs[@]}"` in `makeWrapperArgs`, expecting a second
+  shell expansion that the C wrapper's parser never performs (fails with
+  `makeCWrapper: Unknown argument ${gappsWrapperArgs[@]}`), and (2) passing a
+  single multi-word string `"--prefix PATH : <path>"` as one array element,
+  expecting runtime word-splitting the C wrapper's strict arg parser doesn't
+  do either (`Unknown argument --prefix PATH : <path>`).
+- **Fix:** The overlay overrides `makeWrapperArgs` to pass `--prefix`, `PATH`,
+  `:`, and the bin path as four separate array elements, and appends the
+  real `gappsWrapperArgs` bash array (populated by `gappsWrapperArgsHook`
+  during `preFixupPhases`, confirmed still populated even with
+  `dontWrapGApps = true` set) via a `preFixup` shell snippet instead of a
+  Nix-level string trick. Verified by building `pkgs.gearlever` directly and
+  inspecting the compiled wrapper's baked-in args (`--prefix 'PATH' ':' '...'`,
+  GIO/XDG_DATA_DIRS/GI_TYPELIB_PATH all present) and running `gearlever --help`.
+- **Removal condition:** nixpkgs updates `gearlever`'s `package.nix` to use
+  the modern `preFixup`/`gappsWrapperArgs+=(...)` pattern itself (or stops
+  defaulting Python-application wrapping to the C wrapper in a way
+  incompatible with the old idiom) — then drop the overlay and the
+  `flake.nix` registration.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)
