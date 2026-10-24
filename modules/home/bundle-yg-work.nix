@@ -20,6 +20,7 @@ in
       todoist-electron
       mqttui
       dm-sans  # Yellow Grid brand font, used in work LibreOffice docs
+      glabels-qt  # label design for the Godex G530 printer
     ];
   };
 }
