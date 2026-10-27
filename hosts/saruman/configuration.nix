@@ -20,6 +20,7 @@
     ../../modules/nixos/system-amdgpu-s2idle-patch.nix
     ../../modules/nixos/system-amdgpu-hdmi-scdc-fix.nix
     ../../modules/nixos/system-tui-askpass.nix
+    ../../modules/nixos/program-solidcraft.nix
   ];
 
   networking.hostName = "saruman";
@@ -96,6 +97,7 @@
   custom.sunshine.autoStart = false;
 
   custom.darkproject-keyboard.enable = true;
+  custom.solidcraft.enable = true;
   custom.backlight-permissions.enable = true;  # docs/maintenance.md #29
   custom.wireguard-saruman.enable = true;
   bundles.workstation.enable = true;

@@ -1369,6 +1369,21 @@ Last full scan: 2026-07-16.
   incompatible with the old idiom) — then drop the overlay and the
   `flake.nix` registration.
 
+### 32. SolidCraft installed as an imperative Flatpak, not a Nix package (2026-10-27, open)
+- **Where:** `modules/nixos/program-solidcraft.nix` (`custom.solidcraft.enable`, saruman).
+- **What:** SolidCraft (parametric CAD, `ai.storyteller.solidcraft`) isn't in
+  nixpkgs. The module turns on `services.flatpak` and adds a one-shot systemd
+  service (`solidcraft-flatpak-install`) that adds the Flathub remote (for the
+  Freedesktop runtime) and the upstream remote
+  (`https://docs.solidcraft.io/flatpak/solidcraft.flatpakrepo`) system-wide,
+  then installs the app if it's missing. The service retries every 5 min while
+  offline. Nothing is pinned or reproducible: the version is whatever the remote
+  serves at install time, and updates are a manual `flatpak update`. Disabling
+  the option doesn't uninstall the app (`flatpak uninstall ai.storyteller.solidcraft`).
+- **Removal condition:** SolidCraft lands in nixpkgs, or a flake with a working
+  package becomes available. At that point, swap the module for a normal package
+  and uninstall the Flatpak. Drop `services.flatpak` too if nothing else needs it.
+
 ---
 
 ## Historical bodges (already resolved — kept here for context only)

@@ -44,7 +44,7 @@ modules/                            # Full module map + what each file does: doc
     system-common.nix … system-sddm.nix   # Base OS config, split into focused files, aggregated by system-common.nix
     desktop-hyprland.nix, desktop-noctalia.nix
     bundle-*.nix                      # 3d-printing, gaming, ham-radio, photography, wine, workstation, yg-work
-    program-*.nix                     # mkrepo, mullvad, thunar, winboat, zen-browser, zsh
+    program-*.nix                     # mkrepo, mullvad, solidcraft, thunar, winboat, zen-browser, zsh
     service-*.nix                     # backlight-permissions, bluetooth, darkproject-keyboard, kvm, lid-undock-hibernate, ollama, sunshine, moonlight, tailscale, wireguard-saruman, wivrn
   home/                             # Home Manager modules, flat, imported only from hosts/*/home.nix
     common.nix                       # Pure HM boilerplate — unprefixed, stays at the home/ root

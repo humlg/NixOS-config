@@ -180,6 +180,7 @@ Each file configures one program in detail. Most declare a `mkEnableOption` and 
 | `program-fastfetch.nix` (home) | fastfetch | System info display config. Imported by every host via `common.nix`. |
 | `program-zen-browser.nix` (nixos) | Zen Browser | Installed from external flake input; sets DuckDuckGo as default. Imported via `bundle-workstation.nix`. |
 | `program-mullvad.nix` (nixos) | Mullvad VPN | Service + GUI. Imported via `bundle-workstation.nix`. |
+| `program-solidcraft.nix` (nixos) | SolidCraft CAD | Enables Flatpak and installs `ai.storyteller.solidcraft` from the upstream SolidCraft remote (runtime from Flathub) via a one-shot systemd service (not in nixpkgs). Install-once only; updates are a manual `flatpak update`. `custom.solidcraft.enable`, saruman only. |
 | `program-thunar.nix` (nixos + home) | Thunar file manager | Plugins, thumbnail support. The home-side file also imports `program-thunar-vault.nix` (gocryptfs "Mount/Unmount Vault" Thunar custom action). Imported by every host via `common.nix`. |
 | `program-claude-code.nix` (home) | Claude Code CLI | Config and settings. |
 | `program-webapps.nix` (home) | Web app shortcuts | Desktop entries wrapping web URLs. |
