@@ -10,6 +10,8 @@ in
     # inconsistently readable.
     programs.kitty.settings = {
       confirm_os_window_close = 0;
+      # Otherwise kitty restores a cached "maximized" state and covers the tiled workspace.
+      remember_window_size = "no";
       background_opacity = "0.9";
       allow_remote_control = "yes";
 
