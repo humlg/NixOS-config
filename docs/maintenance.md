@@ -1260,6 +1260,13 @@ Last full scan: 2026-07-16.
   removed by this change. Safe to delete by hand (`nmcli connection delete
   <name>`) once the native service is confirmed working, or keep as inert
   leftovers.
+- **`networkmanager-openvpn` plugin restored 2026-10-29.** The original
+  change dropped the plugin along with the 1NCE NM import, which broke the
+  separate, hand-made `Netio` NM profile (`Could not find VPN plugin for
+  "org.freedesktop.NetworkManager.openvpn"`). That profile uses a short
+  password with `password-flags=1`, which nm-applet prompts for, so the
+  long-JWT bug above doesn't affect it. The plugin is back in
+  `bundle-yg-work.nix`; 1NCE still runs as the native service.
 - **Usage:** `sudo systemctl start openvpn-1nce` / `stop` (on-demand, not
   autostarted); routes are server-pushed, not static in the client config.
 - **Removal condition:** N/A — this is the intended permanent mechanism, not
