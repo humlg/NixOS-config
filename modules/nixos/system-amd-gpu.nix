@@ -12,7 +12,7 @@
   # Unlocks all AMDGPU power management features (voltage/clock curves in corectrl)
   boot.kernelParams = [ "amdgpu.ppfeaturemask=0xffffffff" ];
 
-  # ROCm OpenCL (for GPU-accelerated apps like DaVinci Resolve)
+  # ROCm OpenCL (for GPU-accelerated apps)
   hardware.graphics.extraPackages = with pkgs; [
     rocmPackages.clr.icd
     libglvnd

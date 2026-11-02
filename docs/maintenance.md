@@ -12,25 +12,8 @@ Last full scan: 2026-07-16.
 
 ## Active workarounds & bodges
 
-### 1. DaVinci Resolve pinned to v21.0b1 (beta), not the nixpkgs release
-- **Where:** `overlays/davinci-resolve.nix`, `overlays/davinci-resolve-package.nix`
-- **What:** Full local copy of nixpkgs' `davinci-resolve` package.nix, hand-modified
-  to track the `21.0b1` beta instead of the `20.3.2` nixos-unstable currently ships.
-- **Why:** Wanted the beta; upstream's `src` fetch script does a `jq` title-match
-  against Blackmagic's downloads.json that fails for "21 Beta 1" (titled
-  differently than the version string), so the download ID is hardcoded instead.
-- **Loose ends:**
-  - The **studio-variant** hash is `lib.fakeHash` (unverified) — fine since the
-    studio variant isn't used here, but would break the build if ever enabled.
-  - This is a beta release living in a stable config — worth checking periodically
-    whether nixpkgs has caught up to a released 21.x so the overlay can be dropped.
-  - `updateScript` in the package still points at the standard update-source-version
-    flow; it wasn't adapted for the hardcoded downloadId, so `nix run` on the
-    update script may not work as expected.
-- **Removal condition:** nixpkgs ships DaVinci Resolve ≥ 21 stable.
-
 ### 2. RawTherapee overlay exists but the package is commented out
-- **Where:** `overlays/rawtherapee-dev.nix` (defines the fix), `modules/nixos/bundle-photography.nix:29` (`#rawtherapee`, commented out)
+- **Where:** `overlays/rawtherapee-dev.nix` (defines the fix), `modules/nixos/bundle-photography.nix:16` (`#rawtherapee`, commented out)
 - **What:** The overlay rebuilds RawTherapee from a specific dev commit + a pinned
   `fmt` 12.0.0 source, to fix a static-initialization-order crash on startup
   (see linked upstream PRs/bug in the overlay's comment).
@@ -79,7 +62,7 @@ Last full scan: 2026-07-16.
 - **Why:** RDNA 4 isn't officially supported by ROCm yet.
 - **Note in code:** "Verify the right value once ROCm adds native RDNA 4 support" — no verification date recorded.
 - **Removal condition:** ROCm adds native RDNA 4 support; re-test GPU compute
-  (DaVinci Resolve, Ollama) without the override.
+  (Ollama) without the override.
 
 ### 6. Saruman's iGPU (RDNA 3.5) also forces an unofficial ROCm GFX version
 - **Where:** `hosts/saruman/configuration.nix:143`
@@ -637,14 +620,6 @@ Last full scan: 2026-07-16.
 - **Removal condition:** Steam Linux Runtime or nixpkgs changes how ldconfig
   resolution works inside the container.
 
-### 12. DaVinci Resolve forced to XCB (X11) instead of native Wayland
-- **Where:** `modules/nixos/bundle-photography.nix:6-16`
-- **What:** `davinci-resolve-xcb` wraps the package with `QT_QPA_PLATFORM=xcb`.
-- **Why:** DaVinci Resolve bundles Qt5, which under `WAYLAND_DISPLAY` (i.e. on
-  Hyprland) defaults to the Wayland platform, which DR doesn't support.
-- **Removal condition:** Blackmagic ships a Wayland-native Qt build (unlikely
-  soon — low priority to revisit).
-
 ### 13. `winboat` module is orphaned and its Docker dependency is not wired up
 - **Where:** `modules/nixos/program-winboat.nix`
 - **What:** Installs `pkgs.winboat` and adds `david` to the `docker` group, but
@@ -695,7 +670,7 @@ Last full scan: 2026-07-16.
 ### 17. Commented-out packages with no explanation
 - **Where:**
   - `modules/nixos/bundle-3d-printing.nix:15` — `#bambu-studio`
-  - `modules/nixos/bundle-photography.nix:29` — `#rawtherapee` (see item #2 — this one has an explanation, just disconnected from its overlay)
+  - `modules/nixos/bundle-photography.nix:16` — `#rawtherapee` (see item #2 — this one has an explanation, just disconnected from its overlay)
   - `modules/nixos/system-nvidia.nix:9` — `#package = ...nvidiaPackages.new_feature;`
 - **Action:** `bambu-studio` in particular has no comment explaining why it's
   disabled (broken build? license issue? just unused?). Worth a one-line note
@@ -1219,7 +1194,7 @@ Last full scan: 2026-07-16.
 - **Why not fixed now:** found during a module-consolidation pass (2026-10-06) that folded
   most other sauron/saruman duplication into shared modules, but GPU config was deliberately
   left untouched — editing `HSA_OVERRIDE_GFX_VERSION`/ROCm/video-driver settings on a live
-  system carries real risk of breaking graphics or GPU compute (Ollama, DaVinci Resolve) on
+  system carries real risk of breaking graphics or GPU compute (Ollama) on
   either host, so it needs its own careful pass rather than riding along with a broader
   refactor.
 - **Action:** Parameterize `system-amd-gpu.nix` (e.g. an option for the GFX override value,

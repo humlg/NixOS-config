@@ -153,7 +153,7 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
 | `bundle-workstation.nix` (nixos) | `bundles.workstation.enable` | Desktop-workstation extras shared by sauron+saruman: colord, OpenRGB, Zen Browser, Mullvad, KDE Connect, Ollama, Moonlight, Sunshine, Noctalia. |
 | `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
-| `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2, DaVinci Resolve. |
+| `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2. |
 | `bundle-3d-printing.nix` (nixos) | `bundles.3d-printing.enable` | PrusaSlicer, printrun. |
 | `bundle-gaming.nix` (nixos) | `bundles.gaming.enable` | Steam + gaming support packages. |
 | `bundle-wine.nix` (nixos) | `bundles.wine.enable` | Wine with 32-bit support. |
@@ -213,8 +213,6 @@ Overlays replace or augment packages from nixpkgs. They are registered in `flake
 
 | File | What it does |
 |------|-------------|
-| `davinci-resolve.nix` | Replaces the nixpkgs DaVinci Resolve with a newer beta version. |
-| `davinci-resolve-package.nix` | The actual package derivation used by the overlay above. |
 | `rawtherapee-dev.nix` | Replaces RawTherapee with a development/git version. |
 
 **Where to add something:** if you need a newer version of a package than nixpkgs ships, or need to patch one, add an overlay here and register it in `flake.nix`.
