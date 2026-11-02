@@ -917,7 +917,7 @@ Last full scan: 2026-07-16.
   driver turns out to fight the amdgpu s2idle patch (`custom.amdgpu-s2idle-
   patch`, item 7) in some way TLP didn't.
 
-### 22. `hypr-dynamic-cursors` plugin + src-pin overlay for Hyprland 0.56.2 (2026-08-31)
+### 22. `hypr-dynamic-cursors` plugin + src-pin overlay for Hyprland 0.57.0 (2026-08-31, re-pinned 2026-11-02)
 - **Where:** `modules/home/desktop-hypr-dynamic-cursors.nix`
   (`desktop.hyprland-desktop.dynamicCursors.enable`), enabled on sauron +
   saruman. Loads `pkgs.hyprlandPlugins.hypr-dynamic-cursors`, with its `src`
@@ -927,20 +927,23 @@ Last full scan: 2026-07-16.
   Plasma's Shake Cursor effect. Runs the plugin shake-only (`mode = "none"`);
   none of its cursor tilt/rotate/stretch behaviour is used.
 - **Why the overlay is needed:** nixpkgs pins the plugin to commit `f5ba36c7`
-  (2026-07-21), whose `hyprpm.toml` only lists Hyprland up to v0.56.1. Our
-  Hyprland is v0.56.2 (released 2026-08-05, *after* that plugin commit). The
-  compositor/client hashes still matched (nixpkgs builds the plugin against
-  our exact `pkgs.hyprland`), so it wasn't the usual ABI check that tripped —
-  the old plugin *source* fails to hook 0.56.2's cursor-rendering path at
-  init (`[dynamic-cursors] could not hook, hooking failed`), so `PLUGIN_INIT`
-  throws and Hyprland pops a "failed to load plugin dynamic-cursors"
-  notification; the shake effect never activates. Upstream's `hyprpm.toml`
-  maps Hyprland v0.56.2 (`efb50993…`) to plugin commit
-  `5a224284872208b5324759d535d65061043725de`; the overlay points `src` there.
+  (2026-07-21), which only supports Hyprland up to v0.56.1.
+  - *2026-08-31 (Hyprland 0.56.2):* the old source compiled but failed to hook
+    the cursor-rendering path at init (`[dynamic-cursors] could not hook,
+    hooking failed`) → "failed to load plugin" notification. Pinned to
+    `5a224284` (upstream `hyprpm.toml`'s pairing for v0.56.2).
+  - *2026-11-02 (Hyprland 0.57.0):* the `5a224284` pin no longer **compiles**
+    — 0.57 added pure-virtual `IPassElement::needsLiveBlur` /
+    `needsPrecomputeBlur(Render::CRenderContext&)`, so `CCursorPassElement` is
+    abstract and the whole system build fails. Upstream's `hyprpm.toml` has no
+    v0.57.0 entry yet, but master commit `2a8d0b73` ("fix: use new render
+    contexts", 2026-10-05) implements both methods and builds cleanly against
+    0.57.0; the overlay now points there. Not yet runtime-tested — check
+    `hyprctl plugin list` after the switch.
 - **Watch for:** after a `nix flake update`, a `hyprctl plugin list` that
   doesn't show `dynamic-cursors`, or a "failed to load plugin" notification /
   `[dynamic-cursors]` error in the Hyprland log. If the flake update bumps
-  `pkgs.hyprland` past 0.56.2, check upstream `hyprpm.toml` for the plugin
+  `pkgs.hyprland` past 0.57.0, check upstream `hyprpm.toml` for the plugin
   commit paired with the new Hyprland hash and update the overlay's `rev` +
   `hash` (or drop the overlay if nixpkgs has caught up — compare
   `pkgs.hyprlandPlugins.hypr-dynamic-cursors.src.rev` against the pin).
