@@ -3,39 +3,44 @@ let
   # Scrolling: horizontal swipe drags the strip (2× finger speed) and snaps to a column on release;
   # vertical switches workspaces. Built-in "move" drags the window instead — docs/architecture.md.
   gestures = if cfg.layout == "scrolling" then ''
-  local stripDrag = { scale = 2.0, snap = 0.25, flick = 25, carry = 0, total = 0, velocity = 0 }
+  local stripDrag = { scale = 2.0, snap = 0.25, flick = 25, total = 0, velocity = 0, first0 = 0, lo = 0, hi = 0 }
 
-  -- Rest positions for the active workspace's strip, as shifts (px) relative to where it is now:
-  -- every column edge aligned to the screen's left edge, clamped to how far the strip can actually
-  -- travel (so a short strip's end position is a stop too). Uses target positions, not animated ones.
-  local function stripStops()
+  -- Active workspace's strip geometry from target (not animated) positions. left/right are the
+  -- screen's usable edges where a snapped column sits; first/last are the strip's outer edges.
+  local function stripGeometry()
     local ws, m = hl.get_active_workspace(), hl.get_active_monitor()
-    if not ws or not m then return {} end
+    if not ws or not m then return nil end
     local border = hl.get_config("general.border_size") or 0
     local gaps = hl.get_config("general.gaps_out")
     local gl = type(gaps) == "table" and gaps.left or 0
     local gr = type(gaps) == "table" and gaps.right or 0
-    local left  = m.position.x + m.reserved.left + border + gl
-    local right = m.position.x + m.size.width / m.scale - m.reserved.right - border - gr
-    local edges, first, last = {}, nil, nil
+    local g = { edges = {},
+      left  = m.position.x + m.reserved.left + border + gl,
+      right = m.position.x + m.size.width / m.scale - m.reserved.right - border - gr }
     for _, w in ipairs(hl.get_windows()) do
       if w.workspace and w.workspace.id == ws.id and not w.floating then
-        edges[#edges + 1] = w.at.x
-        if not first or w.at.x < first then first = w.at.x end
-        if not last or w.at.x + w.size.x > last then last = w.at.x + w.size.x end
+        g.edges[#g.edges + 1] = w.at.x
+        if not g.first or w.at.x < g.first then g.first = w.at.x end
+        if not g.last or w.at.x + w.size.x > g.last then g.last = w.at.x + w.size.x end
       end
     end
-    if not first then return {} end
-    local maxShift = left - first                       -- strip start reaches the left edge
-    local minShift = math.min(right - last, maxShift)   -- strip end reaches the right edge
-    local stops = {}
-    for _, x in ipairs(edges) do
-      stops[#stops + 1] = math.max(minShift, math.min(maxShift, left - x))
+    if not g.first then return nil end
+    g.maxShift = g.left - g.first                          -- strip start reaches the left edge
+    g.minShift = math.min(g.right - g.last, g.maxShift)    -- strip end reaches the right edge
+    return g
+  end
+
+  -- Rest positions as shifts (px) from where the strip is now: each column edge aligned to the
+  -- left edge, clamped to the strip's travel (so a short strip's end is a stop too), plus both ends.
+  local function stripStops()
+    local g = stripGeometry()
+    if not g then return {}, nil end
+    local stops = { g.minShift, g.maxShift }
+    for _, x in ipairs(g.edges) do
+      stops[#stops + 1] = math.max(g.minShift, math.min(g.maxShift, g.left - x))
     end
-    stops[#stops + 1] = minShift
-    stops[#stops + 1] = maxShift
     table.sort(stops)
-    return stops
+    return stops, g
   end
 
   local function stripMove(px)
@@ -44,34 +49,46 @@ let
 
   hl.gesture({ fingers = 3, direction = "horizontal", action = {
     start = function()
-      stripDrag.carry, stripDrag.total, stripDrag.velocity = 0, 0, 0
+      local g = stripGeometry()
+      stripDrag.total, stripDrag.velocity = 0, 0
+      stripDrag.first0 = g and g.first or 0
+      stripDrag.lo, stripDrag.hi = g and g.minShift or 0, g and g.maxShift or 0
     end,
     update = function(e)
-      local dx = e.delta.x * stripDrag.scale + stripDrag.carry
-      local px = dx >= 0 and math.floor(dx) or math.ceil(dx)
-      stripDrag.carry = dx - px
-      stripDrag.total = stripDrag.total + px
+      -- Track the intended offset and send the difference from the actual one: the layout pulls
+      -- positions within ~250px of the strip start back to it, swallowing small moves — see docs.
+      stripDrag.total = math.max(stripDrag.lo, math.min(stripDrag.hi,
+        stripDrag.total + e.delta.x * stripDrag.scale))
       stripDrag.velocity = stripDrag.velocity * 0.5 + e.delta.x * 0.5
-      stripMove(px)
+      local g = stripGeometry()
+      if g then stripMove(math.floor(stripDrag.total - (g.first - stripDrag.first0) + 0.5)) end
     end,
     finish = function(e)
-      -- back = nearest stop behind (shift >= 0), fwd = nearest stop ahead (shift <= 0); 3px tolerance.
-      local back, fwd
-      for _, c in ipairs(stripStops()) do
-        if math.abs(c) <= 3 then return end              -- already resting on a stop
-        if c > 0 and (not back or c < back) then back = c end
-        if c < 0 and (not fwd or c > fwd) then fwd = c end
+      -- Decide from the intended position (off = intended minus actual, from swallowed moves),
+      -- then move the actual strip onto the chosen stop. back/fwd = nearest stop behind/ahead.
+      local stops, g = stripStops()
+      if not g then return end
+      local off = stripDrag.total - (g.first - stripDrag.first0)
+      local back, fwd, here
+      for _, c in ipairs(stops) do
+        local d = c - off
+        if math.abs(d) <= 3 then here = c
+        elseif d > 0 and (not back or d < back - off) then back = c
+        elseif d < 0 and (not fwd or d > fwd - off) then fwd = c end
       end
-      local target
-      if not back or not fwd then
-        target = back or fwd
-      else
-        local gap, v = back - fwd, stripDrag.velocity
-        if e.cancelled then                 target = back < -fwd and back or fwd
-        elseif v < -stripDrag.flick then    target = fwd
-        elseif v >  stripDrag.flick then    target = back
-        elseif stripDrag.total < 0 then     target = back / gap > stripDrag.snap and fwd or back
-        else                                target = -fwd / gap > stripDrag.snap and back or fwd
+      local target = here
+      if not target then
+        if not back or not fwd then
+          target = back or fwd
+        else
+          local db, df, v = back - off, fwd - off, stripDrag.velocity
+          local gap = db - df
+          if e.cancelled then                 target = db < -df and back or fwd
+          elseif v < -stripDrag.flick then    target = fwd
+          elseif v >  stripDrag.flick then    target = back
+          elseif stripDrag.total < 0 then     target = db / gap > stripDrag.snap and fwd or back
+          else                                target = -df / gap > stripDrag.snap and back or fwd
+          end
         end
       end
       if target then stripMove(math.floor(target + 0.5)) end
