@@ -1,9 +1,11 @@
 { cfg, ... }:
 let
-  # Scrolling: horizontal swipe drags the strip, vertical switches workspaces.
+  # Scrolling: left/right swipe steps the strip one column, vertical switches workspaces.
+  # The built-in "move" action drags the window, not the strip — docs/architecture.md.
   gestures = if cfg.layout == "scrolling" then ''
-  hl.gesture({ fingers = 3, direction = "horizontal", action = "move"      })
-  hl.gesture({ fingers = 3, direction = "vertical",   action = "workspace" })
+  hl.gesture({ fingers = 3, direction = "left",     action = function() hl.dispatch(hl.dsp.layout("move +col")) end })
+  hl.gesture({ fingers = 3, direction = "right",    action = function() hl.dispatch(hl.dsp.layout("move -col")) end })
+  hl.gesture({ fingers = 3, direction = "vertical", action = "workspace" })
 '' else ''
   hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace"  })
   hl.gesture({ fingers = 3, direction = "vertical",   action = "fullscreen" })
@@ -28,9 +30,6 @@ in
       workspace_swipe_distance = 200,
       workspace_swipe_forever  = false,
       workspace_swipe_use_r    = true,
-      scrolling = {
-        move_snap_to_grid = true,  -- strip settles on a column edge after a swipe
-      },
     },
   })
 

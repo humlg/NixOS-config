@@ -273,7 +273,7 @@ Gotcha: under the Lua config, `hyprctl` hands its dispatch argument to Lua rathe
 
 `layout = "scrolling"` switches to Hyprland's built-in scrolling layout (no plugin, since 0.5x). It's on saruman only, as a trial; sauron stays on `dwindle`. It's implemented only in the Lua tree. The option also switches gestures, keybinds and animations, which are spread over `input.nix`, `keybinds.nix` and `appearance.nix`:
 
-- **Gestures:** a 3-finger horizontal swipe runs `move`, which drags the strip under the scrolling layout and snaps to a column edge (`gestures.scrolling.move_snap_to_grid`). A 3-finger vertical swipe runs `workspace`. There's no fullscreen gesture; `Super+I` covers it.
+- **Gestures:** a 3-finger swipe left or right runs a Lua function gesture that dispatches `move +col` / `move -col`, so each swipe steps the strip one column. It's discrete, not a continuous drag. The built-in `move` gesture action drags the focused *window* even under the scrolling layout, and the strip-dragging code in 0.57 isn't exposed to Lua gestures. A 3-finger vertical swipe runs `workspace`. There's no fullscreen gesture; `Super+I` covers it.
 - **Animations:** workspaces use `slidevert` so the motion matches the vertical swipe. Special workspaces switch to `slidefadevert` so they still look different from regular ones.
 - **Keybinds** (scrolling only; dwindle keeps `togglesplit`/`pseudo` on `J`/`P`):
 
