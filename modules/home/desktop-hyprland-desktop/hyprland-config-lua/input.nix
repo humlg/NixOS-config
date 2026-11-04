@@ -1,9 +1,9 @@
 { cfg, ... }:
 let
-  # Scrolling: horizontal swipe drags the strip 1:1 and snaps to a column on release;
+  # Scrolling: horizontal swipe drags the strip (2× finger speed) and snaps to a column on release;
   # vertical switches workspaces. Built-in "move" drags the window instead — docs/architecture.md.
   gestures = if cfg.layout == "scrolling" then ''
-  local stripDrag = { scale = 1.0, snap = 0.25, flick = 25, carry = 0, total = 0, velocity = 0, origin = 0 }
+  local stripDrag = { scale = 2.0, snap = 0.25, flick = 25, carry = 0, total = 0, velocity = 0, origin = 0 }
 
   -- Distinct left edges of the active workspace's tiled columns (target positions, not animated).
   local function stripEdges()
