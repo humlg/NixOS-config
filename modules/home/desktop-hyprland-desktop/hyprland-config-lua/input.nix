@@ -3,20 +3,39 @@ let
   # Scrolling: horizontal swipe drags the strip (2× finger speed) and snaps to a column on release;
   # vertical switches workspaces. Built-in "move" drags the window instead — docs/architecture.md.
   gestures = if cfg.layout == "scrolling" then ''
-  local stripDrag = { scale = 2.0, snap = 0.25, flick = 25, carry = 0, total = 0, velocity = 0, origin = 0 }
+  local stripDrag = { scale = 2.0, snap = 0.25, flick = 25, carry = 0, total = 0, velocity = 0 }
 
-  -- Distinct left edges of the active workspace's tiled columns (target positions, not animated).
-  local function stripEdges()
-    local ws, edges, seen = hl.get_active_workspace(), {}, {}
-    if not ws then return edges end
+  -- Rest positions for the active workspace's strip, as shifts (px) relative to where it is now:
+  -- every column edge aligned to the screen's left edge, clamped to how far the strip can actually
+  -- travel (so a short strip's end position is a stop too). Uses target positions, not animated ones.
+  local function stripStops()
+    local ws, m = hl.get_active_workspace(), hl.get_active_monitor()
+    if not ws or not m then return {} end
+    local border = hl.get_config("general.border_size") or 0
+    local gaps = hl.get_config("general.gaps_out")
+    local gl = type(gaps) == "table" and gaps.left or 0
+    local gr = type(gaps) == "table" and gaps.right or 0
+    local left  = m.position.x + m.reserved.left + border + gl
+    local right = m.position.x + m.size.width / m.scale - m.reserved.right - border - gr
+    local edges, first, last = {}, nil, nil
     for _, w in ipairs(hl.get_windows()) do
-      if w.workspace and w.workspace.id == ws.id and not w.floating and not seen[w.at.x] then
-        seen[w.at.x] = true
+      if w.workspace and w.workspace.id == ws.id and not w.floating then
         edges[#edges + 1] = w.at.x
+        if not first or w.at.x < first then first = w.at.x end
+        if not last or w.at.x + w.size.x > last then last = w.at.x + w.size.x end
       end
     end
-    table.sort(edges)
-    return edges
+    if not first then return {} end
+    local maxShift = left - first                       -- strip start reaches the left edge
+    local minShift = math.min(right - last, maxShift)   -- strip end reaches the right edge
+    local stops = {}
+    for _, x in ipairs(edges) do
+      stops[#stops + 1] = math.max(minShift, math.min(maxShift, left - x))
+    end
+    stops[#stops + 1] = minShift
+    stops[#stops + 1] = maxShift
+    table.sort(stops)
+    return stops
   end
 
   local function stripMove(px)
@@ -25,14 +44,6 @@ let
 
   hl.gesture({ fingers = 3, direction = "horizontal", action = {
     start = function()
-      -- Snap anchor: the column edge nearest the monitor's usable left edge.
-      local m = hl.get_active_monitor()
-      local left = m and (m.position.x + m.reserved.left) or 0
-      local best
-      for _, x in ipairs(stripEdges()) do
-        if not best or math.abs(x - left) < math.abs(best - left) then best = x end
-      end
-      stripDrag.origin = best or left
       stripDrag.carry, stripDrag.total, stripDrag.velocity = 0, 0, 0
     end,
     update = function(e)
@@ -44,23 +55,26 @@ let
       stripMove(px)
     end,
     finish = function(e)
-      local o, lo, hi = stripDrag.origin
-      for _, x in ipairs(stripEdges()) do
-        if x <= o then lo = x elseif not hi then hi = x end
+      -- back = nearest stop behind (shift >= 0), fwd = nearest stop ahead (shift <= 0); 3px tolerance.
+      local back, fwd
+      for _, c in ipairs(stripStops()) do
+        if math.abs(c) <= 3 then return end              -- already resting on a stop
+        if c > 0 and (not back or c < back) then back = c end
+        if c < 0 and (not fwd or c > fwd) then fwd = c end
       end
       local target
-      if not lo or not hi then
-        target = lo or hi
+      if not back or not fwd then
+        target = back or fwd
       else
-        local frac, v = (o - lo) / (hi - lo), stripDrag.velocity
-        if e.cancelled then                 target = frac < 0.5 and lo or hi
-        elseif v < -stripDrag.flick then    target = hi
-        elseif v >  stripDrag.flick then    target = lo
-        elseif stripDrag.total < 0 then     target = frac > stripDrag.snap and hi or lo
-        else                                target = frac < 1 - stripDrag.snap and lo or hi
+        local gap, v = back - fwd, stripDrag.velocity
+        if e.cancelled then                 target = back < -fwd and back or fwd
+        elseif v < -stripDrag.flick then    target = fwd
+        elseif v >  stripDrag.flick then    target = back
+        elseif stripDrag.total < 0 then     target = back / gap > stripDrag.snap and fwd or back
+        else                                target = -fwd / gap > stripDrag.snap and back or fwd
         end
       end
-      if target then stripMove(math.floor(o - target + 0.5)) end
+      if target then stripMove(math.floor(target + 0.5)) end
     end,
   } })
   hl.gesture({ fingers = 3, direction = "vertical", action = "workspace" })
