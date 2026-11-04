@@ -1,4 +1,14 @@
-{ ... }:
+{ cfg, ... }:
+let
+  # Scrolling: horizontal swipe drags the strip, vertical switches workspaces.
+  gestures = if cfg.layout == "scrolling" then ''
+  hl.gesture({ fingers = 3, direction = "horizontal", action = "move"      })
+  hl.gesture({ fingers = 3, direction = "vertical",   action = "workspace" })
+'' else ''
+  hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace"  })
+  hl.gesture({ fingers = 3, direction = "vertical",   action = "fullscreen" })
+'';
+in
 ''
   -- ── Input ───────────────────────────────────────────────────────
   hl.config({
@@ -18,13 +28,14 @@
       workspace_swipe_distance = 200,
       workspace_swipe_forever  = false,
       workspace_swipe_use_r    = true,
+      scrolling = {
+        move_snap_to_grid = true,  -- strip settles on a column edge after a swipe
+      },
     },
   })
 
   -- hl.gesture() is the Lua equivalent of "gesture = ..." repeated keyword
-  hl.gesture({ fingers = 3, direction = "horizontal", action = "workspace"  })
-  hl.gesture({ fingers = 3, direction = "vertical",   action = "fullscreen" })
-
+${gestures}
   -- Per-device overrides
   hl.device({ name = "aet-ms480bbt1-mouse",            sensitivity = -0.5 })
   hl.device({ name = "syna3109:00-06cb:cea3-touchpad", sensitivity = 0    })

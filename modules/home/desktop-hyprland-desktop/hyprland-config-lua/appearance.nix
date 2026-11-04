@@ -1,4 +1,10 @@
-{ ... }:
+{ cfg, ... }:
+let
+  scrolling = cfg.layout == "scrolling";
+  # Scrolling: workspaces swipe vertically, so specials switch to a fade-slide to stay distinct.
+  wsStyle      = if scrolling then "slidevert" else "slide";
+  specialStyle = if scrolling then "slidefadevert" else "slidevert";
+in
 ''
   -- ── Appearance ──────────────────────────────────────────────────
   -- wc (wallust colors) is loaded before this fragment by the main config.
@@ -14,7 +20,7 @@
       resize_on_border     = true,
       hover_icon_on_border = true,
       allow_tearing        = false,
-      layout               = "dwindle",
+      layout               = "${cfg.layout}",
     },
     decoration = {
       rounding         = 10,
@@ -58,14 +64,14 @@
   hl.animation({ leaf = "layersOut",     enabled = true, speed = 1.5,  bezier = "linear",       style = "fade" })
   hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 1.79, bezier = "almostLinear" })
   hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.39, bezier = "almostLinear" })
-  hl.animation({ leaf = "workspaces",    enabled = true, speed = 1.94, bezier = "almostLinear", style = "slide" })
-  hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "slide" })
-  hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slide" })
+  hl.animation({ leaf = "workspaces",    enabled = true, speed = 1.94, bezier = "almostLinear", style = "${wsStyle}" })
+  hl.animation({ leaf = "workspacesIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "${wsStyle}" })
+  hl.animation({ leaf = "workspacesOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "${wsStyle}" })
 
-  -- Special workspaces get a vertical "drop in" slide, distinct from the horizontal swipe above.
-  hl.animation({ leaf = "specialWorkspace",    enabled = true, speed = 1.94, bezier = "almostLinear", style = "slidevert" })
-  hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "slidevert" })
-  hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "slidevert" })
+  -- Special workspaces get a different slide style from regular workspaces so they stay distinct.
+  hl.animation({ leaf = "specialWorkspace",    enabled = true, speed = 1.94, bezier = "almostLinear", style = "${specialStyle}" })
+  hl.animation({ leaf = "specialWorkspaceIn",  enabled = true, speed = 1.21, bezier = "almostLinear", style = "${specialStyle}" })
+  hl.animation({ leaf = "specialWorkspaceOut", enabled = true, speed = 1.94, bezier = "almostLinear", style = "${specialStyle}" })
 
   -- Matches "swaync-notification-window"/"swaync-control-center" — bare "swaync" never matched.
   hl.layer_rule({

@@ -8,6 +8,12 @@
     master = {
       new_status = "master",
     },
+    scrolling = {
+      column_width             = 0.5,
+      explicit_column_widths   = "0.333, 0.5, 0.667, 1.0",  -- cycled by colresize +conf/-conf
+      fullscreen_on_one_column = true,
+      follow_focus             = 1,
+    },
     misc = {
       -- Global; stops xdg-activation focus-stealing (silentApps boot flash) — docs/architecture.md.
       focus_on_activate       = false,

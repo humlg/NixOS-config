@@ -37,6 +37,8 @@ in
 
     useNoctalia = true;  # pilot, runs alongside AGS/swaync/hyprlock/waypaper — docs/maintenance.md #19
 
+    layout = "scrolling";  # trial — docs/architecture.md "Scrolling layout"
+
     monitors = ''
       monitor = eDP-1,2880x1800@120,0x0,2,bitdepth,10,cm,wide
       monitor = desc:iiyama Corporation PL2797H 12497503A1590,1920x1080@100,1440x-258,1

@@ -151,6 +151,13 @@ in
       description = "Lua Hyprland monitor configuration lines. Used only when useLuaConfig = true.";
     };
 
+    # Lua tree only. Also switches gestures/keybinds/animations — docs/architecture.md.
+    layout = lib.mkOption {
+      type    = lib.types.enum [ "dwindle" "scrolling" ];
+      default = "dwindle";
+      description = "Tiling layout. \"scrolling\" uses Hyprland's built-in scrolling layout with matching gestures and keybinds.";
+    };
+
     extraLuaConfig = lib.mkOption {
       type    = lib.types.lines;
       default = "";

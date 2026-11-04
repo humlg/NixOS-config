@@ -117,7 +117,7 @@ desktop.hyprland-desktop = {
 | `keybinds.nix` | All keybinds — app launchers, workspace switching, media keys, screenshots |
 | `layouts.nix` | Dwindle/master layout settings, workspace rules, `misc` |
 
-`hyprland-config-lua/` mirrors the same 7 files in Lua — see "Dual Hyprland config trees" under Design decisions below for why both exist.
+`hyprland-config-lua/` mirrors the same 7 files in Lua — see "Dual Hyprland config trees" under Design decisions below for why both exist. The `layout` option (`dwindle`/`scrolling`) is implemented only in the Lua tree — see "Scrolling layout" under Design decisions.
 
 **Where to add something:**
 - New keybind → `keybinds.nix` (in the active `hyprland-config-lua/` tree)
@@ -268,6 +268,29 @@ The private key never leaves root: a oneshot service extracts it from the alread
 `modules/home/desktop-hyprland-desktop/` contains two parallel fragment sets: `hyprland-config/` (hyprlang, legacy/frozen) and `hyprland-config-lua/` (Lua, active — all hosts set `useLuaConfig = true`). See `docs/maintenance.md` #16 for why both still exist.
 
 Gotcha: under the Lua config, `hyprctl` hands its dispatch argument to Lua rather than to the hyprlang dispatcher parser. The bare `hyprctl dispatch dpms on` spelling fails to parse silently (hypridle doesn't check exit status) — use the external-Lua form instead: `hyprctl dispatch 'hl.dsp.dpms({ action = "on" })'`. `desktop-hypridle.nix` and `hyprland-config-lua/autostart.nix` both need this form.
+
+### Scrolling layout (`desktop.hyprland-desktop.layout`)
+
+`layout = "scrolling"` switches to Hyprland's built-in scrolling layout (no plugin, since 0.5x). It's on saruman only, as a trial; sauron stays on `dwindle`. It's implemented only in the Lua tree. The option also switches gestures, keybinds and animations, which are spread over `input.nix`, `keybinds.nix` and `appearance.nix`:
+
+- **Gestures:** a 3-finger horizontal swipe runs `move`, which drags the strip under the scrolling layout and snaps to a column edge (`gestures.scrolling.move_snap_to_grid`). A 3-finger vertical swipe runs `workspace`. There's no fullscreen gesture; `Super+I` covers it.
+- **Animations:** workspaces use `slidevert` so the motion matches the vertical swipe. Special workspaces switch to `slidefadevert` so they still look different from regular ones.
+- **Keybinds** (scrolling only; dwindle keeps `togglesplit`/`pseudo` on `J`/`P`):
+
+  | Key | Action |
+  |---|---|
+  | `Super+J` / `Super+Shift+J` | `colresize +conf` / `-conf` (cycles through `explicit_column_widths`) |
+  | `Super+P` | `promote` (pull the window out into its own column) |
+  | `Super+Z` | `fit visible` |
+  | `Super+Alt+←/→` | `swapcol l/r` |
+  | `Super+Alt+↑/↓` | `consume` / `expel` |
+  | `Super+Alt+Shift+←/→` | move the window to the left/right monitor |
+  | `Super+wheel` | `move ±col` (scroll the strip) |
+  | `Super+Shift+wheel` | switch workspace (the old `Super+wheel` behaviour) |
+
+  `Super+arrows` and `Super+Shift+arrows` act along the strip first and only cross to the other monitor at the strip's edge.
+
+Layoutmsg names came from the 0.57 binary's strings, not from upstream docs. Still unverified at the time of writing: whether `consume`/`expel` need an argument, and whether `window.move({ monitor = ... })` is accepted.
 
 ### Lid-close/undock edge-detection design
 

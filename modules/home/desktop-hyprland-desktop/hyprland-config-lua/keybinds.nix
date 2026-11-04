@@ -4,6 +4,39 @@ let
     hl.bind(mainMod .. " + ${a.key}",         hl.dsp.workspace.toggle_special("${a.workspace}"))
     hl.bind(mainMod .. " + SHIFT + ${a.key}", hl.dsp.window.move({ workspace = "special:${a.workspace}" }))
   '') cfg.silentApps;
+
+  scrolling = cfg.layout == "scrolling";
+
+  # Dwindle-only binds; scrolling repurposes these keys below.
+  dwindleBinds = ''
+  hl.bind(mainMod .. " + P",           hl.dsp.window.pseudo())
+  hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
+  '';
+
+  # Scrolling layout binds — keymap rationale in docs/architecture.md.
+  scrollingBinds = ''
+  hl.bind(mainMod .. " + J",           hl.dsp.layout("colresize +conf"))
+  hl.bind(mainMod .. " + SHIFT + J",   hl.dsp.layout("colresize -conf"))
+  hl.bind(mainMod .. " + P",           hl.dsp.layout("promote"))
+  hl.bind(mainMod .. " + Z",           hl.dsp.layout("fit visible"))
+  hl.bind(mainMod .. " + ALT + left",  hl.dsp.layout("swapcol l"))
+  hl.bind(mainMod .. " + ALT + right", hl.dsp.layout("swapcol r"))
+  hl.bind(mainMod .. " + ALT + up",    hl.dsp.layout("consume"))
+  hl.bind(mainMod .. " + ALT + down",  hl.dsp.layout("expel"))
+  hl.bind(mainMod .. " + ALT + SHIFT + left",  hl.dsp.window.move({ monitor = "l" }))
+  hl.bind(mainMod .. " + ALT + SHIFT + right", hl.dsp.window.move({ monitor = "r" }))
+  '';
+
+  # Scrolling: plain wheel scrolls the strip, Shift+wheel keeps workspace switching.
+  wheelBinds = if scrolling then ''
+  hl.bind(mainMod .. " + mouse_down",         hl.dsp.layout("move +col"))
+  hl.bind(mainMod .. " + mouse_up",           hl.dsp.layout("move -col"))
+  hl.bind(mainMod .. " + SHIFT + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
+  hl.bind(mainMod .. " + SHIFT + mouse_up",   hl.dsp.focus({ workspace = "e-1" }))
+  '' else ''
+  hl.bind(mainMod .. " + mouse_down",   hl.dsp.focus({ workspace = "e+1" }))
+  hl.bind(mainMod .. " + mouse_up",     hl.dsp.focus({ workspace = "e-1" }))
+  '';
 in
 ''
   -- ── Keybinds ────────────────────────────────────────────────────
@@ -23,9 +56,7 @@ in
   hl.bind(mainMod .. " + O",           hl.dsp.window.float({ action = "toggle" }))
   hl.bind(mainMod .. " + I",           hl.dsp.window.fullscreen())
   hl.bind(mainMod .. " + R",           hl.dsp.exec_cmd(${if cfg.useNoctalia then ''"noctalia msg panel-toggle launcher"'' else "menu"}))
-  hl.bind(mainMod .. " + P",           hl.dsp.window.pseudo())
-  hl.bind(mainMod .. " + J",           hl.dsp.layout("togglesplit"))
-  hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
+${if scrolling then scrollingBinds else dwindleBinds}  hl.bind(mainMod .. " + F",           hl.dsp.exec_cmd(webBrowser))
   hl.bind(mainMod .. " + SHIFT + F",   hl.dsp.exec_cmd(webBrowser .. " --private-window"))
   -- Matches hypridle.nix's lock_cmd branch so keybind and idle-triggered lock agree.
   hl.bind(mainMod .. " + L",           hl.dsp.exec_cmd(${if cfg.useNoctalia then ''"noctalia msg session lock"'' else "lockScreen"}))
@@ -112,9 +143,7 @@ ${silentAppBinds}  hl.bind(mainMod .. " + X",         hl.dsp.workspace.toggle_sp
   hl.bind(mainMod .. " + SHIFT + X", hl.dsp.window.move({ workspace = "special:dashboard" }))
 
   -- Scroll / Ctrl+arrow workspace navigation
-  hl.bind(mainMod .. " + mouse_down",   hl.dsp.focus({ workspace = "e+1" }))
-  hl.bind(mainMod .. " + mouse_up",     hl.dsp.focus({ workspace = "e-1" }))
-  hl.bind(mainMod .. " + CTRL + right", hl.dsp.focus({ workspace = "+1" }))
+${wheelBinds}  hl.bind(mainMod .. " + CTRL + right", hl.dsp.focus({ workspace = "+1" }))
   hl.bind(mainMod .. " + CTRL + left",  hl.dsp.focus({ workspace = "-1" }))
 
   -- Mouse move/resize
