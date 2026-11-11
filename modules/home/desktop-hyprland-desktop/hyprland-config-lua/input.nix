@@ -29,6 +29,7 @@ in
       workspace_swipe_distance = 200,
       workspace_swipe_forever  = false,
       workspace_swipe_use_r    = true,
+      scrolling = { move_snap_cursor = false },  -- scroll_move: leave cursor put on release
     },
   })
 
