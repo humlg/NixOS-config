@@ -7,6 +7,7 @@ let
       match            = { ${if a.matchInitial then "initial_class" else "class"} = [[${a.class}]] },
       workspace        = "special:${a.workspace} silent",
       no_initial_focus = true,
+      focus_on_activate = false,  -- per-window override of the global; docs/architecture.md
     })
   '') cfg.silentApps;
 in

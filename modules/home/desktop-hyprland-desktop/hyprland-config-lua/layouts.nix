@@ -15,8 +15,8 @@
       follow_focus             = 1,
     },
     misc = {
-      -- Global; stops xdg-activation focus-stealing (silentApps boot flash) — docs/architecture.md.
-      focus_on_activate       = false,
+      -- On globally (links focus the browser); silentApps opt out per-window — docs/architecture.md.
+      focus_on_activate       = true,
       force_default_wallpaper = 0,
       disable_hyprland_logo   = true,
     },
