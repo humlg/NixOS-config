@@ -7,7 +7,7 @@ in
   imports = [
     inputs.noctalia.homeModules.default
   ];
-
+  # This is a friendly comment :)
   # Gated on useNoctalia — runs alongside AGS/swaync/hyprlock/waypaper, disables none of them.
   config = lib.mkIf (cfg.enable && cfg.useNoctalia) {
     programs.noctalia = {
