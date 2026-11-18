@@ -150,7 +150,7 @@ Bundles aggregate related packages and their configs under a single toggle. They
 | Bundle | Toggle | What it installs |
 |--------|--------|-----------------|
 | `bundle-general.nix` (home) | `bundles.general.enable` | Daily-driver HM packages: Firefox, Thunderbird, Obsidian, MPV, file tools (`ripgrep`, `fd`, `fzf`, `jq`), Python, ffmpeg, lazygit. Also enables the program modules: git, kitty, vim, neovim, btop, claude-code. |
-| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. |
+| `bundle-desktop-apps.nix` (home) | `bundles.desktop-apps.enable` | Common GUI apps: Discord, VS Code, Kate, Chromium, Spotify. Also binds Scroll Lock/F15 to Discord toggle mute (Hyprland GlobalShortcuts portal). |
 | `bundle-workstation.nix` (nixos) | `bundles.workstation.enable` | Desktop-workstation extras shared by sauron+saruman: colord, OpenRGB, Zen Browser, Mullvad, KDE Connect, Ollama, Moonlight, Sunshine, Noctalia. |
 | `bundle-workstation.nix` (home) | `bundles.workstation.enable` | Home-manager counterpart: SSH keys, VPN-bound Transmission, Jellyfin media player, `bundle-desktop-apps.nix`. |
 | `bundle-photography.nix` (nixos) | `bundles.photography.enable` | GIMP, Inkscape, Darktable, RawTherapee (custom overlay), gPhoto2. |

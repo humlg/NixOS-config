@@ -163,11 +163,6 @@ ${wheelBinds}  hl.bind(mainMod .. " + CTRL + right", hl.dsp.focus({ workspace = 
   hl.bind("XF86AudioPlay",         hl.dsp.exec_cmd("playerctl play-pause"),  { locked = true })
   hl.bind("XF86AudioPrev",         hl.dsp.exec_cmd("playerctl previous"),    { locked = true })
 
-  -- Discord toggle mute via GlobalShortcuts portal (Discord ≥1.0.x registers it; check `hyprctl globalshortcuts`).
-  -- Both keysyms, since the Scroll Lock key may report as either.
-  hl.bind("F15",         hl.dsp.global("discord:discord-toggle-mute"), { locked = true })
-  hl.bind("Scroll_Lock", hl.dsp.global("discord:discord-toggle-mute"), { locked = true })
-
   -- Screenshot (Noctalia's own capture, not hyprshot)
   hl.bind("PRINT",         hl.dsp.exec_cmd("noctalia msg screenshot-region"))
   hl.bind("SHIFT + PRINT", hl.dsp.exec_cmd("noctalia msg screenshot-fullscreen"))
