@@ -5,7 +5,7 @@ let
   resolutionToggle = pkgs.writeShellScriptBin "resolution-toggle" ''
     width=$(hyprctl monitors -j | ${pkgs.jq}/bin/jq -r '.[] | select(.name=="eDP-1") | .width')
     if [ "$width" = "1920" ]; then
-      hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "2880x1800@120", position = "0x0", scale = 2, bitdepth = 10, cm = "edid" })'
+      hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "2880x1800@120", position = "0x0", scale = 2, bitdepth = 10, cm = "edid", supports_wide_color = -1 })'
       ${pkgs.libnotify}/bin/notify-send -t 1500 "Resolution" "Native (2880x1800)" || true
     else
       hyprctl eval 'hl.monitor({ output = "eDP-1", mode = "1920x1080@120", position = "0x0", scale = 1, cm = "srgb" })'
@@ -43,7 +43,7 @@ in
       monitor = ,preferred,auto,1,mirror,eDP-1
     '';
     monitorsLua = ''
-      hl.monitor({ output = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "edid" })  -- panel EDID primaries — docs/architecture.md "eDP color preset"
+      hl.monitor({ output = "eDP-1", mode = "2880x1800@120",  position = "0x0",    scale = 2, bitdepth = 10, cm = "edid", supports_wide_color = -1 })  -- -1: OLED ignores backlight under BT.2020 flag, docs/maintenance.md #33
       hl.monitor({ output = "desc:iiyama Corporation PL2797H 12497503A1590", mode = "1920x1080@100", position = "1440x-258", scale = 1 })
       hl.monitor({ output = "",      mode = "preferred",       position = "auto",   scale = 1, mirror = "eDP-1" })
     '';

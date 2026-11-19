@@ -1371,6 +1371,35 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 33. Saruman: eDP brightness dead under Hyprland 0.57 with `cm = "edid"` (2026-11-19, workaround)
+- **Where:** `hosts/saruman/home.nix`, the eDP-1 `hl.monitor` rule and the
+  native branch of `resolution-toggle`, both with `supports_wide_color = -1`.
+- **What:** after the flake update to Hyprland 0.57 (0.57.0, and still
+  present in 0.57.2), the brightness keys and Noctalia slider updated
+  `amdgpu_bl1` (`actual_brightness` tracked) but the OLED panel (Samsung
+  ATNA45AF02) never changed. Brightness worked on a text console on the same
+  kernel and under Hyprland 0.56.2, so it's neither the kernel nor permissions
+  (#25, #29).
+- **Diagnosis:** in 0.57's `CMonitor::applyCMType` (`src/output/Monitor.cpp`),
+  the `CM_EDID` image description sets `primariesNamed = CM_PRIMARIES_BT2020`
+  even though its actual primaries are the EDID's. `wantsWideColor()` keys off
+  that name, so Hyprland sets the connector `Colorspace` to `BT2020_RGB`, the
+  same as `cm = "wide"`. While that flag is set, the panel ignores AUX
+  backlight changes. Confirmed with `drm_info`: `Colorspace` 9 → no
+  dimming; `srgb` (Colorspace 0) → dimming works.
+- **Fix:** `supports_wide_color = -1` forces `wantsWideColor()` false, so no
+  BT.2020 flag is sent (Colorspace 0). The `edid` color mapping doesn't depend
+  on that flag and still uses the EDID primaries, so the colors are unchanged.
+  Side effect: it also disables HDR (`supportsHDR()` requires wide color),
+  which saruman doesn't use. Lua-only: Hyprland 0.57 no longer parses the
+  hyprlang tree, so the hyprlang `monitors` line wasn't changed.
+- **Removal condition:** Hyprland stops tagging the `edid` preset as BT.2020
+  (check `case NCMType::CM_EDID` in `src/output/Monitor.cpp`), or the panel is
+  found to honour backlight with the flag set. Remove `supports_wide_color`
+  and confirm brightness keys still dim the panel.
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it
