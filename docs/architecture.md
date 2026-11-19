@@ -215,6 +215,7 @@ Overlays replace or augment packages from nixpkgs. They are registered in `flake
 | File | What it does |
 |------|-------------|
 | `rawtherapee-dev.nix` | Replaces RawTherapee with a development/git version. |
+| `noctalia-perceptual-backlight.nix` | Adds `pkgs.noctalia-patched`: Noctalia from its flake with the backlight shown and stepped in perceived lightness (CIE L*). Takes flake `inputs` (`import … inputs`). Used by both `desktop-noctalia.nix` modules. `docs/maintenance.md` #35. |
 
 **Where to add something:** if you need a newer version of a package than nixpkgs ships, or need to patch one, add an overlay here and register it in `flake.nix`.
 

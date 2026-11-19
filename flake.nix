@@ -62,6 +62,7 @@
       (import ./overlays/hypr-dynamic-cursors-hl-pin.nix)
       (import ./overlays/openrgb-darkproject-bushido.nix)
       (import ./overlays/gearlever-wrapper-fix.nix)
+      (import ./overlays/noctalia-perceptual-backlight.nix inputs)
     ];
     overlayModule = {
       nixpkgs.overlays = overlays;

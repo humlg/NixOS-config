@@ -1426,6 +1426,36 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 35. Noctalia backlight slider/OSD/keys use perceived brightness (2026-11-19, source patch)
+- **Where:** `patches/noctalia-perceptual-backlight.patch`, applied by
+  `overlays/noctalia-perceptual-backlight.nix` (`pkgs.noctalia-patched`, used by
+  `modules/home/desktop-noctalia.nix` and `modules/nixos/desktop-noctalia.nix`).
+  The brightness keys in
+  `modules/home/desktop-hyprland-desktop/hyprland-config-lua/keybinds.nix` call
+  `noctalia msg brightness-up/down 5` when `useNoctalia` is on.
+- **What:** Noctalia maps the sysfs backlight linearly (raw ÷ max). saruman's
+  OLED backlight is linear in nits (#25, #34), so the bottom of the slider was
+  crowded and the top barely changed perceived brightness. The keys also
+  disagreed with it: they used `brightnessctl -e` (exponent-4 curve), while the
+  slider/OSD showed linear percentages.
+- **Fix:** `backlightToPerceived()`/`backlightToLinear()` in
+  `src/system/brightness_service.cpp` convert between linear luminance and CIE
+  L* in the three backlight paths (`readBacklightBrightness`,
+  `setBacklightBrightness`, `writeSysfsBacklight`). The slider, OSD, IPC,
+  minimum brightness and scheduled brightness then all work in perceived
+  lightness. The DDC (external monitor) path is untouched. Keys now go through
+  Noctalia, so a 5% step is 5% of perceived lightness on the same scale as the
+  slider. "current" target = focused monitor, so with an external DDC monitor
+  focused the keys adjust that monitor.
+- **Side effects:** Noctalia is built locally from the patched source. The
+  stored `scheduled-*-brightness` and `minimum-brightness` values are now
+  interpreted as perceived levels and may need re-tuning.
+- **Removal condition:** Noctalia gains a built-in perceptual/gamma option for
+  backlight devices, or the patch stops applying after a Noctalia update
+  (regenerate it against the new `brightness_service.cpp`).
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it

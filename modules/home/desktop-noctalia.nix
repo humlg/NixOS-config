@@ -13,7 +13,7 @@ in
     programs.noctalia = {
       enable = true;
       systemd.enable = true;
-      package = inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      package = pkgs.noctalia-patched;  # perceptual backlight, docs/maintenance.md #35
       # Wallust still drives every other themed app; Noctalia gets its own
       # wallpaper-derived palette (won't match wallust's exactly) — docs/architecture.md.
       settings.hooks.wallpaper_changed = ''wallust run -s "$NOCTALIA_WALLPAPER_PATH" && reload-desktop'';

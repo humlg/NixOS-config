@@ -7,6 +7,10 @@ let
 
   scrolling = cfg.layout == "scrolling";
 
+  # Noctalia steps in perceived lightness (docs/maintenance.md #35) and shows its OSD.
+  brightnessUp   = if cfg.useNoctalia then "noctalia msg brightness-up 5"   else "brightnessctl -e set 5%+";
+  brightnessDown = if cfg.useNoctalia then "noctalia msg brightness-down 5" else "brightnessctl -e set 5%-";
+
   # Dwindle-only binds; scrolling repurposes these keys below.
   dwindleBinds = ''
   hl.bind(mainMod .. " + P",           hl.dsp.window.pseudo())
@@ -155,8 +159,8 @@ ${wheelBinds}  hl.bind(mainMod .. " + CTRL + right", hl.dsp.focus({ workspace = 
   hl.bind("XF86AudioLowerVolume",  hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@   5%-"),            { locked = true, repeating = true })
   hl.bind("XF86AudioMute",         hl.dsp.exec_cmd("wpctl set-mute   @DEFAULT_AUDIO_SINK@   toggle"),         { locked = true, repeating = true })
   hl.bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute   @DEFAULT_AUDIO_SOURCE@ toggle"),         { locked = true, repeating = true })
-  hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -e set 5%+"),                               { locked = true, repeating = true })
-  hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -e set 5%-"),                               { locked = true, repeating = true })
+  hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("${brightnessUp}"),   { locked = true, repeating = true })
+  hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("${brightnessDown}"), { locked = true, repeating = true })
   hl.bind("XF86Calculator",        hl.dsp.exec_cmd("gnome-calculator"),                                       { locked = true, repeating = true })
   hl.bind("XF86AudioNext",         hl.dsp.exec_cmd("playerctl next"),        { locked = true })
   hl.bind("XF86AudioPause",        hl.dsp.exec_cmd("playerctl play-pause"),  { locked = true })
