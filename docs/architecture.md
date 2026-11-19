@@ -355,6 +355,14 @@ Home Manager has no `services.udev.packages` equivalent — a package's
 udev-rule-carrying tool into the user profile therefore silently gets you the
 binary without its rules.
 
+### eDP color preset on saruman (`cm = "edid"`)
+
+saruman's panel (Samsung ATNA45AF02 OLED) is 10-bit with a ~DCI-P3 gamut and D65 white, per its EDID. Its native mode uses `bitdepth = 10, cm = "edid"`, so Hyprland maps sRGB and color-managed content onto the panel's real primaries:
+- `srgb` would show sRGB content oversaturated.
+- `wide` assumes a BT.2020 gamut the panel doesn't have.
+
+EDID values are model-typical, not per-unit calibration. Precise work would need a colorimeter-measured ICC profile. The 1920×1080 TV-mirroring mode in `resolution-toggle` stays on `cm = "srgb"` at 8-bit on purpose, because the mirrored output is consumed by an sRGB TV. The panel also advertises HDR (PQ, ~617 nits peak), but `hdr` isn't used: desktop content gets tone-mapped, and it may interact with the backlight quirks (`docs/maintenance.md` #25, #29).
+
 ---
 
 ## Quick reference: "where do I go to change X?"
