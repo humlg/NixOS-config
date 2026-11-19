@@ -74,6 +74,7 @@ These are imported in `configuration.nix`. They configure the OS, not the user.
 | `system-secrets.nix` | agenix `age.secrets` declarations — what each secret decrypts to, owner, mode. See `docs/secrets.md`. |
 | `system-nvidia.nix` | Proprietary NVIDIA driver config (sauron only, currently orphaned). |
 | `system-sddm.nix` | SDDM display manager with Qt6 and astronaut theme, Wayland session. |
+| `system-amdgpu-oled-peak-brightness.nix` | `custom.amdgpu-oled-peak-brightness` — kernel patch: 100% eDP backlight = EDID peak (MaxCLL), not frame-average. saruman only; compiles the kernel locally. `docs/maintenance.md` #34. |
 
 **Where to add something:** system service, kernel module, user account tweak, font → whichever `system-*.nix` piece matches the concern (wired into `system-common.nix`'s `imports`) if it belongs on every machine, or directly in `hosts/<name>/configuration.nix` if it's machine-specific.
 

@@ -19,6 +19,7 @@
     ../../modules/nixos/service-wireguard-saruman.nix
     ../../modules/nixos/system-amdgpu-s2idle-patch.nix
     ../../modules/nixos/system-amdgpu-hdmi-scdc-fix.nix
+    ../../modules/nixos/system-amdgpu-oled-peak-brightness.nix
     ../../modules/nixos/system-tui-askpass.nix
     ../../modules/nixos/program-solidcraft.nix
   ];
@@ -79,6 +80,9 @@
   # Re-enabled 2026-10-16, confirmed fixes a live HDMI-A-1 "connected but
   # disabled" repro (-22 vendor-infoframe failure) — docs/maintenance.md #23/#24.
   custom.amdgpu-hdmi-scdc-fix.enable = true;
+
+  # 100% backlight = panel peak (~616 nits) instead of 400 — docs/maintenance.md #34.
+  custom.amdgpu-oled-peak-brightness.enable = true;
 
   # ideapad_laptop: ~80% battery charge conservation mode. sg: needed by Brasero/libburn to burn (not just read).
   boot.kernelModules = [ "ideapad_laptop" "sg" ];

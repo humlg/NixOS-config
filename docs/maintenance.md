@@ -1400,6 +1400,32 @@ Last full scan: 2026-07-16.
 
 ---
 
+### 34. Saruman: OLED 100% backlight raised from 400 to ~616 nits (2026-11-19, kernel patch, needs verification)
+- **Where:** `patches/amdgpu-oled-peak-brightness.patch`, applied by
+  `modules/nixos/system-amdgpu-oled-peak-brightness.nix`
+  (`custom.amdgpu-oled-peak-brightness.enable` in `hosts/saruman/configuration.nix`).
+- **What:** with #33's fix in place, full white at 100% was visibly dimmer than
+  in #33's broken state, where the panel ignored the kernel and picked its own
+  output level.
+- **Diagnosis:** the panel's brightness is set over AUX in nits.
+  `amdgpu_dm_update_connector_ext_caps()` (`amdgpu_dm_backlight.c`) sets
+  `aux_max_input_signal` from `display_info.luminance_range.max_luminance`.
+  `drm_calculate_luminance_range()` (`drm_edid.c`) derives that from the
+  EDID's MaxFALL (max frame-average), which is code 96 → 400 nits on this
+  panel. The EDID's MaxCLL (peak) is code 116 → ~616 nits.
+- **Fix:** the patch raises `aux_max_input_signal` to the MaxCLL-derived value
+  when that's higher. It only changes the top of the brightness scale. Rebuilds
+  the kernel locally on every version bump; it shares that compile with #23.
+- **Caveats:** above 400 nits is beyond the panel's advertised sustained
+  full-screen level. Expect higher power draw and faster OLED wear, and the
+  panel may limit large bright areas itself.
+- **Removal condition:** user prefers the stock 400-nit ceiling, the patch
+  stops applying on a kernel bump (regenerate it against the new
+  `amdgpu_dm_backlight.c`), or upstream starts using peak luminance for the
+  AUX ceiling.
+
+---
+
 ## Historical bodges (already resolved — kept here for context only)
 
 These aren't live tech debt, but they explain *why* some code looks the way it

@@ -1,0 +1,29 @@
+Use the eDP panel's peak luminance (EDID MaxCLL) as the AUX backlight 100%
+point instead of its max frame-average (MaxFALL). Saruman's Samsung
+ATNA45AF02 OLED: 400 -> ~616 nits. See docs/maintenance.md #34.
+
+--- a/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_backlight.c	2026-11-19 14:04:24.294915296 +0100
++++ b/drivers/gpu/drm/amd/display/amdgpu_dm/amdgpu_dm_backlight.c	2026-11-19 14:04:24.367647113 +0100
+@@ -614,6 +614,22 @@
+ 	else
+ 		caps->aux_max_input_signal = 512;
+ 
++	/*
++	 * Treat the panel's peak luminance (MaxCLL) as 100% instead of its
++	 * max frame-average (MaxFALL), when the EDID advertises a higher peak.
++	 */
++	{
++		static const u8 cv_frac[] = {
++			50, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 63, 65, 66, 68, 69,
++			71, 72, 74, 75, 77, 79, 81, 82, 84, 86, 88, 90, 92, 94, 96, 98
++		};
++		u16 cv = conn_base->display_info.hdr_sink_metadata.hdmi_type1.max_cll;
++		u32 peak = (cv && cv < 256) ? (1u << (cv >> 5)) * cv_frac[cv % 32] : 0;
++
++		if (peak > caps->aux_max_input_signal)
++			caps->aux_max_input_signal = peak;
++	}
++
+ 	if (luminance_range->min_luminance)
+ 		caps->aux_min_input_signal = luminance_range->min_luminance;
+ 	else
